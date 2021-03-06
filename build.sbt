@@ -43,6 +43,13 @@ libraryDependencies ++= Seq(
 libraryDependencies += "eu.timepit" %% "refined" % "0.9.21"
 libraryDependencies += "io.estatico" %% "newtype" % "0.4.4"
 
+val circeVersion = "0.12.3"
+libraryDependencies ++= Seq(
+  "io.circe" %% "circe-core",
+  "io.circe" %% "circe-generic",
+  "io.circe" %% "circe-parser"
+).map(_ % circeVersion)
+
 javaOptions in Runtime += "-Dconfig.file=./conf/application.dev.conf"
 envFileName in ThisBuild := ".env"
 
