@@ -1,0 +1,11 @@
+version: "3"
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: PostgresDockerfile
+    ports:
+      - "5432:5432"
+    environment:
+      - "POSTGRES_USER=${DB_USER}"
+      - "POSTGRES_PASSWORD=${DB_PASSWORD}"
