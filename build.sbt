@@ -37,9 +37,11 @@ libraryDependencies ++= Seq(
   "com.typesafe.play"    %% "play-slick"            % "5.0.0",
   "com.typesafe.play"    %% "play-slick-evolutions" % "5.0.0",
   "com.typesafe.slick"   %% "slick-codegen"         % "3.3.2",
-  "com.typesafe.slick"   %% "slick-codegen"         % "3.3.2",
   evolutions
 )
+
+libraryDependencies += "eu.timepit" %% "refined" % "0.9.21"
+libraryDependencies += "io.estatico" %% "newtype" % "0.4.4"
 
 javaOptions in Runtime += "-Dconfig.file=./conf/application.dev.conf"
 envFileName in ThisBuild := ".env"
