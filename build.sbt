@@ -28,6 +28,10 @@ lazy val root = (project in file("."))
     }
   )
 
+scalacOptions ++= Seq(
+  "-Ymacro-annotations"
+)
+
 scalaVersion := "2.13.3"
 
 libraryDependencies += guice
@@ -39,6 +43,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick"   %% "slick-codegen"         % "3.3.2",
   evolutions
 )
+
 
 libraryDependencies += "eu.timepit" %% "refined" % "0.9.21"
 libraryDependencies += "io.estatico" %% "newtype" % "0.4.4"
