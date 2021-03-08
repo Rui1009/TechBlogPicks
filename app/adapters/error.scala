@@ -41,8 +41,8 @@ final case class NotFoundError(error: UseCaseError) extends AdapterError {
 
 object AdapterError {
   def create(error: UseCaseError): Unit = error match {
-    case e if SystemError    => InternalServerError(e)
-    case e if UNotFoundError => NotFoundError(e)
-    case e if BadParamsError => BadRequestError(Some(e))
+    case e: SystemError    => InternalServerError(e)
+    case e: UNotFoundError => NotFoundError(e)
+    case e: BadParamsError => BadRequestError(Some(e))
   }
 }
