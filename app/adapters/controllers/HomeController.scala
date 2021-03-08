@@ -1,4 +1,4 @@
-package controllers
+package adapters.controllers
 
 import javax.inject._
 import play.api._
