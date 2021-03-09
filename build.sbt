@@ -35,7 +35,6 @@ scalacOptions ++= Seq(
 scalaVersion := "2.13.3"
 
 libraryDependencies += guice
-libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
 libraryDependencies ++= Seq(
   "org.postgresql"       % "postgresql"             % "42.2.14",
   "com.typesafe.play"    %% "play-slick"            % "5.0.0",
@@ -54,6 +53,12 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-generic",
   "io.circe" %% "circe-parser"
 ).map(_ % circeVersion)
+
+libraryDependencies ++= Seq(
+  "org.scalatestplus.play"   %% "scalatestplus-play"  % "5.1.0",
+  "org.scalatestplus"        %% "scalacheck-1-14"     % "3.2.2.0",
+  "org.scalacheck"           %% "scalacheck"          % "1.15.2",
+).map(_ % Test)
 
 javaOptions in Runtime += "-Dconfig.file=./conf/application.dev.conf"
 envFileName in ThisBuild := ".env"
