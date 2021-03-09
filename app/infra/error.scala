@@ -1,7 +1,7 @@
 package infra
 
-sealed abstract class InfraError(message: String) {
-  val errorMessage: String = s"""
+sealed abstract class InfraError(message: String) extends Exception {
+  override def getMessage: String = s"""
                                 |${this.getClass.getSimpleName}
                                 |${message}
      """.stripMargin

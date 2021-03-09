@@ -1,7 +1,7 @@
 package usecases
 
 sealed abstract class UseCaseError(message: String) extends Exception {
-  val errorMessage: String = s"""
+  override def getMessage: String = s"""
                        |${this.getClass.getSimpleName}
                        |${message}
      """.stripMargin
