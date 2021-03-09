@@ -9,8 +9,8 @@ import io.estatico.newtype.macros.newtype
 import eu.timepit.refined.refineV
 import eu.timepit.refined.string.Url
 
-final case class Post(id: PostId,
-                      url: PostUrl,
+final case class Post(id: Option[PostId],
+                      url: Option[PostUrl],
                       title: PostTitle,
                       postedAt: PostedAt)
 
