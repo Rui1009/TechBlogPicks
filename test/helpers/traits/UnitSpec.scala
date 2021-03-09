@@ -7,9 +7,10 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 trait UnitSpec
     extends AnyWordSpec
-    with ScalaFutures
-    with OptionValues
-    with EitherValues
-    with BeforeAndAfter
-    with Inside
-    with ScalaCheckDrivenPropertyChecks
+    with ScalaFutures // Futureへの簡易アクセッサ
+    with OptionValues // Optionの簡易アクセッサ
+    with EitherValues // Eitherの簡易アクセッサ
+    with PrivateMethodTester // プライベートフィールドアクセス
+    with BeforeAndAfter // before/after用
+    with Inside // モデルがネストしたときの簡易テスト構文
+    with ScalaCheckDrivenPropertyChecks // pbt用

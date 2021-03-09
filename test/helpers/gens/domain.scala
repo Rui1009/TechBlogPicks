@@ -3,9 +3,11 @@ package helpers.gens
 import domains.accesstokenpublisher.AccessTokenPublisher
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
 import org.scalacheck.Gen
-import helpers.gens.StringGen.stringRefinedNonEmptyGen
+import helpers.gens.string._
 
-object AccessTokenPublisherGen {
+object domain extends DomainGen
+
+trait DomainGen {
   val accessTokenGen: Gen[AccessTokenPublisherToken] =
     stringRefinedNonEmptyGen.map(AccessTokenPublisherToken(_))
 

@@ -6,7 +6,9 @@ import eu.timepit.refined.refineV
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 
-object StringGen {
+object string extends StringGen
+
+trait StringGen {
   val nonEmptyStringGen: Gen[String] =
     Gen.nonEmptyListOf[Char](alphaChar).map(_.mkString)
 
