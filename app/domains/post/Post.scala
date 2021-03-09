@@ -9,10 +9,12 @@ import io.estatico.newtype.macros.newtype
 import eu.timepit.refined.refineV
 import eu.timepit.refined.string.Url
 
-final case class Post(id: Option[PostId],
-                      url: Option[PostUrl],
-                      title: PostTitle,
-                      postedAt: PostPostedAt)
+final case class Post(
+    id: Option[PostId],
+    url: Option[PostUrl],
+    title: PostTitle,
+    postedAt: PostPostedAt
+)
 
 object Post {
   @newtype case class PostId(value: Long Refined Positive)
