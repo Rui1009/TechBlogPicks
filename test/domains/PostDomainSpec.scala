@@ -8,7 +8,7 @@ import org.scalacheck.Gen
 class PostDomainSpec extends ModelSpec {
   "PostId.create" when {
     "given positive long " should {
-      "return Right value witch equals given arg value" in {
+      "return Right value which equals given arg value" in {
         forAll(longRefinedPositiveGen) { n =>
           val result = PostId.create(n.value)
           assert(result.map(_.value) == n.asRight)
@@ -35,7 +35,7 @@ class PostDomainSpec extends ModelSpec {
 
   "PostUrl.create" when {
     "given valid string" should {
-      "return Right value witch equals given arg value" in {
+      "return Right value which equals given arg value" in {
         forAll(stringRefinedUrlGen) { url =>
           val result = PostUrl.create(url.value)
           assert(result.map(_.value) == url.asRight)
@@ -55,7 +55,7 @@ class PostDomainSpec extends ModelSpec {
 
   "PostTitle.create" when {
     "given non empty string" should {
-      "return Right value witch equals given arg value" in {
+      "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
           val result = PostTitle.create(str.value)
           assert(result.map(_.value) == str.asRight)
@@ -73,7 +73,7 @@ class PostDomainSpec extends ModelSpec {
 
   "PostedAt.create" when {
     "given positive long " should {
-      "return Right value witch equals given arg value" in {
+      "return Right value which equals given arg value" in {
         forAll(longRefinedPositiveGen) { n =>
           val result = PostPostedAt.create(n.value)
           assert(result.map(_.value) == n.asRight)
