@@ -14,7 +14,7 @@ trait StringGen {
     Gen.nonEmptyListOf[Char](alphaChar).map(_.mkString)
 
   val stringRefinedNonEmptyGen: Gen[Refined[String, NonEmpty]] =
-    nonEmptyStringGen.map(s => refineV[NonEmpty](s).right.get)
+    nonEmptyStringGen.map(refineV[NonEmpty].unsafeFrom(_))
 
   val urlGen: Gen[String] = (for {
     protocol <- oneOf("http", "https")
