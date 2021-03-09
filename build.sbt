@@ -44,7 +44,10 @@ libraryDependencies ++= Seq(
 )
 
 
-libraryDependencies += "eu.timepit" %% "refined" % "0.9.21"
+libraryDependencies ++= Seq(
+  "eu.timepit" %% "refined" % "0.9.21",
+  "eu.timepit" %% "refined-cats" % "0.9.21",
+)
 libraryDependencies += "io.estatico" %% "newtype" % "0.4.4"
 
 val circeVersion = "0.12.3"
@@ -59,6 +62,8 @@ libraryDependencies ++= Seq(
   "org.scalatestplus"        %% "scalacheck-1-14"     % "3.2.2.0",
   "org.scalacheck"           %% "scalacheck"          % "1.15.2",
 ).map(_ % Test)
+
+libraryDependencies += "org.typelevel" %% "cats-core" % "2.4.2"
 
 javaOptions in Runtime += "-Dconfig.file=./conf/application.dev.conf"
 envFileName in ThisBuild := ".env"
