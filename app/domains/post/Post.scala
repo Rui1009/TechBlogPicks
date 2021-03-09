@@ -12,7 +12,7 @@ import eu.timepit.refined.string.Url
 final case class Post(id: Option[PostId],
                       url: Option[PostUrl],
                       title: PostTitle,
-                      postedAt: PostedAt)
+                      postedAt: PostPostedAt)
 
 object Post {
   @newtype case class PostId(value: Long Refined Positive)
@@ -42,12 +42,12 @@ object Post {
       }
   }
 
-  @newtype case class PostedAt(value: Long Refined Positive)
-  object PostedAt {
-    def create(value: Long): Either[NegativeNumberError, PostedAt] =
+  @newtype case class PostPostedAt(value: Long Refined Positive)
+  object PostPostedAt {
+    def create(value: Long): Either[NegativeNumberError, PostPostedAt] =
       refineV[Positive](value) match {
-        case Right(v) => Right(PostedAt(v))
-        case Left(_)  => Left(NegativeNumberError("PostedAt"))
+        case Right(v) => Right(PostPostedAt(v))
+        case Left(_)  => Left(NegativeNumberError("PostPostedAt"))
       }
   }
 }

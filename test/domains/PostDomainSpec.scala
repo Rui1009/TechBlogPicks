@@ -75,7 +75,7 @@ class PostDomainSpec extends ModelSpec {
     "given positive long " should {
       "return Right value witch equals given arg value" in {
         forAll(longRefinedPositiveGen) { n =>
-          val result = PostedAt.create(n.value)
+          val result = PostPostedAt.create(n.value)
           assert(result.map(_.value) == n.asRight)
         }
       }
@@ -84,16 +84,16 @@ class PostDomainSpec extends ModelSpec {
     "given negative long " should {
       "return Left value which equals DomainError" in {
         forAll(Gen.negNum[Long]) { n =>
-          val result = PostedAt.create(n)
-          assert(result.leftSide == NegativeNumberError("PostedAt").asLeft)
+          val result = PostPostedAt.create(n)
+          assert(result.leftSide == NegativeNumberError("PostPostedAt").asLeft)
         }
       }
     }
 
     "given zero" should {
       "return Left value which value equals DomainError" in {
-        val result = PostedAt.create(0)
-        assert(result.leftSide == NegativeNumberError("PostedAt").asLeft)
+        val result = PostPostedAt.create(0)
+        assert(result.leftSide == NegativeNumberError("PostPostedAt").asLeft)
       }
     }
   }
