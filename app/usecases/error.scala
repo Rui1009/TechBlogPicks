@@ -1,6 +1,6 @@
 package usecases
 
-sealed abstract class UseCaseError(message: String) {
+sealed abstract class UseCaseError(message: String) extends Exception {
   val errorMessage: String = s"""
                        |${this.getClass.getSimpleName}
                        |${message}
