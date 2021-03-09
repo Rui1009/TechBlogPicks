@@ -4,7 +4,7 @@ import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTok
 import helpers.traits.ModelSpec
 import cats.syntax.either._
 
-class AccessTokenPublisher extends ModelSpec {
+class AccessTokenPublisherDomainSpec extends ModelSpec {
   "AccessTokenPublisherToken.create" when {
     "given non empty string" should {
       "return Right value, values equals given arg string" in {
