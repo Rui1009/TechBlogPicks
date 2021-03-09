@@ -26,7 +26,7 @@ final class RegisterPostUseCaseImpl @Inject()(
     postRepository: PostRepository
 )(implicit val ec: ExecutionContext)
     extends RegisterPostUseCase {
-  override def exec(params: Params): Future[Either[SystemError, Unit]] = {
+  override def exec(params: Params): Future[Either[UseCaseError, Unit]] = {
     val post = Post(None, params.url, params.title, params.postedAt)
     postRepository
       .add(post)
