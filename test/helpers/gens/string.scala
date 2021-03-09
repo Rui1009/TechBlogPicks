@@ -12,8 +12,7 @@ trait StringGen {
   val nonEmptyStringGen: Gen[String] =
     Gen.nonEmptyListOf[Char](alphaChar).map(_.mkString)
 
-  val stringRefinedNonEmptyGen: Gen[Refined[String, NonEmpty]] = {
-    nonEmptyStringGen.flatMap(s => refineV[NonEmpty](s)).map(_.right.get)
-  }
+  val stringRefinedNonEmptyGen: Gen[Refined[String, NonEmpty]] =
+    nonEmptyStringGen.map(s => refineV[NonEmpty](s).right.get)
 
 }
