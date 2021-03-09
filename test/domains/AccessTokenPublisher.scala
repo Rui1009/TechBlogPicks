@@ -1,8 +1,6 @@
 package domains
 
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
-import helpers.gens.StringGen._
-import helpers.gens.AccessTokenPublisherGen._
 import helpers.traits.ModelSpec
 
 class AccessTokenPublisher extends ModelSpec {
