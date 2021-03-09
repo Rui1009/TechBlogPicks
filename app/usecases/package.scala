@@ -1,3 +1,3 @@
-import usecases.ops.FutureOps
+import usecases.ops.ErrorOps
 
-package object usecases extends FutureOps
+package object usecases extends ErrorOps

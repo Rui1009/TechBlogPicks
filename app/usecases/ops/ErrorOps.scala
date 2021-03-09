@@ -6,7 +6,7 @@ import usecases.{SystemError, UseCaseError}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-trait FutureOps {
+trait ErrorOps {
   implicit class InfraErrorOpe[E <: InfraError, R](
       futureEither: Future[Either[E, R]]
   )(implicit val ec: ExecutionContext) {
