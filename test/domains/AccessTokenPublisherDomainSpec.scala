@@ -7,7 +7,7 @@ import cats.syntax.either._
 class AccessTokenPublisherDomainSpec extends ModelSpec {
   "AccessTokenPublisherToken.create" when {
     "given non empty string" should {
-      "return Right value, values equals given arg string" in {
+      "return Right value, witch equals given arg string" in {
         forAll(stringRefinedNonEmptyGen) { str =>
           val result = AccessTokenPublisherToken.create(str.value)
           assert(result.map(_.value) == str.asRight)
