@@ -1,28 +1,14 @@
 package usecases
 
-import domains.DomainError
-import infra.InfraError
-
-sealed trait UseCaseError {
-  val errorMessage: String
-}
-
-final case class SystemError(error: InfraError, operation: String)
-    extends UseCaseError {
-  override val errorMessage: String = s"""
-                                         |${operation}
-                                         |${error.errorMessage}
+sealed abstract class UseCaseError(message: String) {
+  val errorMessage: String = s"""
+                       |${this.getClass.getSimpleName}
+                       |${message}
      """.stripMargin
 }
 
-final case class BadParamsError(error: DomainError, operation: String)
-    extends UseCaseError {
-  override val errorMessage: String = s"""
-                                         |${operation}
-                                         |${error.errorMessage}
-     """.stripMargin
-}
+final case class SystemError(message: String) extends UseCaseError(message)
 
-final case class NotFoundError(operation: String) extends UseCaseError {
-  override val errorMessage: String = operation
-}
+final case class BadParamsError(message: String) extends UseCaseError(message)
+
+final case class NotFoundError(message: String) extends UseCaseError(message)
