@@ -3,13 +3,16 @@ package helpers.gens
 import domains.accesstokenpublisher.AccessTokenPublisher
 import domains.post.Post._
 import domains.accesstokenpublisher.AccessTokenPublisher._
+import domains.bot.Bot
+import domains.bot.Bot._
+import domains.post.Post.PostId
 import org.scalacheck.Gen
 import helpers.gens.string._
 import helpers.gens.number._
 
 object domain extends DomainGen
 
-trait DomainGen extends AccessTokenPublisherGen with PostGen
+trait DomainGen extends AccessTokenPublisherGen with BotGen with PostGen
 
 trait AccessTokenPublisherGen {
   val accessTokenGen: Gen[AccessTokenPublisherToken] =
@@ -26,10 +29,35 @@ trait AccessTokenPublisherGen {
 }
 
 trait PostGen {
+  val postIdGen: Gen[PostId] =
+    longRefinedPositiveGen.map(PostId(_))
   val postUrlGen: Gen[PostUrl] = stringRefinedUrlGen.map(PostUrl(_))
 
   val postTitleGen: Gen[PostTitle] = stringRefinedNonEmptyGen.map(PostTitle(_))
 
   val postPostedAtGen: Gen[PostPostedAt] =
     longRefinedPositiveGen.map(PostPostedAt(_))
+}
+
+trait BotGen {
+
+  val BotIdGen: Gen[BotId] =
+    stringRefinedNonEmptyGen.map(BotId(_))
+
+  val BotNameGen: Gen[BotName] =
+    stringRefinedNonEmptyGen.map(BotName(_))
+
+  val accessTokensGen: Gen[Seq[AccessTokenPublisherToken]] =
+    Gen.listOf(domain.accessTokenGen)
+
+  val postsGen: Gen[Seq[PostId]] =
+    Gen.listOf(domain.postIdGen)
+
+  val botGen: Gen[Bot] =
+    for {
+      botId <- BotIdGen
+      botName <- BotNameGen
+      accessTokens <- accessTokensGen
+      posts <- postsGen
+    } yield Bot(botId, botName, accessTokens, posts)
 }
