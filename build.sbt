@@ -15,9 +15,10 @@ lazy val settings = Seq(
     "-language:higherKinds",
   ),
   libraryDependencies ++= rootDeps,
-  wartremoverWarnings ++= Warts.unsafe,
+  wartremoverErrors ++= Warts.unsafe,
   wartremoverExcluded ++= routes.in(Compile).value,
-  wartremoverExcluded += baseDirectory.value / "app" / "infra" / "dto"
+  wartremoverExcluded += baseDirectory.value / "app" / "infra" / "dto",
+  wartremoverExcluded += baseDirectory.value / "test"
 )
 
 lazy val root = (project in file("."))
