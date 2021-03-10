@@ -18,12 +18,12 @@ class RegisterPostUseCaseSpec extends UseCaseSpec {
             val params = Params(url.some, title, postedAt)
             val post = Post(None, url.some, title, postedAt)
 
-            when(repo.add(post))
+            val _ = when(repo.add(post))
               .thenReturn(Future.unit)
 
-            new RegisterPostUseCaseImpl(repo).exec(params)
+            new RegisterPostUseCaseImpl(repo).exec(params).futureValue
 
-            verify(repo, only).add(post)
+            val _ = verify(repo, only).add(post)
             reset(repo)
         }
       }
@@ -37,7 +37,7 @@ class RegisterPostUseCaseSpec extends UseCaseSpec {
             val params = Params(url.some, title, postedAt)
             val post = Post(None, url.some, title, postedAt)
 
-            when(repo.add(post))
+            val _ = when(repo.add(post))
               .thenReturn(Future.failed(DBError("error")))
 
             val result = new RegisterPostUseCaseImpl(repo).exec(params)

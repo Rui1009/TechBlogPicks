@@ -1,6 +1,6 @@
 package domains
 
-import domains.accesstokenpublisher.AccessTokenPublisher.{AccessTokenPublisherTemporaryOauthCode, AccessTokenPublisherToken}
+import domains.accesstokenpublisher.AccessTokenPublisher._
 import helpers.traits.ModelSpec
 import cats.syntax.either._
 
