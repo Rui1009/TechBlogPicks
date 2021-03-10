@@ -1,4 +1,3 @@
-import slick.codegen.SourceCodeGenerator
 import Dependencies._
 
 name := """TechBlogPicks"""
@@ -23,24 +22,7 @@ lazy val settings = Seq(
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .settings(
-    codegen := {
-      SourceCodeGenerator.main(
-        Array(
-          "slick.jdbc.PostgresProfile",
-          "org.postgresql.Driver",
-          "jdbc:postgresql://localhost:5432/tech_blog_picks_server",
-          "app/infra",
-          "dto",
-          sys.env.getOrElse("DB_USER", ""),
-          sys.env.getOrElse("DB_PASSWORD", ""),
-          "true",
-          "slick.codegen.SourceCodeGenerator",
-          "true"
-        )
-      )
-    }
-  )
+  .settings(codegen := CodeGenerator.gen())
   .settings(settings)
 
 scalaVersion := "2.13.3"
