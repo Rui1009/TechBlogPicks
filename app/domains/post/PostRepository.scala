@@ -5,5 +5,5 @@ import infra.InfraError
 import scala.concurrent.Future
 
 trait PostRepository {
-  def add(model: Post): Future[Either[InfraError, Unit]]
+  def add(model: Post): Future[Unit]
 }

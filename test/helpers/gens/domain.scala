@@ -1,10 +1,11 @@
 package helpers.gens
 
 import domains.accesstokenpublisher.AccessTokenPublisher
+import domains.post.Post._
+import domains.accesstokenpublisher.AccessTokenPublisher._
 import domains.bot.Bot
-import domains.bot.Bot.{BotId, BotName}
+import domains.bot.Bot._
 import domains.post.Post.PostId
-import domains.accesstokenpublisher.AccessTokenPublisher.{AccessTokenPublisherTemporaryOauthCode, AccessTokenPublisherToken}
 import org.scalacheck.Gen
 import helpers.gens.string._
 import helpers.gens.number._
@@ -25,6 +26,17 @@ trait AccessTokenPublisherGen {
       accessToken <- accessTokenGen
       temporaryOauthCode <- temporaryOauthCodeGen
     } yield AccessTokenPublisher(accessToken, temporaryOauthCode)
+}
+
+trait PostGen {
+  val postIdGen: Gen[PostId] =
+    longRefinedPositiveGen.map(PostId(_))
+  val postUrlGen: Gen[PostUrl] = stringRefinedUrlGen.map(PostUrl(_))
+
+  val postTitleGen: Gen[PostTitle] = stringRefinedNonEmptyGen.map(PostTitle(_))
+
+  val postPostedAtGen: Gen[PostPostedAt] =
+    longRefinedPositiveGen.map(PostPostedAt(_))
 }
 
 trait BotGen {
@@ -48,9 +60,4 @@ trait BotGen {
       accessTokens <- accessTokensGen
       posts <- postsGen
     } yield Bot(botId, botName, accessTokens, posts)
-}
-
-trait PostGen {
-  val postIdGen: Gen[PostId] =
-    longRefinedPositiveGen.map(PostId(_))
 }

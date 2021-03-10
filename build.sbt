@@ -61,6 +61,7 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play"   %% "scalatestplus-play"  % "5.1.0",
   "org.scalatestplus"        %% "scalacheck-1-14"     % "3.2.2.0",
   "org.scalacheck"           %% "scalacheck"          % "1.15.2",
+  "org.mockito"              %% "mockito-scala"       % "1.16.29",
 ).map(_ % Test)
 
 libraryDependencies += "org.typelevel" %% "cats-core" % "2.4.2"
