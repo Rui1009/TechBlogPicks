@@ -4,10 +4,10 @@ import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTok
 import helpers.traits.ModelSpec
 import cats.syntax.either._
 
-class AccessTokenPublisher extends ModelSpec {
+class AccessTokenPublisherDomainSpec extends ModelSpec {
   "AccessTokenPublisherToken.create" when {
     "given non empty string" should {
-      "return Right value, values equals given arg string" in {
+      "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
           val result = AccessTokenPublisherToken.create(str.value)
           assert(result.map(_.value) == str.asRight)
@@ -16,7 +16,7 @@ class AccessTokenPublisher extends ModelSpec {
     }
 
     "given empty string" should {
-      "return Left value, which values equals DomainError" in {
+      "return Left value which values equals DomainError" in {
         val result = AccessTokenPublisherToken.create("")
         assert(result.leftSide == EmptyStringError("Token").asLeft)
       }
