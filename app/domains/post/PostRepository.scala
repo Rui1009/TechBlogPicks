@@ -1,9 +1,10 @@
 package domains.post
 
+import domains.bot.Bot.BotId
 import infra.InfraError
 
 import scala.concurrent.Future
 
 trait PostRepository {
-  def add(model: Post): Future[Unit]
+  def add(model: Post, botIds: Seq[BotId]): Future[Unit]
 }
