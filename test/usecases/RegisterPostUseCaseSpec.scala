@@ -12,7 +12,7 @@ import scala.concurrent.Future
 class RegisterPostUseCaseSpec extends UseCaseSpec {
   "exec" when {
     "succeed" should {
-      "invoked PostRepository.add once" in {
+      "invoke PostRepository.add once" in {
         val repo = mock[PostRepository]
         forAll(postUrlGen, postTitleGen, postPostedAtGen, Gen.listOf(botIdGen)) {
           (url, title, postedAt, botIds) =>
