@@ -2,7 +2,7 @@ package helpers.gens
 
 import domains.accesstokenpublisher.AccessTokenPublisher
 import domains.post.Post._
-import domains.accesstokenpublisher.AccessTokenPublisher_
+import domains.accesstokenpublisher.AccessTokenPublisher._
 import org.scalacheck.Gen
 import helpers.gens.string._
 import helpers.gens.number._
