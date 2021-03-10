@@ -3,6 +3,7 @@ package domains.bot
 import domains.EmptyStringError
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
 import domains.bot.Bot.{BotId, BotName}
+import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.refineV
@@ -12,8 +13,7 @@ final case class Bot(
   id: BotId,
   name: BotName,
   accessTokens: Seq[AccessTokenPublisherToken],
-  //Todo Postのdomainを作り次第、Seq[Post]にする
-  posts: Seq[_]
+  posts: Seq[PostId]
 ) {
   def receiveToken(token: AccessTokenPublisherToken): Bot =
     this.copy(accessTokens = accessTokens :+ token)
