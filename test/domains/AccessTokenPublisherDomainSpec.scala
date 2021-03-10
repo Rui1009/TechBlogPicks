@@ -1,6 +1,6 @@
 package domains
 
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
+import domains.accesstokenpublisher.AccessTokenPublisher.{AccessTokenPublisherTemporaryOauthCode, AccessTokenPublisherToken}
 import helpers.traits.ModelSpec
 import cats.syntax.either._
 
@@ -19,6 +19,24 @@ class AccessTokenPublisherDomainSpec extends ModelSpec {
       "return Left value which values equals DomainError" in {
         val result = AccessTokenPublisherToken.create("")
         assert(result.leftSide == EmptyStringError("Token").asLeft)
+      }
+    }
+  }
+
+  "AccessTokenPublisherTemporaryOauthCode.create" when {
+    "given non empty string" should {
+      "return Right value which equals given arg value" in {
+        forAll(stringRefinedNonEmptyGen) { str =>
+          val result = AccessTokenPublisherTemporaryOauthCode.create(str.value)
+          assert(result.map(_.value) == str.asRight)
+        }
+      }
+    }
+
+    "given empty string" should {
+      "return Left value which values equals DomainError" in {
+        val result = AccessTokenPublisherTemporaryOauthCode.create("")
+        assert(result.leftSide == EmptyStringError("temporaryOauthCode").asLeft)
       }
     }
   }
