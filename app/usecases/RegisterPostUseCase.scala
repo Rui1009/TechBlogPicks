@@ -8,10 +8,9 @@ import usecases.RegisterPostUseCase.Params
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
 
 trait RegisterPostUseCase {
-  def exec(params: Params): Future[Either[UseCaseError, Unit]]
+  def exec(params: Params): Future[Unit]
 }
 
 object RegisterPostUseCase {
@@ -26,11 +25,11 @@ final class RegisterPostUseCaseImpl @Inject()(
     postRepository: PostRepository
 )(implicit val ec: ExecutionContext)
     extends RegisterPostUseCase {
-  override def exec(params: Params): Future[Either[UseCaseError, Unit]] = {
+  override def exec(params: Params): Future[Unit] = {
     val post = Post(None, params.url, params.title, params.postedAt)
     postRepository
       .add(post)
-      .ifLeftThenToUseCaseError(
+      .ifFailThenToUseCaseError(
         "error while postRepository.add in register post use case"
       )
   }
