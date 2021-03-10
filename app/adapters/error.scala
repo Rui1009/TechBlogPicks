@@ -22,7 +22,7 @@ final case class InternalServerError(message: String)
 final case class NotFoundError(message: String) extends AdapterError(message)
 
 object AdapterError {
-  def fromUseCaseError(error: UseCaseError): Unit = error match {
+  def fromUseCaseError(error: UseCaseError): AdapterError = error match {
     case e: SystemError    => InternalServerError(e.getMessage)
     case e: UNotFoundError => NotFoundError(e.getMessage)
     case e: BadParamsError => BadRequestError(e.getMessage)
