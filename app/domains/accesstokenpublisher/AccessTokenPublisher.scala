@@ -32,7 +32,7 @@ object AccessTokenPublisher {
                 value: String): Either[EmptyStringError, AccessTokenPublisherTemporaryOauthCode] =
       refineV[NonEmpty](value) match {
         case Right(v) => Right(AccessTokenPublisherTemporaryOauthCode(v))
-        case Left(_)  => Left(EmptyStringError("AccessTokenPublisherTemporaryOauthCode"))
+        case Left(_)  => Left(EmptyStringError("temporaryOauthCode"))
       }
   }
 }
