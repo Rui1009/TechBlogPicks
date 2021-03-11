@@ -22,16 +22,20 @@ trait AccessTokenPublisherGen {
     stringRefinedNonEmptyGen.map(AccessTokenPublisherTemporaryOauthCode(_))
 
   val accessTokenPublisherGen: Gen[AccessTokenPublisher] = for {
-    accessToken        <- accessTokenGen
+    accessToken <- accessTokenGen
     temporaryOauthCode <- temporaryOauthCodeGen
   } yield AccessTokenPublisher(accessToken, temporaryOauthCode)
 }
 
 trait PostGen {
-  val postIdGen: Gen[PostId]   = longRefinedPositiveGen.map(PostId(_))
+  val postIdGen: Gen[PostId] = longRefinedPositiveGen.map(PostId(_))
+
   val postUrlGen: Gen[PostUrl] = stringRefinedUrlGen.map(PostUrl(_))
 
   val postTitleGen: Gen[PostTitle] = stringRefinedNonEmptyGen.map(PostTitle(_))
+
+  val postAuthorGen: Gen[PostAuthor] =
+    stringRefinedNonEmptyGen.map(PostAuthor(_))
 
   val postPostedAtGen: Gen[PostPostedAt] =
     longRefinedPositiveGen.map(PostPostedAt(_))
@@ -49,9 +53,9 @@ trait BotGen {
   val postsGen: Gen[Seq[PostId]] = Gen.listOf(domain.postIdGen)
 
   val botGen: Gen[Bot] = for {
-    botId        <- botIdGen
-    botName      <- botNameGen
+    botId <- botIdGen
+    botName <- botNameGen
     accessTokens <- accessTokensGen
-    posts        <- postsGen
+    posts <- postsGen
   } yield Bot(botId, botName, accessTokens, posts)
 }
