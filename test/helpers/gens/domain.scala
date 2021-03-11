@@ -22,7 +22,7 @@ trait AccessTokenPublisherGen {
     stringRefinedNonEmptyGen.map(AccessTokenPublisherTemporaryOauthCode(_))
 
   val accessTokenPublisherGen: Gen[AccessTokenPublisher] = for {
-    accessToken <- accessTokenGen
+    accessToken        <- accessTokenGen
     temporaryOauthCode <- temporaryOauthCodeGen
   } yield AccessTokenPublisher(accessToken, temporaryOauthCode)
 }
@@ -53,9 +53,9 @@ trait BotGen {
   val postsGen: Gen[Seq[PostId]] = Gen.listOf(domain.postIdGen)
 
   val botGen: Gen[Bot] = for {
-    botId <- botIdGen
-    botName <- botNameGen
+    botId        <- botIdGen
+    botName      <- botNameGen
     accessTokens <- accessTokensGen
-    posts <- postsGen
+    posts        <- postsGen
   } yield Bot(botId, botName, accessTokens, posts)
 }
