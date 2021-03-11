@@ -1,5 +1,6 @@
 import Dependencies._
 import sbtwelcome._
+import scala.{ Console => SConsole }
 
 ThisBuild / organization := "com.techblogpicks"
 ThisBuild / scalaVersion := "2.13.3"
@@ -17,6 +18,8 @@ logo :=
     |                                     __/ |
     |                                    |___/
     |""".stripMargin
+
+logoColor := SConsole.CYAN
 
 usefulTasks := Seq(
   UsefulTask("fmt", "scalafmtAll", "Format code")
