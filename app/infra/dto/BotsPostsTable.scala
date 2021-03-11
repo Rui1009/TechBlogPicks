@@ -11,7 +11,7 @@ trait BotsPostsTable {
   /** Entity class storing rows of table BotsPosts
    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
    *  @param botId Database column bot_id SqlType(text)
-   *  @param postId Database column post_id SqlType(bigserial), AutoInc */
+   *  @param postId Database column post_id SqlType(int8) */
   case class BotsPostsRow(id: Long, botId: String, postId: Long)
   /** GetResult implicit for fetching BotsPostsRow objects using plain SQL queries */
   implicit def GetResultBotsPostsRow(implicit e0: GR[Long], e1: GR[String]): GR[BotsPostsRow] = GR{
@@ -28,8 +28,8 @@ trait BotsPostsTable {
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
     /** Database column bot_id SqlType(text) */
     val botId: Rep[String] = column[String]("bot_id")
-    /** Database column post_id SqlType(bigserial), AutoInc */
-    val postId: Rep[Long] = column[Long]("post_id", O.AutoInc)
+    /** Database column post_id SqlType(int8) */
+    val postId: Rep[Long] = column[Long]("post_id")
 
     /** Foreign key referencing Posts (database name bots_posts_post_id_fkey) */
     lazy val postsFk = foreignKey("bots_posts_post_id_fkey", postId, Posts)(r => r.id, onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.NoAction)
