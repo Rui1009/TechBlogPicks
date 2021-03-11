@@ -10,7 +10,7 @@ import usecases.{
 sealed abstract class AdapterError(message: String) {
   val errorMessage: String = s"""
                                 |${this.getClass.getSimpleName}
-                                |${message}
+                                |$message
      """.stripMargin
 }
 

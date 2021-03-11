@@ -10,10 +10,10 @@ import eu.timepit.refined.refineV
 import eu.timepit.refined.string.Url
 
 final case class Post(
-    id: Option[PostId],
-    url: Option[PostUrl],
-    title: PostTitle,
-    postedAt: PostPostedAt
+  id: Option[PostId],
+  url: Option[PostUrl],
+  title: PostTitle,
+  postedAt: PostPostedAt
 )
 
 object Post {
