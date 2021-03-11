@@ -41,10 +41,10 @@ trait PostGen {
 
 trait BotGen {
 
-  val BotIdGen: Gen[BotId] =
+  val botIdGen: Gen[BotId] =
     stringRefinedNonEmptyGen.map(BotId(_))
 
-  val BotNameGen: Gen[BotName] =
+  val botNameGen: Gen[BotName] =
     stringRefinedNonEmptyGen.map(BotName(_))
 
   val accessTokensGen: Gen[Seq[AccessTokenPublisherToken]] =
@@ -55,8 +55,8 @@ trait BotGen {
 
   val botGen: Gen[Bot] =
     for {
-      botId <- BotIdGen
-      botName <- BotNameGen
+      botId <- botIdGen
+      botName <- botNameGen
       accessTokens <- accessTokensGen
       posts <- postsGen
     } yield Bot(botId, botName, accessTokens, posts)
