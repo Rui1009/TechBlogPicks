@@ -25,7 +25,7 @@ final class InstallBotUseCaseImpl @Inject() (accessTokenPublisherRepository: Acc
 ) extends InstallBotUseCase {
   override def exec(params: Params): Future[Unit] =
     for {
-      accessTokenPublisher <- accessTokenPublisherRepository.find(params.temporaryOauthCode, params.botId).ifFailThenToUseCaseError("error while accessTokenPublisher.find in install bot use case")
+      accessTokenPublisher <- accessTokenPublisherRepository.find(params.temporaryOauthCode).ifFailThenToUseCaseError("error while accessTokenPublisher.find in install bot use case")
       _ <- botRepository.update(params.botId, accessTokenPublisher.token)
     } yield Unit
 }
