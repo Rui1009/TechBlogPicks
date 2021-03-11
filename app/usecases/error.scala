@@ -3,7 +3,7 @@ package usecases
 sealed abstract class UseCaseError(message: String) extends Exception {
   override def getMessage: String = s"""
                        |${this.getClass.getSimpleName}
-                       |${message}""".stripMargin
+                       |$message""".stripMargin
 }
 
 final case class SystemError(message: String) extends UseCaseError(message)

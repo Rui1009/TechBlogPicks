@@ -6,5 +6,7 @@ import infra.InfraError
 import scala.concurrent.Future
 
 trait AccessTokenPublisherRepository {
-  def publish(code: AccessTokenPublisherTemporaryOauthCode): Future[Either[InfraError, AccessTokenPublisher]]
+  def publish(
+    code: AccessTokenPublisherTemporaryOauthCode
+  ): Future[Either[InfraError, AccessTokenPublisher]]
 }

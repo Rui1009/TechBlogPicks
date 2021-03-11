@@ -48,7 +48,8 @@ class BotDomainSpec extends ModelSpec {
           model
             .receiveToken(token)
             .accessTokens
-            .size == model.accessTokens.size + 1)
+            .size == model.accessTokens.size + 1
+        )
         assert(model.receiveToken(token).accessTokens.last == token)
       }
     }

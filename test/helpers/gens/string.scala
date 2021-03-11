@@ -18,12 +18,11 @@ trait StringGen {
 
   val urlGen: Gen[String] = (for {
     protocol <- oneOf("http", "https")
-    domains <- listOfN(3, nonEmptyStringGen)
-    dirNum <- choose(1, 5)
-    dirs <- listOfN(dirNum, nonEmptyStringGen)
-  } yield
-    protocol + "://" + domains
-      .mkString(".") + dirs.mkString("/", "/", "/")).label("url")
+    domains  <- listOfN(3, nonEmptyStringGen)
+    dirNum   <- choose(1, 5)
+    dirs     <- listOfN(dirNum, nonEmptyStringGen)
+  } yield protocol + "://" + domains
+    .mkString(".") + dirs.mkString("/", "/", "/")).label("url")
 
   val stringRefinedUrlGen: Gen[Refined[String, Url]] =
     urlGen.map(refineV[Url].unsafeFrom(_))

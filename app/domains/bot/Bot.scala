@@ -22,22 +22,18 @@ final case class Bot(
 object Bot {
   @newtype case class BotId(value: String Refined NonEmpty)
   object BotId {
-    def create(
-                value: String
-              ): Either[EmptyStringError, BotId] =
+    def create(value: String): Either[EmptyStringError, BotId] =
       refineV[NonEmpty](value) match {
-        case Left(_) => Left(EmptyStringError("BotId"))
+        case Left(_)  => Left(EmptyStringError("BotId"))
         case Right(v) => Right(BotId(v))
       }
   }
 
   @newtype case class BotName(value: String Refined NonEmpty)
   object BotName {
-    def create(
-                value: String
-              ): Either[EmptyStringError, BotName] =
+    def create(value: String): Either[EmptyStringError, BotName] =
       refineV[NonEmpty](value) match {
-        case Left(_) => Left(EmptyStringError("BotName"))
+        case Left(_)  => Left(EmptyStringError("BotName"))
         case Right(v) => Right(BotName(v))
       }
   }
