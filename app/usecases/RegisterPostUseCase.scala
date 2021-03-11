@@ -16,18 +16,20 @@ trait RegisterPostUseCase {
 
 object RegisterPostUseCase {
   final case class Params(
-    url: Option[PostUrl],
-    title: PostTitle,
-    postedAt: PostPostedAt,
-    botIds: Seq[BotId]
+      url: Option[PostUrl],
+      title: PostTitle,
+      author: PostAuthor,
+      postedAt: PostPostedAt,
+      botIds: Seq[BotId]
   )
 }
 
-final class RegisterPostUseCaseImpl @Inject() (postRepository: PostRepository)(
-  implicit val ec: ExecutionContext
+final class RegisterPostUseCaseImpl @Inject()(postRepository: PostRepository)(
+    implicit val ec: ExecutionContext
 ) extends RegisterPostUseCase {
   override def exec(params: Params): Future[Unit] = {
-    val post = Post(None, params.url, params.title, params.postedAt)
+    val post =
+      Post(None, params.url, params.title, params.author, params.postedAt)
     postRepository
       .add(post, params.botIds)
       .ifFailThenToUseCaseError(
