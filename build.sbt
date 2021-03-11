@@ -1,11 +1,10 @@
 import Dependencies._
 import sbtwelcome._
 
-name := """TechBlogPicks"""
-organization := "com.techblogpicks"
-scalaVersion := "2.13.3"
+ThisBuild / organization := "com.techblogpicks"
+ThisBuild / scalaVersion := "2.13.3"
 
-version := "1.0-SNAPSHOT"
+ThisBuild / version := "1.0-SNAPSHOT"
 
 logo :=
   """
@@ -42,13 +41,7 @@ lazy val settings = Seq(
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(codegen := CodeGenerator.gen())
-  .settings(settings)
+  .settings(name := "TechBlogPicks", settings)
 
 javaOptions in Runtime += "-Dconfig.file=./conf/application.dev.conf"
 envFileName in ThisBuild := ".env"
-
-// Adds additional packages into Twirl
-//TwirlKeys.templateImports += "com.techblogpicks.controllers._"
-
-// Adds additional packages into conf/routes
-// play.sbt.routes.RoutesKeys.routesImport += "com.techblogpicks.binders._"
