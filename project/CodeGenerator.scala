@@ -14,7 +14,7 @@ object CodeGenerator {
         "slick.jdbc.PostgresProfile",
         "org.postgresql.Driver",
         "jdbc:postgresql://localhost:5432/tech_blog_picks_server",
-        "app/infra",
+        "app",
         "infra.dto",
         sys.env.getOrElse("DB_USER", ""),
         sys.env.getOrElse("DB_PASSWORD", ""),
