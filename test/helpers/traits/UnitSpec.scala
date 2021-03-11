@@ -6,6 +6,7 @@ import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import syntax.AllSyntax
 
 trait UnitSpec
     extends AnyWordSpec with ScalaFutures // Futureへの簡易アクセッサ
@@ -17,4 +18,4 @@ trait UnitSpec
     with ScalaCheckDrivenPropertyChecks   // pbt用
     with MockitoSugar                     // モック用
     with ArgumentMatchersSugar            // モック用
-    with HasExecutionContext with AllGen
+    with HasExecutionContext with AllGen with AllSyntax
