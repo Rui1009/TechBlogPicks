@@ -26,6 +26,11 @@ final class InstallBotUseCaseImpl @Inject() (
 )(implicit val ec: ExecutionContext)
     extends InstallBotUseCase {
   override def exec(params: Params): Future[Unit] = for {
+    targetBot <- botRepository
+        .find(params.botId)
+        .ifFailThenToUseCaseError(
+          "error while botRepository.find in install bot use case"
+        )
     accessTokenPublisher <-
       accessTokenPublisherRepository
         .find(params.temporaryOauthCode)
@@ -33,7 +38,7 @@ final class InstallBotUseCaseImpl @Inject() (
           "error while accessTokenPublisher.find in install bot use case"
         )
     _ <- botRepository
-      .update(params.botId, accessTokenPublisher.token)
+      .update(targetBot.receiveToken(accessTokenPublisher.token))
       .ifFailThenToUseCaseError(
         "error while botRepository.update in install bot use case"
       )
