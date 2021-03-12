@@ -24,13 +24,13 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
 
           when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
           when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
-          when(botRepo.update(bot.receiveToken(accessTokenPublisher.token))).thenReturn(Future.unit)
+          when(botRepo.update(bot.receiveToken(accessTokenPublisher.publishToken))).thenReturn(Future.unit)
 
           new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params).futureValue
 
           verify(botRepo).find(params.botId)
           verify(accessTokenRepo, only).find(params.temporaryOauthCode)
-          verify(botRepo).update(bot.receiveToken(accessTokenPublisher.token))
+          verify(botRepo).update(bot.receiveToken(accessTokenPublisher.publishToken))
           reset(accessTokenRepo)
           reset(botRepo)
         }
@@ -48,7 +48,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
 
           when(botRepo.find(params.botId)).thenReturn(Future.failed(DBError("error")))
           when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
-          when(botRepo.update(bot.receiveToken(accessTokenPublisher.token))).thenReturn(Future.unit)
+          when(botRepo.update(bot.receiveToken(accessTokenPublisher.publishToken))).thenReturn(Future.unit)
 
           val result = new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
 
@@ -60,7 +60,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
               )
             )
             verify(accessTokenRepo, never).find(params.temporaryOauthCode)
-            verify(botRepo, never).update(bot.receiveToken(accessTokenPublisher.token))
+            verify(botRepo, never).update(bot.receiveToken(accessTokenPublisher.publishToken))
           }
         }
       }
@@ -77,7 +77,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
 
           when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
           when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.failed(DBError("error")))
-          when(botRepo.update(bot.receiveToken(accessTokenPublisher.token))).thenReturn(Future.unit)
+          when(botRepo.update(bot.receiveToken(accessTokenPublisher.publishToken))).thenReturn(Future.unit)
 
           val result = new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
 
@@ -88,7 +88,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
                   + DBError("error").getMessage
               )
             )
-            verify(botRepo, never).update(bot.receiveToken(accessTokenPublisher.token))
+            verify(botRepo, never).update(bot.receiveToken(accessTokenPublisher.publishToken))
           }
         }
       }
@@ -105,7 +105,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
 
           when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
           when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
-          when(botRepo.update(bot.receiveToken(accessTokenPublisher.token))).thenReturn(Future.failed(DBError("error")))
+          when(botRepo.update(bot.receiveToken(accessTokenPublisher.publishToken))).thenReturn(Future.failed(DBError("error")))
 
           val result = new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
 

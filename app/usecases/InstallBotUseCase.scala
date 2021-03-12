@@ -38,7 +38,7 @@ final class InstallBotUseCaseImpl @Inject() (
           "error while accessTokenPublisher.find in install bot use case"
         )
     _ <- botRepository
-      .update(targetBot.receiveToken(accessTokenPublisher.token))
+      .update(targetBot.receiveToken(accessTokenPublisher.publishToken))
       .ifFailThenToUseCaseError(
         "error while botRepository.update in install bot use case"
       )
