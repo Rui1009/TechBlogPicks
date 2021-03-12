@@ -19,7 +19,7 @@ CREATE TABLE public.bots_posts
 (
     id BIGSERIAL PRIMARY KEY,
     bot_id TEXT NOT NULL,
-    post_id BIGSERIAL NOT NULL REFERENCES posts(id)
+    post_id BIGINT NOT NULL REFERENCES posts(id)
 );
 
 -- !Downs

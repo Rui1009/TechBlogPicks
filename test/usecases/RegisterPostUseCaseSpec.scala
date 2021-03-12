@@ -17,11 +17,12 @@ class RegisterPostUseCaseSpec extends UseCaseSpec {
         forAll(
           postUrlGen,
           postTitleGen,
+          postAuthorGen,
           postPostedAtGen,
           Gen.listOf(botIdGen)
-        ) { (url, title, postedAt, botIds) =>
-          val params = Params(url.some, title, postedAt, botIds)
-          val post   = Post(None, url.some, title, postedAt)
+        ) { (url, title, author, postedAt, botIds) =>
+          val params = Params(url.some, title, author, postedAt, botIds)
+          val post   = Post(None, url.some, title, author, postedAt)
 
           when(repo.add(post, botIds)).thenReturn(Future.unit)
 
@@ -39,11 +40,12 @@ class RegisterPostUseCaseSpec extends UseCaseSpec {
         forAll(
           postUrlGen,
           postTitleGen,
+          postAuthorGen,
           postPostedAtGen,
           Gen.listOf(botIdGen)
-        ) { (url, title, postedAt, botIds) =>
-          val params = Params(url.some, title, postedAt, botIds)
-          val post   = Post(None, url.some, title, postedAt)
+        ) { (url, title, author, postedAt, botIds) =>
+          val params = Params(url.some, title, author, postedAt, botIds)
+          val post   = Post(None, url.some, title, author, postedAt)
 
           when(repo.add(post, botIds))
             .thenReturn(Future.failed(DBError("error")))

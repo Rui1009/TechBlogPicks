@@ -13,6 +13,7 @@ final case class Post(
   id: Option[PostId],
   url: Option[PostUrl],
   title: PostTitle,
+  author: PostAuthor,
   postedAt: PostPostedAt
 )
 
@@ -41,6 +42,15 @@ object Post {
       refineV[NonEmpty](value) match {
         case Right(v) => Right(PostTitle(v))
         case Left(_)  => Left(EmptyStringError("PostTitle"))
+      }
+  }
+
+  @newtype case class PostAuthor(value: String Refined NonEmpty)
+  object PostAuthor {
+    def create(value: String): Either[EmptyStringError, PostAuthor] =
+      refineV[NonEmpty](value) match {
+        case Right(v) => Right(PostAuthor(v))
+        case Left(_)  => Left(EmptyStringError("PostAuthor"))
       }
   }
 

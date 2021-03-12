@@ -1,6 +1,6 @@
 import Dependencies._
 import sbtwelcome._
-import scala.{ Console => SConsole }
+import scala.{Console => SConsole}
 
 ThisBuild / organization := "com.techblogpicks"
 ThisBuild / scalaVersion := "2.13.3"
@@ -21,9 +21,7 @@ logo :=
 
 logoColor := SConsole.CYAN
 
-usefulTasks := Seq(
-  UsefulTask("fmt", "scalafmtAll", "Format code")
-)
+usefulTasks := Seq(UsefulTask("fmt", "scalafmtAll", "Format code"))
 
 lazy val codegen = taskKey[Unit]("generate slick table code")
 
@@ -32,12 +30,13 @@ lazy val settings = Seq(
     "-Ymacro-annotations",
     "-feature",
     "-language:implicitConversions",
-    "-language:higherKinds",
+    "-language:higherKinds"
   ),
   libraryDependencies ++= rootDeps,
-  wartremoverErrors ++= Warts.unsafe,
+  wartremoverWarnings ++= Warts.unsafe,
   wartremoverExcluded ++= routes.in(Compile).value,
   wartremoverExcluded += baseDirectory.value / "app" / "infra" / "dto",
+  wartremoverExcluded += baseDirectory.value / "app" / "Module",
   wartremoverExcluded += baseDirectory.value / "test"
 )
 
@@ -47,4 +46,5 @@ lazy val root = (project in file("."))
   .settings(name := "TechBlogPicks", settings)
 
 javaOptions in Runtime += "-Dconfig.file=./conf/application.dev.conf"
+javaOptions in Test += "-Dconfig.file=./conf/application.test.conf"
 envFileName in ThisBuild := ".env"

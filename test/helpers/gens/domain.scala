@@ -9,6 +9,9 @@ import domains.post.Post.PostId
 import org.scalacheck.Gen
 import helpers.gens.string._
 import helpers.gens.number._
+import domain._
+import domains.post.Post
+import cats.syntax.option._
 
 object domain extends DomainGen
 
@@ -28,13 +31,25 @@ trait AccessTokenPublisherGen {
 }
 
 trait PostGen {
-  val postIdGen: Gen[PostId]   = longRefinedPositiveGen.map(PostId(_))
+  val postIdGen: Gen[PostId] = longRefinedPositiveGen.map(PostId(_))
+
   val postUrlGen: Gen[PostUrl] = stringRefinedUrlGen.map(PostUrl(_))
 
   val postTitleGen: Gen[PostTitle] = stringRefinedNonEmptyGen.map(PostTitle(_))
 
+  val postAuthorGen: Gen[PostAuthor] =
+    stringRefinedNonEmptyGen.map(PostAuthor(_))
+
   val postPostedAtGen: Gen[PostPostedAt] =
     longRefinedPositiveGen.map(PostPostedAt(_))
+
+  val postGen: Gen[Post] = for {
+    id       <- postIdGen
+    url      <- postUrlGen
+    title    <- postTitleGen
+    author   <- postAuthorGen
+    postedAt <- postPostedAtGen
+  } yield Post(id.some, url.some, title, author, postedAt)
 }
 
 trait BotGen {
@@ -46,12 +61,10 @@ trait BotGen {
   val accessTokensGen: Gen[Seq[AccessTokenPublisherToken]] =
     Gen.listOf(domain.accessTokenGen)
 
-  val postsGen: Gen[Seq[PostId]] = Gen.listOf(domain.postIdGen)
-
   val botGen: Gen[Bot] = for {
     botId        <- botIdGen
     botName      <- botNameGen
     accessTokens <- accessTokensGen
-    posts        <- postsGen
+    posts        <- Gen.listOf(postIdGen)
   } yield Bot(botId, botName, accessTokens, posts)
 }
