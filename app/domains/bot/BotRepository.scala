@@ -1,10 +1,10 @@
 package domains.bot
 
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
 import domains.bot.Bot.BotId
 
 import scala.concurrent.Future
 
 trait BotRepository {
-  def update(botId: BotId, accessToken: AccessTokenPublisherToken): Future[Unit]
+  def find(botId: BotId): Future[Bot]
+  def update(bot: Bot): Future[Unit]
 }
