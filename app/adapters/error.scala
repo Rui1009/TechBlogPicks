@@ -10,8 +10,7 @@ import usecases.{
 sealed abstract class AdapterError(message: String) {
   val errorMessage: String = s"""
                                 |${this.getClass.getSimpleName}
-                                |$message
-     """.stripMargin
+                                |$message""".stripMargin
 }
 
 final case class BadRequestError(message: String) extends AdapterError(message)
