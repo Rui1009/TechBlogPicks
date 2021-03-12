@@ -15,17 +15,23 @@ trait InstallBotUseCase {
 
 object InstallBotUseCase {
   final case class Params(
-     temporaryOauthCode: AccessTokenPublisherTemporaryOauthCode,
-     botId: BotId
-   )
+    temporaryOauthCode: AccessTokenPublisherTemporaryOauthCode,
+    botId: BotId
+  )
 }
 
-final class InstallBotUseCaseImpl @Inject() (accessTokenPublisherRepository: AccessTokenPublisherRepository, botRepository: BotRepository)(
-    implicit val ec: ExecutionContext
-) extends InstallBotUseCase {
-  override def exec(params: Params): Future[Unit] =
-    for {
-      accessTokenPublisher <- accessTokenPublisherRepository.find(params.temporaryOauthCode).ifFailThenToUseCaseError("error while accessTokenPublisher.find in install bot use case")
-      _ <- botRepository.update(params.botId, accessTokenPublisher.token)
-    } yield Unit
+final class InstallBotUseCaseImpl @Inject() (
+  accessTokenPublisherRepository: AccessTokenPublisherRepository,
+  botRepository: BotRepository
+)(implicit val ec: ExecutionContext)
+    extends InstallBotUseCase {
+  override def exec(params: Params): Future[Unit] = for {
+    accessTokenPublisher <-
+      accessTokenPublisherRepository
+        .find(params.temporaryOauthCode)
+        .ifFailThenToUseCaseError(
+          "error while accessTokenPublisher.find in install bot use case"
+        )
+    _                    <- botRepository.update(params.botId, accessTokenPublisher.token)
+  } yield Unit
 }
