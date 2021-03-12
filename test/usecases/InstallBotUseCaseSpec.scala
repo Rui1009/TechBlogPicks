@@ -14,24 +14,54 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
     val accessTokenRepo = mock[AccessTokenPublisherRepository]
     val botRepo = mock[BotRepository]
     "succeed" should {
-      "invoke accessTokenPublisherRepository.find once & botRepository.update once" in {
-
+      "invoke botRepository.find once & accessTokenPublisherRepository.find once & botRepository.update once" in {
         forAll(
           temporaryOauthCodeGen,
-          botIdGen,
+          botGen,
           accessTokenPublisherGen
-        ) {(tempOauthCode, botId, accessTokenPublisher) =>
-          val params = Params(tempOauthCode, botId)
+        ) {(tempOauthCode, bot, accessTokenPublisher) =>
+          val params = Params(tempOauthCode, bot.id)
 
-          when(accessTokenRepo.find(tempOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
-          when(botRepo.update(botId, accessTokenPublisher.token)).thenReturn(Future.unit)
+          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
+          when(botRepo.update(bot.receiveToken(accessTokenPublisher.token))).thenReturn(Future.unit)
 
           new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params).futureValue
 
-          verify(accessTokenRepo, only).find(tempOauthCode)
-          verify(botRepo, only).update(botId, accessTokenPublisher.token)
+          verify(botRepo).find(params.botId)
+          verify(accessTokenRepo, only).find(params.temporaryOauthCode)
+          verify(botRepo).update(bot.receiveToken(accessTokenPublisher.token))
           reset(accessTokenRepo)
           reset(botRepo)
+        }
+      }
+    }
+
+    "failed in botRepository.find" should {
+      "throw use case error and not invoked accessTokenPublisherRepository.find & botRepository.update" in {
+        forAll(
+          temporaryOauthCodeGen,
+          botGen,
+          accessTokenPublisherGen
+        ) {(tempOauthCode, bot, accessTokenPublisher) =>
+          val params = Params(tempOauthCode, bot.id)
+
+          when(botRepo.find(params.botId)).thenReturn(Future.failed(DBError("error")))
+          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
+          when(botRepo.update(bot.receiveToken(accessTokenPublisher.token))).thenReturn(Future.unit)
+
+          val result = new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
+
+          whenReady(result.failed) {e =>
+            assert(
+              e == SystemError(
+                "error while botRepository.find in install bot use case"
+                  + DBError("error").getMessage
+              )
+            )
+            verify(accessTokenRepo, never).find(params.temporaryOauthCode)
+            verify(botRepo, never).update(bot.receiveToken(accessTokenPublisher.token))
+          }
         }
       }
     }
@@ -40,13 +70,14 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
       "throw use case error and not invoked botRepository.update" in {
         forAll(
           temporaryOauthCodeGen,
-          botIdGen,
+          botGen,
           accessTokenPublisherGen
-        ) {(tempOauthCode, botId, accessTokenPublisher) =>
-          val params = Params(tempOauthCode, botId)
+        ) {(tempOauthCode, bot, accessTokenPublisher) =>
+          val params = Params(tempOauthCode, bot.id)
 
-          when(accessTokenRepo.find(tempOauthCode)).thenReturn(Future.failed(DBError("error")))
-          when(botRepo.update(botId, accessTokenPublisher.token)).thenReturn(Future.unit)
+          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.failed(DBError("error")))
+          when(botRepo.update(bot.receiveToken(accessTokenPublisher.token))).thenReturn(Future.unit)
 
           val result = new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
 
@@ -57,7 +88,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
                   + DBError("error").getMessage
               )
             )
-            verify(botRepo, never).update(botId, accessTokenPublisher.token)
+            verify(botRepo, never).update(bot.receiveToken(accessTokenPublisher.token))
           }
         }
       }
@@ -67,13 +98,14 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
       "throw use case error" in {
         forAll(
           temporaryOauthCodeGen,
-          botIdGen,
+          botGen,
           accessTokenPublisherGen
-        ) {(tempOauthCode, botId, accessTokenPublisher) =>
-          val params = Params(tempOauthCode, botId)
+        ) {(tempOauthCode, bot, accessTokenPublisher) =>
+          val params = Params(tempOauthCode, bot.id)
 
-          when(accessTokenRepo.find(tempOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
-          when(botRepo.update(botId, accessTokenPublisher.token)).thenReturn(Future.failed(DBError("error")))
+          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
+          when(botRepo.update(bot.receiveToken(accessTokenPublisher.token))).thenReturn(Future.failed(DBError("error")))
 
           val result = new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
 
