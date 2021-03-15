@@ -2,7 +2,8 @@ package domains
 
 sealed trait DomainError {
   val content: String
-  val errorMessage: String = s"${this.getClass.getName}: $content"
+  val errorMessage: String = s"""
+       |${this.getClass.getName}: $content""".stripMargin
 }
 
 final case class EmptyStringError(className: String) extends DomainError {
