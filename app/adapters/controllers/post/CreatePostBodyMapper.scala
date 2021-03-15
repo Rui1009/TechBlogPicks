@@ -3,6 +3,7 @@ package adapters.controllers.post
 import adapters.controllers.helpers.JsonRequestMapper
 import adapters.{AdapterError, BadRequestError}
 import cats.implicits._
+import domains.DomainError
 import domains.bot.Bot.BotId
 import domains.post.Post._
 import play.api.mvc.BaseController
@@ -36,5 +37,9 @@ trait PostCreateBodyMapper
     body.botIds.map(BotId.create(_).toValidatedNec).sequence
   ).mapN(PostCreateCommand.apply)
     .toEither
-    .leftMap(errors => BadRequestError(errors.map(_.errorMessage).fold))
+    .leftMap(errors =>
+      BadRequestError(
+        errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
+      )
+    )
 }
