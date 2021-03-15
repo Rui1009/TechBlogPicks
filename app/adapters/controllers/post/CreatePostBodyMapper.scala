@@ -8,7 +8,7 @@ import domains.bot.Bot.BotId
 import domains.post.Post._
 import play.api.mvc.BaseController
 
-final case class PostCreateBody(
+final case class CreatePostBody(
   url: Option[String],
   title: String,
   author: String,
@@ -16,7 +16,7 @@ final case class PostCreateBody(
   botIds: Seq[String]
 )
 
-final case class PostCreateCommand(
+final case class CreatePostCommand(
   url: Option[PostUrl],
   title: PostTitle,
   author: PostAuthor,
@@ -25,17 +25,17 @@ final case class PostCreateCommand(
 )
 
 trait PostCreateBodyMapper
-    extends JsonRequestMapper[PostCreateBody, PostCreateCommand] {
+    extends JsonRequestMapper[CreatePostBody, CreatePostCommand] {
   this: BaseController =>
   override def mapToValueObject(
-    body: PostCreateBody
-  ): Either[AdapterError, PostCreateCommand] = (
+    body: CreatePostBody
+  ): Either[AdapterError, CreatePostCommand] = (
     body.url.traverse(PostUrl.create(_).toValidatedNec),
     PostTitle.create(body.title).toValidatedNec,
     PostAuthor.create(body.author).toValidatedNec,
     PostPostedAt.create(body.postedAt).toValidatedNec,
     body.botIds.map(BotId.create(_).toValidatedNec).sequence
-  ).mapN(PostCreateCommand.apply)
+  ).mapN(CreatePostCommand.apply)
     .toEither
     .leftMap(errors =>
       BadRequestError(
