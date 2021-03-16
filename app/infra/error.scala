@@ -7,3 +7,5 @@ sealed abstract class InfraError(message: String) extends Exception {
 }
 
 final case class DBError(message: String) extends InfraError(message)
+
+final case class APIError(message: String) extends InfraError(message)
