@@ -34,7 +34,7 @@ final class InstallBotUseCaseImpl @Inject() (
     accessTokenPublisher <-
       accessTokenPublisherRepository
         .find(params.temporaryOauthCode)
-        .ifNotExists(
+        .ifNotExistsToUseCaseError(
           "error while accessTokenPublisherRepository.find in install bot use case"
         )
     _ <- botRepository
