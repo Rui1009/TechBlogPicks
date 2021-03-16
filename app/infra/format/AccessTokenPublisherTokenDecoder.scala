@@ -10,7 +10,9 @@ trait AccessTokenPublisherTokenDecoder {
     : Decoder[AccessTokenPublisherToken] = Decoder.instance { cursor =>
     for {
       accessTokenPublisherToken <- cursor.downField("access_token").as[String]
-    } yield AccessTokenPublisherToken(Refined.unsafeApply(accessTokenPublisherToken))
+    } yield AccessTokenPublisherToken(
+      Refined.unsafeApply(accessTokenPublisherToken)
+    )
 
   }
 }
