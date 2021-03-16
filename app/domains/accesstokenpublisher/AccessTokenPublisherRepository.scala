@@ -7,5 +7,5 @@ import scala.concurrent.Future
 trait AccessTokenPublisherRepository {
   def find(
     code: AccessTokenPublisherTemporaryOauthCode
-  ): Future[AccessTokenPublisher]
+  ): Future[Option[AccessTokenPublisher]]
 }
