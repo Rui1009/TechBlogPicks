@@ -1,10 +1,9 @@
 package usecases
 
-import domains.accesstokenpublisher.{AccessTokenPublisher, AccessTokenPublisherRepository}
+import domains.accesstokenpublisher.{AccessTokenPublisherRepository}
 import domains.bot.BotRepository
 import helpers.traits.UseCaseSpec
 import usecases.InstallBotUseCase._
-import cats.syntax.option._
 import infra.DBError
 
 import scala.concurrent.Future

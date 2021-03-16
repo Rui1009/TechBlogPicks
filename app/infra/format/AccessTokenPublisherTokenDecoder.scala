@@ -3,7 +3,6 @@ package infra.format
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
 import eu.timepit.refined.api.Refined
 import io.circe.Decoder
-import eu.timepit.refined.auto._
 
 trait AccessTokenPublisherTokenDecoder {
   implicit val decodeAccessTokenPublisherToken

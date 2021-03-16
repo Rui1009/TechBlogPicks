@@ -1,7 +1,6 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.{DomainError, EmptyStringError}
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
 import domains.accesstokenpublisher.{
   AccessTokenPublisher,
@@ -12,7 +11,6 @@ import play.api.libs.json.Json
 import play.api.libs.ws._
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
-import eu.timepit.refined.auto._
 import infra.format.AccessTokenPublisherTokenDecoder
 import io.circe.parser._
 import infra.syntax.either._

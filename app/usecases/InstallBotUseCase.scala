@@ -3,7 +3,7 @@ package usecases
 import com.google.inject.Inject
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode
 import domains.accesstokenpublisher.AccessTokenPublisherRepository
-import domains.bot.{Bot, BotRepository}
+import domains.bot.{BotRepository}
 import domains.bot.Bot.BotId
 import usecases.InstallBotUseCase.Params
 
