@@ -4,7 +4,13 @@ import helpers.traits.{HasDB, QueryProcessorSpec}
 import infra.dto.Tables._
 import query.publishposts.{Post, PublishPostsQueryProcessor, PublishPostsView}
 import cats.syntax.option._
-import org.scalatest._
+import mockws.MockWS
+import mockws.MockWSHelpers.Action
+import io.circe._
+import play.api.Application
+import play.api.inject.bind
+import play.api.libs.ws.WSClient
+import play.api.mvc.Results.Ok
 
 trait PublishPostsQueryProcessorSpecContext { this: HasDB =>
   val currUnix = System.currentTimeMillis / 1000
@@ -39,11 +45,35 @@ trait PublishPostsQueryProcessorSpecContext { this: HasDB =>
     .transactionally
 
   val deleteAction = BotsPosts.delete >> Posts.delete >> AccessTokens.delete
+
+  val channels = Seq("channel1", "channel2")
+
+  val mockWs = MockWS {
+    case ("GET", str: String)
+        if str.matches("https://slack.com/api/users.conversations") =>
+      val res = Json.fromJsonObject(
+        JsonObject(
+          "channels" ->
+            Json.fromValues(
+              channels.map(s =>
+                Json.obj(
+                  "id"   -> Json.fromString(s),
+                  "name" -> Json.fromString("test")
+                )
+              )
+            )
+        )
+      )
+      Action(Ok(res.noSpaces))
+  }
 }
 
 class PublishPostsQueryProcessorSpec
     extends QueryProcessorSpec[PublishPostsQueryProcessor]
     with PublishPostsQueryProcessorSpecContext {
+  override val app: Application =
+    builder.overrides(bind[WSClient].toInstance(mockWs)).build()
+
   before(db.run(beforeAction).futureValue)
   after(db.run(deleteAction).ready())
 
@@ -54,15 +84,18 @@ class PublishPostsQueryProcessorSpec
         val expected = Seq(
           PublishPostsView(
             Seq(Post("url1".some, "title1"), Post("url2".some, "title2")),
-            "token1"
+            "token1",
+            channels
           ),
           PublishPostsView(
             Seq(Post("url1".some, "title1"), Post("url2".some, "title2")),
-            "token2"
+            "token2",
+            channels
           ),
           PublishPostsView(
             Seq(Post("url1".some, "title1"), Post("url3".some, "title3")),
-            "token3"
+            "token3",
+            channels
           )
         )
 
