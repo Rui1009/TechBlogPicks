@@ -1,10 +1,9 @@
 package usecases
 
-import domains.accesstokenpublisher.{AccessTokenPublisher, AccessTokenPublisherRepository}
+import domains.accesstokenpublisher.{AccessTokenPublisherRepository}
 import domains.bot.BotRepository
 import helpers.traits.UseCaseSpec
 import usecases.InstallBotUseCase._
-import cats.syntax.option._
 import infra.DBError
 
 import scala.concurrent.Future
@@ -23,7 +22,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           val params = Params(tempOauthCode, bot.id)
 
           when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
-          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
+          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(Some(accessTokenPublisher)))
           when(botRepo.update(bot.receiveToken(accessTokenPublisher.publishToken))).thenReturn(Future.unit)
 
           new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params).futureValue
@@ -47,7 +46,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           val params = Params(tempOauthCode, bot.id)
 
           when(botRepo.find(params.botId)).thenReturn(Future.failed(DBError("error")))
-          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
+          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(Some(accessTokenPublisher)))
           when(botRepo.update(bot.receiveToken(accessTokenPublisher.publishToken))).thenReturn(Future.unit)
 
           val result = new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
@@ -76,17 +75,14 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           val params = Params(tempOauthCode, bot.id)
 
           when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
-          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.failed(DBError("error")))
+          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(None))
           when(botRepo.update(bot.receiveToken(accessTokenPublisher.publishToken))).thenReturn(Future.unit)
 
           val result = new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
 
           whenReady(result.failed) {e =>
             assert(
-              e == SystemError(
-                "error while accessTokenPublisher.find in install bot use case"
-                  + DBError("error").getMessage
-              )
+              e == NotFoundError("error while accessTokenPublisherRepository.find in install bot use case")
             )
             verify(botRepo, never).update(bot.receiveToken(accessTokenPublisher.publishToken))
           }
@@ -104,7 +100,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           val params = Params(tempOauthCode, bot.id)
 
           when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
-          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(accessTokenPublisher))
+          when(accessTokenRepo.find(params.temporaryOauthCode)).thenReturn(Future.successful(Some(accessTokenPublisher)))
           when(botRepo.update(bot.receiveToken(accessTokenPublisher.publishToken))).thenReturn(Future.failed(DBError("error")))
 
           val result = new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
