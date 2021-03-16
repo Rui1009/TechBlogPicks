@@ -20,11 +20,12 @@ trait FutureOps {
   implicit class FutureOptOps[T](futureOpt: Future[Option[T]])(implicit
     ec: ExecutionContext
   ) {
-    def ifNotExistsToUseCaseError(message: String): Future[T] = futureOpt.transformWith {
-      case Success(Some(value)) => Future.successful(value)
-      case Success(None)        => Future.failed(NotFoundError(message))
-      case Failure(exception)   =>
-        Future.failed(SystemError(message + exception.getMessage))
-    }
+    def ifNotExistsToUseCaseError(message: String): Future[T] =
+      futureOpt.transformWith {
+        case Success(Some(value)) => Future.successful(value)
+        case Success(None)        => Future.failed(NotFoundError(message))
+        case Failure(exception)   =>
+          Future.failed(SystemError(message + exception.getMessage))
+      }
   }
 }
