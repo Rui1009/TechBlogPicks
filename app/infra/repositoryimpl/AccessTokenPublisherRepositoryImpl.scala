@@ -33,7 +33,7 @@ class AccessTokenPublisherRepositoryImpl @Inject() (
     val postedParam = Json.obj("code" -> code.value.value)
 
     (for {
-      resp <- ws.url(oauthURL).post(postedParam) // 通信が失敗した時のハンドリング
+      resp <- ws.url(oauthURL).post(postedParam) //Todo: 通信が失敗した時のハンドリング
     } yield for {
       accessToken <- decode[AccessTokenPublisherToken](
                        resp.json.toString()
