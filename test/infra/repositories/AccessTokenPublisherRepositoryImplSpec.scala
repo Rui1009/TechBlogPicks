@@ -32,11 +32,9 @@ class AccessTokenPublisherRepositoryImplSuccessSpec extends AccessTokenPublisher
     "succeed" should {
       "get access token" in {
         forAll(temporaryOauthCodeGen) { code =>
-          val result = repository.find(code)
+          val result = repository.find(code).futureValue
 
-          whenReady(result, timeout(Span(1, Seconds))) { e =>
-            assert(e == Some(AccessTokenPublisher(AccessTokenPublisherToken("mock access token") , code)))
-          }
+            assert(result == Some(AccessTokenPublisher(AccessTokenPublisherToken("mock access token") , code)))
         }
       }
     }
