@@ -30,14 +30,12 @@ class AccessTokenPublisherRepositoryImpl @Inject() (
     val oauthURL    = "https://slack.com/api/oauth.v2.access"
     val postedParam = Json.obj("code" -> code.value.value)
 
-    (for {
+    for {
       resp <- ws.url(oauthURL).post(postedParam) //Todo: 通信が失敗した時のハンドリング
     } yield for {
-      accessToken <- decode[AccessTokenPublisherToken](
+      accessToken: AccessTokenPublisherToken <- decode[AccessTokenPublisherToken](
                        resp.json.toString()
-                     ).ifFailedThenReturnNone
-    } yield for {
-      accessTokenPublisher <- accessToken.map(AccessTokenPublisher(_, code))
-    } yield accessTokenPublisher).flatten
+                     ).ifLeftThenReturnNone
+    } yield AccessTokenPublisher(accessToken, code)
   }
 }

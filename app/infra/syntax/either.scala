@@ -10,9 +10,9 @@ trait InfraSyntax {
   ): EitherOps[S, T] = new EitherOps[S, T](either)
 }
 
-final private[syntax] class EitherOps[S, T](private val either: Either[S, T]) {
-  def ifFailedThenReturnNone: Future[Option[T]] = either match {
-    case Left(_)  => Future.successful(None)
-    case Right(v) => Future.successful(Some(v))
+final private[syntax] class EitherOps[S, T](private val either: Either[S, T]) extends AnyVal {
+  def ifLeftThenReturnNone: Option[T] = either match {
+    case Left(_)  => None
+    case Right(v) => Some(v)
   }
 }
