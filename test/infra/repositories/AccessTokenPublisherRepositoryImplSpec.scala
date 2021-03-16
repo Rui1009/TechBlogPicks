@@ -1,7 +1,10 @@
 package infra.repositories
 
-import domains.accesstokenpublisher.AccessTokenPublisher.{AccessTokenPublisherToken}
-import domains.accesstokenpublisher.{AccessTokenPublisher, AccessTokenPublisherRepository}
+import domains.accesstokenpublisher.AccessTokenPublisher._
+import domains.accesstokenpublisher.{
+  AccessTokenPublisher,
+  AccessTokenPublisherRepository
+}
 import helpers.traits.RepositorySpec
 import play.api.libs.json.Json
 import org.scalatest.time.{Seconds, Span}
@@ -13,15 +16,14 @@ import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
 import eu.timepit.refined.auto._
 
+class AccessTokenPublisherRepositoryImplSpec
+    extends RepositorySpec[AccessTokenPublisherRepository]
 
-class AccessTokenPublisherRepositoryImplSpec extends RepositorySpec[AccessTokenPublisherRepository]
-
-class AccessTokenPublisherRepositoryImplSuccessSpec extends AccessTokenPublisherRepositoryImplSpec {
+class AccessTokenPublisherRepositoryImplSuccessSpec
+    extends AccessTokenPublisherRepositoryImplSpec {
   val mockWs = MockWS {
     case ("POST", str: String)
-      if str.matches(
-        "https://slack.com/api/oauth.v2.access"
-      ) =>
+        if str.matches("https://slack.com/api/oauth.v2.access") =>
       Action(Ok(Json.obj("access_token" -> "mock access token")))
   }
 
@@ -34,14 +36,22 @@ class AccessTokenPublisherRepositoryImplSuccessSpec extends AccessTokenPublisher
         forAll(temporaryOauthCodeGen) { code =>
           val result = repository.find(code).futureValue
 
-            assert(result == Some(AccessTokenPublisher(AccessTokenPublisherToken("mock access token") , code)))
+          assert(
+            result === Some(
+              AccessTokenPublisher(
+                AccessTokenPublisherToken("mock access token"),
+                code
+              )
+            )
+          )
         }
       }
     }
   }
 }
 
-class AccessTokenPublisherRepositoryImplFailSpec extends RepositorySpec[AccessTokenPublisherRepository] {
+class AccessTokenPublisherRepositoryImplFailSpec
+    extends RepositorySpec[AccessTokenPublisherRepository] {
   "find" when {
     "failed" should {
       "None returned" in {
@@ -49,7 +59,7 @@ class AccessTokenPublisherRepositoryImplFailSpec extends RepositorySpec[AccessTo
           val result = repository.find(code)
 
           whenReady(result, timeout(Span(1, Seconds))) { e =>
-            assert(e == None)
+            assert(e === None)
           }
         }
       }
