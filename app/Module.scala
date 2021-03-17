@@ -1,11 +1,9 @@
 import com.google.inject.AbstractModule
 import domains.accesstokenpublisher.AccessTokenPublisherRepository
 import domains.post.PostRepository
-import infra.repositoryimpl.{
-  AccessTokenPublisherRepositoryImpl,
-  PostRepositoryImpl
-}
-import infra.repositoryimpl.PostRepositoryImpl
+import infra.queryprocessorimpl.PublishPostsQueryProcessorImpl
+import infra.repositoryimpl._
+import query.publishposts.PublishPostsQueryProcessor
 import usecases.{RegisterPostUseCase, RegisterPostUseCaseImpl}
 
 class Module extends AbstractModule {
@@ -14,5 +12,8 @@ class Module extends AbstractModule {
     bind(classOf[AccessTokenPublisherRepository])
       .to(classOf[AccessTokenPublisherRepositoryImpl])
     bind(classOf[RegisterPostUseCase]).to(classOf[RegisterPostUseCaseImpl])
+
+    bind(classOf[PublishPostsQueryProcessor])
+      .to(classOf[PublishPostsQueryProcessorImpl])
   }
 }

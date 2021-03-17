@@ -17,7 +17,7 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
             val botsPostsLen = db.run(BotsPosts.length.result).futureValue
             assert(postLen === 1)
             assert(botsPostsLen === botIds.length)
-            db.run(BotsPosts.delete >> Posts.delete)
+            db.run(BotsPosts.delete >> Posts.delete).futureValue
           }
         }
 

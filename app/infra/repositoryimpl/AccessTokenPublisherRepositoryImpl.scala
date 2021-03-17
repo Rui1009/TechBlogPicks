@@ -33,9 +33,10 @@ class AccessTokenPublisherRepositoryImpl @Inject() (
     for {
       resp <- ws.url(oauthURL).post(postedParam) //Todo: 通信が失敗した時のハンドリング
     } yield for {
-      accessToken: AccessTokenPublisherToken <- decode[AccessTokenPublisherToken](
-                       resp.json.toString()
-                     ).ifLeftThenReturnNone
+      accessToken: AccessTokenPublisherToken <-
+        decode[AccessTokenPublisherToken](
+          resp.json.toString()
+        ).ifLeftThenReturnNone
     } yield AccessTokenPublisher(accessToken, code)
   }
 }
