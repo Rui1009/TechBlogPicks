@@ -1,5 +1,6 @@
 package helpers.gens
 
+import adapters.controllers.bot.InstallBotBody
 import adapters.controllers.post.CreatePostBody
 import org.scalacheck.Gen
 import helpers.gens.string._
@@ -14,4 +15,9 @@ trait RequestGen {
     postedAt <- Gen.posNum[Long]
     botIds   <- Gen.listOf(nonEmptyStringGen)
   } yield CreatePostBody(url, title, author, postedAt, botIds)
+
+  val installBotBodyGen: Gen[InstallBotBody] = for {
+    code <- nonEmptyStringGen
+    botId <- nonEmptyStringGen
+  } yield InstallBotBody(code, botId)
 }
