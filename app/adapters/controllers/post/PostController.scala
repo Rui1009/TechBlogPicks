@@ -11,6 +11,7 @@ import query.publishposts.PublishPostsQueryProcessor
 import usecases.RegisterPostUseCase
 import usecases.RegisterPostUseCase.Params
 import io.circe.syntax._
+import io.circe.parser._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -44,16 +45,22 @@ class PostController @Inject() (
     }
 
   def publish: Action[AnyContent] = Action.async {
+    val url = "https://slack.com/api/chat.postMessage"
+
     (for {
       publishPosts <- publishPostsQueryProcessor.findAll()
     } yield for {
-      body <- PublishPostBody.fromViewModels(publishPosts)
+      body <- PublishPostBody.fromViewModels(publishPosts, "今日の記事")
     } yield for {
-      _ <- ws.url("https://slack.com/api/chat.postMessage")
+      _ <- ws.url(url)
              .post(body.asJson.noSpaces)
+             .ifFailedThenToAdapterError(s"error while posting $url")
+             .map(res => decode[PublishPostResponse](res.json.toString))
+             .ifLeftThenToAdapterError("post message failed")
     } yield ())
       .map(Future.sequence(_))
       .flatten
+      .map(_ => ())
       .ifFailedThenToAdapterError("error in PostController.publish")
       .toSuccessGetResponse
       .recoverError
