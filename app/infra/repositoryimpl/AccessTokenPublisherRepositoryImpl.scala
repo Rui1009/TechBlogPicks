@@ -13,7 +13,7 @@ import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
 import infra.format.AccessTokenPublisherTokenDecoder
 import io.circe.parser._
-import infra.syntax.either._
+import infra.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,7 +31,7 @@ class AccessTokenPublisherRepositoryImpl @Inject() (
     val postedParam = Json.obj("code" -> code.value.value)
 
     for {
-      resp <- ws.url(oauthURL).post(postedParam) //Todo: 通信が失敗した時のハンドリング
+      resp <- ws.url(oauthURL).post(postedParam).ifFailedThenToInfraError(s"error while posting $oauthURL")
     } yield for {
       accessToken: AccessTokenPublisherToken <-
         decode[AccessTokenPublisherToken](
