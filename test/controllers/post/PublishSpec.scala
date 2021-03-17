@@ -82,16 +82,20 @@ class PostControllerPublishFailedSpec
   "publish" when {
     "failed post message" should {
       "return Internal Server Error" in {
-        forAll(Gen.nonEmptyListOf(publishPostsViewGen)) { views =>
-          when(query.findAll()).thenReturn(Future.successful(views))
+        forAll(Gen.nonEmptyListOf(publishPostsViewGen).filter(_.nonEmpty)) {
+          views =>
+            when(query.findAll()).thenReturn(Future.successful(views))
 
-          val res = Request.get(path).unsafeExec
+            val res = Request.get(path).unsafeExec
 
-          val msg =
-            "InternalServerError\nerror in PostController.publish\nInternalServerError\npost message failed\nAttempt to decode value on failed cursor: DownField(channel)))"
+            val msg = """InternalServerError
+                |error in PostController.publish
+                |InternalServerError
+                |post message failed
+                |Attempt to decode value on failed cursor: DownField(channel)""".stripMargin
 
-          assert(status(res) === INTERNAL_SERVER_ERROR)
-          assert(decodeERes(res).unsafeGet.message === msg)
+            assert(status(res) === INTERNAL_SERVER_ERROR)
+            assert(decodeERes(res).unsafeGet.message === msg)
         }
       }
     }
