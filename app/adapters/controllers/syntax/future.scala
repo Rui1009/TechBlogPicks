@@ -27,9 +27,8 @@ trait FutureSyntax {
         case Success(v)               => Future.successful(v)
         case Failure(e: UseCaseError) =>
           Future.failed(AdapterError.fromUseCaseError(message, e))
-        case Failure(e)               => Future.failed(
-            InternalServerError("\n" + message + "\n" + e.getMessage)
-          )
+        case Failure(e)               =>
+          Future.failed(InternalServerError(message + "\n" + e.getMessage))
       }
 
     private def _toSuccessResponse(
@@ -44,5 +43,18 @@ trait FutureSyntax {
     def recoverError: Future[Result] = future.recover { case e: AdapterError =>
       responseError(e)
     }
+  }
+
+  implicit class FutureEitherOps[E <: Throwable, T](
+    futureEither: Future[Either[E, T]]
+  )(implicit ec: ExecutionContext) {
+    def ifLeftThenToAdapterError(message: String): Future[T] =
+      futureEither.transformWith {
+        case Success(Right(v)) => Future.successful(v)
+        case Success(Left(e))  =>
+          Future.failed(InternalServerError(message + "\n" + e.getMessage))
+        case Failure(e)        =>
+          Future.failed(InternalServerError(message + "\n" + e.getMessage))
+      }
   }
 }
