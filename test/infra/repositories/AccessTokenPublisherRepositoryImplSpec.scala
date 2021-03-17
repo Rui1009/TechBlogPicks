@@ -1,10 +1,7 @@
 package infra.repositories
 
 import domains.accesstokenpublisher.AccessTokenPublisher._
-import domains.accesstokenpublisher.{
-  AccessTokenPublisher,
-  AccessTokenPublisherRepository
-}
+import domains.accesstokenpublisher.{AccessTokenPublisher, AccessTokenPublisherRepository}
 import helpers.traits.RepositorySpec
 import play.api.libs.json.Json
 import org.scalatest.time.{Seconds, Span}
@@ -15,9 +12,10 @@ import play.api.inject.bind
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
 import eu.timepit.refined.auto._
+import infra.repositoryimpl.AccessTokenPublisherRepositoryImpl
 
 class AccessTokenPublisherRepositoryImplSpec
-    extends RepositorySpec[AccessTokenPublisherRepository]
+    extends RepositorySpec[AccessTokenPublisherRepositoryImpl]
 
 class AccessTokenPublisherRepositoryImplSuccessSpec
     extends AccessTokenPublisherRepositoryImplSpec {
