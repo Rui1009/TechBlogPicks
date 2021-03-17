@@ -12,17 +12,17 @@ import play.api.test.Helpers._
 import scala.concurrent.Future
 
 trait ControllerSpec extends UnitSpec with HasApplication {
-  val badRequestError = "BadRequestError"
+  val badRequestError = "BadRequestError\n"
 
-  val internalServerError = "InternalServerError"
+  val internalServerError = "InternalServerError\n"
 
-  val urlError = "\ndomains.RegexError: PostUrl don't match pattern"
+  val urlError = "domains.RegexError: PostUrl don't match pattern\n"
 
   def emptyStringError(className: String) =
-    s"\ndomains.EmptyStringError: $className is empty string"
+    s"domains.EmptyStringError: $className is empty string\n"
 
   def negativeNumberError(className: String) =
-    s"\ndomains.NegativeNumberError: $className is negative number"
+    s"domains.NegativeNumberError: $className is negative number\n"
 
   case class Response[T](data: T)
   case class ErrorResponse(message: String)

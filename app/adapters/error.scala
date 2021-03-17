@@ -8,7 +8,9 @@ import usecases.{
 }
 
 sealed abstract class AdapterError(message: String) extends Exception {
-  override def getMessage: String = s"${this.getClass.getSimpleName}$message"
+  override def getMessage: String = s"""${this.getClass.getSimpleName}
+                                       |$message
+                                       |""".stripMargin
 }
 
 final case class BadRequestError(message: String) extends AdapterError(message)
@@ -21,8 +23,8 @@ final case class NotFoundError(message: String) extends AdapterError(message)
 object AdapterError {
   def fromUseCaseError(message: String, error: UseCaseError): AdapterError =
     error match {
-      case e: SystemError    => InternalServerError("\n" + message + e.getMessage)
-      case e: UNotFoundError => NotFoundError("\n" + message + e.getMessage)
-      case e: BadParamsError => BadRequestError("\n" + message + e.getMessage)
+      case e: SystemError    => InternalServerError(message + "\n" + e.getMessage)
+      case e: UNotFoundError => NotFoundError(message + "\n" + e.getMessage)
+      case e: BadParamsError => BadRequestError(message + "\n" + e.getMessage)
     }
 }

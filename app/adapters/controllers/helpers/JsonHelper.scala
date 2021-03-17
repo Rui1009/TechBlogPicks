@@ -12,7 +12,7 @@ object JsonHelper extends JsonHelper
 
 trait JsonHelper {
   def responseError(e: AdapterError): Result = {
-    val res = ErrorResponse(e.getMessage).asJson.noSpaces
+    val res = ErrorResponse(e.getMessage.trim).asJson.noSpaces
     e match {
       case _: BadRequestError     => Results.Status(Status.BAD_REQUEST)(res)
       case _: NotFoundError       => Results.Status(Status.BAD_REQUEST)(res)
