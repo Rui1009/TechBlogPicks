@@ -5,7 +5,12 @@ import domains.post.PostRepository
 import infra.queryprocessorimpl.PublishPostsQueryProcessorImpl
 import infra.repositoryimpl._
 import query.publishposts.PublishPostsQueryProcessor
-import usecases.{InstallBotUseCase, InstallBotUseCaseImpl, RegisterPostUseCase, RegisterPostUseCaseImpl}
+import usecases.{
+  InstallBotUseCase,
+  InstallBotUseCaseImpl,
+  RegisterPostUseCase,
+  RegisterPostUseCaseImpl
+}
 
 class Module extends AbstractModule {
   override def configure(): Unit = {

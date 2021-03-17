@@ -17,29 +17,36 @@ import domains.bot.Bot.BotId
 import scala.concurrent.{ExecutionContext, Future}
 
 class BotController @Inject() (
-   val controllerComponents: ControllerComponents,
-   installBotUseCase: InstallBotUseCase
-  )(implicit val ec: ExecutionContext) extends BaseController with JsonHelper with FutureSyntax {
+  val controllerComponents: ControllerComponents,
+  installBotUseCase: InstallBotUseCase
+)(implicit val ec: ExecutionContext)
+    extends BaseController with JsonHelper with FutureSyntax {
   def install(code: String, bot_id: String): Action[AnyContent] =
     Action.async { implicit request =>
-      val tempOauthCode: ValidatedNel[EmptyStringError, AccessTokenPublisherTemporaryOauthCode] = AccessTokenPublisherTemporaryOauthCode.create(code).toValidatedNel
-      val botId: ValidatedNel[EmptyStringError, BotId] = BotId.create(bot_id).toValidatedNel
+      val tempOauthCode: ValidatedNel[
+        EmptyStringError,
+        AccessTokenPublisherTemporaryOauthCode
+      ]                                                = AccessTokenPublisherTemporaryOauthCode.create(code).toValidatedNel
+      val botId: ValidatedNel[EmptyStringError, BotId] =
+        BotId.create(bot_id).toValidatedNel
       (tempOauthCode, botId)
-          .mapN((_, _))
-          .toEither
-          .leftMap(errors => BadRequestError(errors.foldLeft("")((acc, cur: DomainError) => acc + cur.errorMessage)))
-          .fold(
-            e => Future.successful(responseError(e)),
-            tuple => installBotUseCase.exec(
-              Params(
-                tuple._1,
-                tuple._2
-              )
-            )
+        .mapN((_, _))
+        .toEither
+        .leftMap(errors =>
+          BadRequestError(
+            errors
+              .foldLeft("")((acc, cur: DomainError) => acc + cur.errorMessage)
+          )
+        )
+        .fold(
+          e => Future.successful(responseError(e)),
+          tuple =>
+            installBotUseCase
+              .exec(Params(tuple._1, tuple._2))
               .ifFailedThenToAdapterError("error in BotController.install")
               .toSuccessGetResponse
               .recoverError
-          )
+        )
 
     }
 
