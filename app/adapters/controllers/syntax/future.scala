@@ -19,6 +19,9 @@ trait FutureSyntax {
     def toSuccessPostResponse(implicit encoder: Encoder[T]): Future[Result] =
       _toSuccessResponse(Results.Created)
 
+    def toSuccessGetResponse(implicit encoder: Encoder[T]): Future[Result] =
+      _toSuccessResponse(Results.Ok)
+
     def ifFailedThenToAdapterError(message: String): Future[T] =
       future.transformWith {
         case Success(v)               => Future.successful(v)

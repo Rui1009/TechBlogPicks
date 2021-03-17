@@ -31,7 +31,9 @@ class AccessTokenPublisherRepositoryImpl @Inject() (
     val postedParam = Json.obj("code" -> code.value.value)
 
     for {
-      resp <- ws.url(oauthURL).post(postedParam).ifFailedThenToInfraError(s"error while posting $oauthURL")
+      resp <- ws.url(oauthURL)
+                .post(postedParam)
+                .ifFailedThenToInfraError(s"error while posting $oauthURL")
     } yield for {
       accessToken: AccessTokenPublisherToken <-
         decode[AccessTokenPublisherToken](
