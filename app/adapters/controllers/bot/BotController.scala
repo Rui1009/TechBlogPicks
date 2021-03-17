@@ -1,6 +1,6 @@
 package adapters.controllers.bot
 
-import adapters.{AdapterError, BadRequestError}
+import adapters.{BadRequestError}
 import adapters.controllers.helpers.JsonHelper
 import adapters.controllers.syntax.FutureSyntax
 import cats.data.ValidatedNel
