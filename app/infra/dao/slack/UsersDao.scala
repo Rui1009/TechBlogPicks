@@ -11,10 +11,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class UsersDao(ws: WSClient, accessToken: String)(implicit
   val ec: ExecutionContext
 ) {
-  def conversations: Future[ConversationResponse] = {
+  def conversations(id: String): Future[ConversationResponse] = {
     val url = "https://slack.com/api/users.conversations"
     (for {
       res <- ws.url(url)
+               .withQueryStringParameters("user" -> id)
                .withHttpHeaders(("Authentication", s"Bearer $accessToken"))
                .get
                .ifFailedThenToInfraError(s"error while getting $url")
