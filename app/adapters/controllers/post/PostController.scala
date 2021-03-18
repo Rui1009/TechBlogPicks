@@ -66,7 +66,7 @@ class PostController @Inject() (
           deleteUseCase
             .exec(DeletePostsUseCase.Params(body.ids))
             .ifFailedThenToAdapterError("error in PostController.delete")
-            .toSuccessPostResponse
+            .toSuccessGetResponse
             .recoverError
       )
     }
