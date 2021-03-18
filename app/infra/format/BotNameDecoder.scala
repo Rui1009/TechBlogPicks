@@ -11,4 +11,3 @@ trait BotNameDecoder {
     } yield BotName(Refined.unsafeApply(botName))
   }
 }
-
