@@ -1,6 +1,7 @@
 package infra.dao.slack
 
 import com.google.inject.Inject
+import infra.dao.slack.ChatDaoImpl.{PostMessageBody, PostMessageResponse}
 import play.api.libs.ws.WSClient
 import query.publishposts.PublishPostsView
 import io.circe.generic.auto._
@@ -26,28 +27,34 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
   }
 }
 
-case class PostMessageBody(token: String, channel: String, text: Option[String])
+object ChatDaoImpl {
+  case class PostMessageBody(
+    token: String,
+    channel: String,
+    text: Option[String]
+  )
 
-object PostMessageBody {
-  def fromViewModels(
-    models: Seq[PublishPostsView],
-    tempMsg: String
-  ): Seq[PostMessageBody] =
-    for {
-      model   <- models
-      channel <- model.channels
-    } yield PostMessageBody(
-      model.token,
-      channel,
-      model.posts.foldLeft(Option(tempMsg))((acc, curr) =>
-        for {
-          accText <- acc
-        } yield curr.url match {
-          case Some(v) => accText + "\n" + v
-          case None    => accText
-        }
+  object PostMessageBody {
+    def fromViewModels(
+      models: Seq[PublishPostsView],
+      tempMsg: String
+    ): Seq[PostMessageBody] =
+      for {
+        model   <- models
+        channel <- model.channels
+      } yield PostMessageBody(
+        model.token,
+        channel,
+        model.posts.foldLeft(Option(tempMsg))((acc, curr) =>
+          for {
+            accText <- acc
+          } yield curr.url match {
+            case Some(v) => accText + "\n" + v
+            case None    => accText
+          }
+        )
       )
-    )
-}
+  }
 
-case class PostMessageResponse(channel: String)
+  case class PostMessageResponse(channel: String)
+}
