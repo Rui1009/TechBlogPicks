@@ -1,7 +1,10 @@
 package infra.repositories
 
 import domains.accesstokenpublisher.AccessTokenPublisher._
-import domains.accesstokenpublisher.{AccessTokenPublisher, AccessTokenPublisherRepository}
+import domains.accesstokenpublisher.{
+  AccessTokenPublisher,
+  AccessTokenPublisherRepository
+}
 import helpers.traits.RepositorySpec
 import play.api.libs.json.Json
 import org.scalatest.time.{Seconds, Span}
