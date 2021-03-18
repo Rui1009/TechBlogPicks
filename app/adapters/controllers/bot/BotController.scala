@@ -18,31 +18,29 @@ import io.circe.generic.auto._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BotController @Inject()(
-    val controllerComponents: ControllerComponents,
-    installBotUseCase: InstallBotUseCase,
-    botsQueryProcessor: BotsQueryProcessor
+class BotController @Inject() (
+  val controllerComponents: ControllerComponents,
+  installBotUseCase: InstallBotUseCase,
+  botsQueryProcessor: BotsQueryProcessor
 )(implicit val ec: ExecutionContext)
-    extends BaseController
-    with JsonHelper
-    with FutureSyntax {
+    extends BaseController with JsonHelper with FutureSyntax {
   def install(code: String, bot_id: String): Action[AnyContent] =
     Action.async { implicit request =>
       val tempOauthCode: ValidatedNel[
         EmptyStringError,
         AccessTokenPublisherTemporaryOauthCode
-      ] = AccessTokenPublisherTemporaryOauthCode.create(code).toValidatedNel
+      ]                                                = AccessTokenPublisherTemporaryOauthCode.create(code).toValidatedNel
       val botId: ValidatedNel[EmptyStringError, BotId] =
         BotId.create(bot_id).toValidatedNel
       (tempOauthCode, botId)
         .mapN((_, _))
         .toEither
-        .leftMap(
-          errors =>
-            BadRequestError(
-              errors
-                .foldLeft("")((acc, cur: DomainError) => acc + cur.errorMessage)
-          ))
+        .leftMap(errors =>
+          BadRequestError(
+            errors
+              .foldLeft("")((acc, cur: DomainError) => acc + cur.errorMessage)
+          )
+        )
         .fold(
           e => Future.successful(responseError(e)),
           tuple =>
