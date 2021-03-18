@@ -1,15 +1,14 @@
-package controllers
+package controllers.bot
 
 import helpers.traits.ControllerSpec
-import usecases.{InstallBotUseCase, SystemError}
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.inject._
-import io.circe.generic.auto._
 import play.api.test.Helpers._
-import play.api.http.Status.{OK, INTERNAL_SERVER_ERROR}
+import usecases.{InstallBotUseCase, SystemError}
 
 import scala.concurrent.Future
 
-trait BotControllerSpecContent {
+trait BotControllerInstallSpecContent {
   this: ControllerSpec =>
 
   val uc = mock[InstallBotUseCase]
@@ -21,7 +20,8 @@ trait BotControllerSpecContent {
     internalServerError + "error in BotController.install\nSystemError\nerror"
 }
 
-class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
+class BotControllerInstallSpec
+    extends ControllerSpec with BotControllerInstallSpecContent {
   "install" when {
     "given body which is valid, ".which {
       "results succeed" should {
