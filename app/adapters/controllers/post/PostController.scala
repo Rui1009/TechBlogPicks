@@ -9,7 +9,7 @@ import infra.dao.slack.ChatDaoImpl._
 import io.circe.generic.auto._
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import query.publishposts.PublishPostsQueryProcessor
-import usecases.RegisterPostUseCase
+import usecases.{DeletePostsUseCase, RegisterPostUseCase}
 import usecases.RegisterPostUseCase.Params
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -18,6 +18,7 @@ class PostController @Inject() (
   val controllerComponents: ControllerComponents,
   registerPostUseCase: RegisterPostUseCase,
   publishPostsQueryProcessor: PublishPostsQueryProcessor,
+  deleteUseCase: DeletePostsUseCase,
   chatDao: ChatDao
 )(implicit val ec: ExecutionContext)
     extends BaseController with PostCreateBodyMapper with DeletePostsBodyMapper
@@ -59,5 +60,15 @@ class PostController @Inject() (
   }
 
   def delete: Action[Either[AdapterError, DeletePostsCommand]] =
-    Action.async(mapToDeleteCommand)(implicit request => ???)
+    Action.async(mapToDeleteCommand) { implicit request =>
+      request.body.fold(
+        e => Future.successful(responseError(e)),
+        body =>
+          deleteUseCase
+            .exec(DeletePostsUseCase.Params(body.ids))
+            .ifFailedThenToAdapterError("error in PostController.delete")
+            .toSuccessPostResponse
+            .recoverError
+      )
+    }
 }
