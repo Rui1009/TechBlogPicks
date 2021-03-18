@@ -7,15 +7,11 @@ import domains.bot.{Bot, BotRepository}
 import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.jdbc.PostgresProfile
 import infra.dto.Tables._
-import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
-import io.circe.parser._
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
-import infra.dao.slack.{UsersDao, UsersDaoImpl}
-import eu.timepit.refined.auto._
+import infra.dao.slack.{UsersDao}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -27,31 +23,32 @@ class BotRepositoryImpl @Inject() (
     extends HasDatabaseConfigProvider[PostgresProfile] with BotRepository
     with API {
   override def find(botId: Bot.BotId): Future[Bot] = {
-    //: Todo 環境変数化する
-    val winkieWorkSpaceOauthToken =
-      "xoxb-1857273131876-1879915905377-DQEJFucCGmsNr9LLswBskuXC"
+
+    val accessTokenQ =
+      AccessTokens.filter(_.botId === botId.value.value).map(_.token).result
+
+    val postQ =
+      BotsPosts.filter(_.botId === botId.value.value).map(_.postId).result
 
     (for {
-      resp <- usersDao.info(winkieWorkSpaceOauthToken, botId.value.value)
+      resp <-
+        usersDao.info(sys.env.getOrElse("ACCESS_TOKEN", ""), botId.value.value)
     } yield for {
-      accessToken <- db.run {
-                                    AccessTokens
-                                      .filter(_.botId === botId.value.value)
-                                      .map(_.token)
-                                      .result
-                                  }
-      postIds <- db.run {
-                                    BotsPosts
-                                      .filter(_.botId === botId.value.value)
-                                      .map(_.postId)
-                                      .result
-                                  }
-    } yield Bot(
-      botId,
-      BotName(Refined.unsafeApply(resp.name)),
-      accessToken.map(at => AccessTokenPublisherToken(Refined.unsafeApply(at))),
-      postIds.map(pid => PostId(Refined.unsafeApply(pid)))
-    )).flatten
+      queryResult <- db.run {
+                       for {
+                         accessToken <- accessTokenQ
+                         postId      <- postQ
+                       } yield Bot(
+                         botId,
+                         BotName(Refined.unsafeApply(resp.name)),
+                         accessToken.map(at =>
+                           AccessTokenPublisherToken(Refined.unsafeApply(at))
+                         ),
+                         postId.map(pid => PostId(Refined.unsafeApply(pid)))
+                       )
+                     }
+
+    } yield queryResult).flatten
   }
   override def update(bot: Bot): Future[Unit] = ???
 }

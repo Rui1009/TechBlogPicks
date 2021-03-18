@@ -6,7 +6,6 @@ import domains.bot.{Bot, BotRepository}
 import domains.bot.Bot.{BotId, BotName}
 import domains.post.Post.PostId
 import helpers.traits.{HasDB, RepositorySpec}
-import infra.repositoryimpl.BotRepositoryImpl
 import infra.dto.Tables._
 import play.api.inject.bind
 import mockws.MockWS
@@ -65,7 +64,7 @@ class BotRepositoryImplSuccessSpec extends RepositorySpec[BotRepository] with Bo
   
   "find" when {
     "success" should {
-      "return Future[Some(Bot)]" in {
+      "return Future[Bot]" in {
           val result = repository.find(paramBotId).futureValue
 
           assert(
