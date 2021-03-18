@@ -18,7 +18,7 @@ trait BotControllerSpecContent {
     builder.overrides(bind[InstallBotUseCase].toInstance(uc)).build()
 
   val failedError =
-    internalServerError + "\nerror in BotController.install\nSystemError\nerror"
+    internalServerError + "error in BotController.install\nSystemError\nerror"
 }
 
 class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
@@ -29,7 +29,7 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
           forAll(nonEmptyStringGen, nonEmptyStringGen) { (code, botId) =>
             when(uc.exec(*)).thenReturn(Future.unit)
             val path = "/bot?code=" + code + "&bot_id=" + botId
-            val res = Request.get(path).unsafeExec
+            val res  = Request.get(path).unsafeExec
 
             assert(status(res) === OK)
             assert(decodeRes[Unit](res).unsafeGet === Response[Unit](()))
@@ -44,7 +44,7 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
           forAll(nonEmptyStringGen, nonEmptyStringGen) { (code, botId) =>
             when(uc.exec(*)).thenReturn(Future.failed(SystemError("error")))
             val path = "/bot?code=" + code + "&bot_id=" + botId
-            val res = Request.get(path).unsafeExec
+            val res  = Request.get(path).unsafeExec
 
             assert(status(res) === INTERNAL_SERVER_ERROR)
             assert(decodeERes(res).unsafeGet.message === failedError)
@@ -52,16 +52,22 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
         }
       }
     }
-    
+
     "given body".which {
       "code is invalid" should {
         "return BadRequest Error" in {
           forAll(nonEmptyStringGen) { botId =>
             val path = "/bot?code=" + "&bot_id=" + botId
-            val res = Request.get(path).unsafeExec
-            
+            val res  = Request.get(path).unsafeExec
+
             assert(status(res) === BAD_REQUEST)
-            assert(decodeERes(res).unsafeGet.message === badRequestError + emptyStringError("temporaryOauthCode"))
+            assert(
+              decodeERes(
+                res
+              ).unsafeGet.message === (badRequestError + emptyStringError(
+                "temporaryOauthCode"
+              )).trim
+            )
           }
 
         }
@@ -71,10 +77,16 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
         "return BadRequest Error" in {
           forAll(nonEmptyStringGen) { code =>
             val path = "/bot?code=" + code + "&bot_id="
-            val res = Request.get(path).unsafeExec
+            val res  = Request.get(path).unsafeExec
 
             assert(status(res) === BAD_REQUEST)
-            assert(decodeERes(res).unsafeGet.message === badRequestError + emptyStringError("BotId"))
+            assert(
+              decodeERes(
+                res
+              ).unsafeGet.message === (badRequestError + emptyStringError(
+                "BotId"
+              )).trim
+            )
           }
         }
       }
@@ -82,13 +94,18 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
       "content is invalid at all" should {
         "return BadRequest Error" in {
           val path = "/bot?code=&bot_id="
-          val res = Request.get(path).unsafeExec
+          val res  = Request.get(path).unsafeExec
 
           assert(status(res) === BAD_REQUEST)
-          assert(decodeERes(res).unsafeGet.message === badRequestError + emptyStringError("temporaryOauthCode") + emptyStringError("BotId"))
+          assert(
+            decodeERes(
+              res
+            ).unsafeGet.message === (badRequestError + emptyStringError(
+              "temporaryOauthCode"
+            ) + emptyStringError("BotId")).trim
+          )
         }
       }
     }
   }
 }
-

@@ -1,16 +1,16 @@
-package controllers
+package controllers.post
 
 import adapters.controllers.post.CreatePostBody
-import helpers.traits.ControllerSpec
-import usecases.{RegisterPostUseCase, SystemError}
 import cats.syntax.option._
+import helpers.traits.ControllerSpec
 import io.circe.generic.auto._
 import play.api.inject._
 import play.api.test.Helpers._
+import usecases.{RegisterPostUseCase, SystemError}
 
 import scala.concurrent.Future
 
-trait PostControllerSpecContext { this: ControllerSpec =>
+trait CreateSpecContext { this: ControllerSpec =>
   val path = "/posts"
 
   val uc = mock[RegisterPostUseCase]
@@ -19,10 +19,10 @@ trait PostControllerSpecContext { this: ControllerSpec =>
     builder.overrides(bind[RegisterPostUseCase].toInstance(uc)).build()
 
   val failedError =
-    internalServerError + "\nerror in PostController.create\nSystemError\nerror"
+    internalServerError + "error in PostController.create\nSystemError\nerror"
 }
 
-class PostControllerSpec extends ControllerSpec with PostControllerSpecContext {
+class PostControllerCreateSpec extends ControllerSpec with CreateSpecContext {
   "create" when {
     "given body which is valid, ".which {
       "results succeed" should {
@@ -63,7 +63,9 @@ class PostControllerSpec extends ControllerSpec with PostControllerSpecContext {
 
             assert(status(res) === BAD_REQUEST)
             assert(
-              decodeERes(res).unsafeGet.message === badRequestError + urlError
+              decodeERes(
+                res
+              ).unsafeGet.message === (badRequestError + urlError).trim
             )
           }
         }
@@ -81,7 +83,7 @@ class PostControllerSpec extends ControllerSpec with PostControllerSpecContext {
                 res
               ).unsafeGet.message === badRequestError + emptyStringError(
                 "PostTitle"
-              )
+              ).trim
             )
           }
         }
@@ -99,7 +101,7 @@ class PostControllerSpec extends ControllerSpec with PostControllerSpecContext {
                 res
               ).unsafeGet.message === badRequestError + emptyStringError(
                 "PostAuthor"
-              )
+              ).trim
             )
           }
         }
@@ -117,7 +119,7 @@ class PostControllerSpec extends ControllerSpec with PostControllerSpecContext {
                 res
               ).unsafeGet.message === badRequestError + negativeNumberError(
                 "PostPostedAt"
-              )
+              ).trim
             )
           }
         }
@@ -135,7 +137,7 @@ class PostControllerSpec extends ControllerSpec with PostControllerSpecContext {
                 res
               ).unsafeGet.message === badRequestError + emptyStringError(
                 "BotId"
-              )
+              ).trim
             )
           }
         }
@@ -148,12 +150,12 @@ class PostControllerSpec extends ControllerSpec with PostControllerSpecContext {
 
           assert(status(res) === BAD_REQUEST)
           assert(
-            decodeERes(res).unsafeGet.message === badRequestError +
+            decodeERes(res).unsafeGet.message === (badRequestError +
               urlError + emptyStringError("PostTitle") + emptyStringError(
                 "PostAuthor"
               ) + negativeNumberError("PostPostedAt") + emptyStringError(
                 "BotId"
-              )
+              )).trim
           )
         }
       }

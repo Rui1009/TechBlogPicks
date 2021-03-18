@@ -7,6 +7,7 @@
 GET     /                           adapters.controllers.HomeController.index()
 
 POST    /posts						adapters.controllers.post.PostController.create()
+GET     /posts/publish				adapters.controllers.post.PostController.publish()
 
 GET     /bot                  adapters.controllers.bot.BotController.install(code: String, bot_id: String)
 
