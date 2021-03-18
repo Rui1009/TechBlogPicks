@@ -1,5 +1,7 @@
 package query.bots
 
+import scala.concurrent.Future
+
 trait BotsQueryProcessor {
-  def findAll: Seq[BotsView]
+  def findAll: Future[Seq[BotsView]]
 }
