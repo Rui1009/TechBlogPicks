@@ -53,5 +53,15 @@ class BotRepositoryImpl @Inject() (
 
     } yield queryResult).flatten
   }
-  override def update(bot: Bot): Future[Unit] = ???
+  override def update(
+    bot: Bot,
+    accessToken: AccessTokenPublisherToken
+  ): Future[Unit] = for (
+    _ <- db.run {
+           AccessTokens += AccessTokensRow(
+             accessToken.value.value,
+             bot.id.value.value
+           )
+         }.ifFailedThenToInfraError("error while BotRepository.update")
+  ) yield ()
 }

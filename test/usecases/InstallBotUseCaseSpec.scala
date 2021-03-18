@@ -22,8 +22,10 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
             when(accessTokenRepo.find(params.temporaryOauthCode))
               .thenReturn(Future.successful(Some(accessTokenPublisher)))
             when(
-              botRepo
-                .update(bot.receiveToken(accessTokenPublisher.publishToken))
+              botRepo.update(
+                bot.receiveToken(accessTokenPublisher.publishToken),
+                accessTokenPublisher.publishToken
+              )
             ).thenReturn(Future.unit)
 
             new InstallBotUseCaseImpl(accessTokenRepo, botRepo)
@@ -33,7 +35,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
             verify(botRepo).find(params.botId)
             verify(accessTokenRepo, only).find(params.temporaryOauthCode)
             verify(botRepo).update(
-              bot.receiveToken(accessTokenPublisher.publishToken)
+              bot.receiveToken(accessTokenPublisher.publishToken),
+              accessTokenPublisher.publishToken
             )
             reset(accessTokenRepo)
             reset(botRepo)
@@ -52,8 +55,10 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
             when(accessTokenRepo.find(params.temporaryOauthCode))
               .thenReturn(Future.successful(Some(accessTokenPublisher)))
             when(
-              botRepo
-                .update(bot.receiveToken(accessTokenPublisher.publishToken))
+              botRepo.update(
+                bot.receiveToken(accessTokenPublisher.publishToken),
+                accessTokenPublisher.publishToken
+              )
             ).thenReturn(Future.unit)
 
             val result =
@@ -68,7 +73,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
               )
               verify(accessTokenRepo, never).find(params.temporaryOauthCode)
               verify(botRepo, never).update(
-                bot.receiveToken(accessTokenPublisher.publishToken)
+                bot.receiveToken(accessTokenPublisher.publishToken),
+                accessTokenPublisher.publishToken
               )
             }
         }
@@ -85,8 +91,10 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
             when(accessTokenRepo.find(params.temporaryOauthCode))
               .thenReturn(Future.successful(None))
             when(
-              botRepo
-                .update(bot.receiveToken(accessTokenPublisher.publishToken))
+              botRepo.update(
+                bot.receiveToken(accessTokenPublisher.publishToken),
+                accessTokenPublisher.publishToken
+              )
             ).thenReturn(Future.unit)
 
             val result =
@@ -99,7 +107,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
                 )
               )
               verify(botRepo, never).update(
-                bot.receiveToken(accessTokenPublisher.publishToken)
+                bot.receiveToken(accessTokenPublisher.publishToken),
+                accessTokenPublisher.publishToken
               )
             }
         }
@@ -116,8 +125,10 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
             when(accessTokenRepo.find(params.temporaryOauthCode))
               .thenReturn(Future.successful(Some(accessTokenPublisher)))
             when(
-              botRepo
-                .update(bot.receiveToken(accessTokenPublisher.publishToken))
+              botRepo.update(
+                bot.receiveToken(accessTokenPublisher.publishToken),
+                accessTokenPublisher.publishToken
+              )
             ).thenReturn(Future.failed(DBError("error")))
 
             val result =
