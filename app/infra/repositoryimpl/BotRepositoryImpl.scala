@@ -62,6 +62,6 @@ class BotRepositoryImpl @Inject() (
              accessToken.value.value,
              bot.id.value.value
            )
-         }
+         }.ifFailedThenToInfraError("error while BotRepository.update")
   ) yield ()
 }
