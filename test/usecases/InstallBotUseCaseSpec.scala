@@ -18,7 +18,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           (tempOauthCode, bot, accessTokenPublisher) =>
             val params = Params(tempOauthCode, bot.id)
 
-            when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+            when(botRepo.find(params.botId)).thenReturn(Future.successful(Some(bot)))
             when(accessTokenRepo.find(params.temporaryOauthCode))
               .thenReturn(Future.successful(Some(accessTokenPublisher)))
             when(
@@ -81,7 +81,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           (tempOauthCode, bot, accessTokenPublisher) =>
             val params = Params(tempOauthCode, bot.id)
 
-            when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+            when(botRepo.find(params.botId)).thenReturn(Future.successful(Some(bot)))
             when(accessTokenRepo.find(params.temporaryOauthCode))
               .thenReturn(Future.successful(None))
             when(
@@ -112,7 +112,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           (tempOauthCode, bot, accessTokenPublisher) =>
             val params = Params(tempOauthCode, bot.id)
 
-            when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+            when(botRepo.find(params.botId)).thenReturn(Future.successful(Some(bot)))
             when(accessTokenRepo.find(params.temporaryOauthCode))
               .thenReturn(Future.successful(Some(accessTokenPublisher)))
             when(
