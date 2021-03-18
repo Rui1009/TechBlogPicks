@@ -3,18 +3,17 @@ package infra.queryprocessorimpl
 import com.google.inject.Inject
 import infra.dao.slack.UsersDao
 import infra.dto.Tables._
+import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import query.publishposts._
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
-import infra.syntax.all._
-import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class PublishPostsQueryProcessorImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
-  protected val ws: WSClient
+  protected val usersDao: UsersDao
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile]
     with PublishPostsQueryProcessor with API {
@@ -46,7 +45,7 @@ class PublishPostsQueryProcessorImpl @Inject() (
                              .map(p => Post(p.url, p.title))
         tokenRow        <- tokens
       } yield for {
-        conversations <- new UsersDao(ws, tokenRow.token).conversations
+        conversations <- usersDao.conversations(tokenRow.token, botId)
       } yield PublishPostsView(
         postView,
         tokenRow.token,
