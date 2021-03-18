@@ -4,14 +4,12 @@ import adapters.AdapterError
 import adapters.controllers.helpers.JsonHelper
 import adapters.controllers.syntax.FutureSyntax
 import com.google.inject.Inject
+import infra.dao.slack.{ChatDao, PostMessageBody}
 import io.circe.generic.auto._
-import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import query.publishposts.PublishPostsQueryProcessor
 import usecases.RegisterPostUseCase
 import usecases.RegisterPostUseCase.Params
-import io.circe.syntax._
-import io.circe.parser._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,7 +17,7 @@ class PostController @Inject() (
   val controllerComponents: ControllerComponents,
   registerPostUseCase: RegisterPostUseCase,
   publishPostsQueryProcessor: PublishPostsQueryProcessor,
-  ws: WSClient
+  chatDao: ChatDao
 )(implicit val ec: ExecutionContext)
     extends BaseController with PostCreateBodyMapper with FutureSyntax
     with JsonHelper {
@@ -45,22 +43,15 @@ class PostController @Inject() (
     }
 
   def publish: Action[AnyContent] = Action.async {
-    val url = "https://slack.com/api/chat.postMessage"
-
     (for {
       publishPosts <- publishPostsQueryProcessor.findAll()
     } yield for {
-      body <- PublishPostBody.fromViewModels(publishPosts, "今日の記事")
+      body <- PostMessageBody.fromViewModels(publishPosts, "今日の記事")
     } yield for {
-      _ <- ws.url(url)
-             .post(body.asJson.noSpaces)
-             .ifFailedThenToAdapterError(s"error while posting $url")
-             .map(res => decode[PublishPostResponse](res.json.toString))
-             .ifLeftThenToAdapterError("post message failed")
+      _ <- chatDao.postMessage(body)
     } yield ())
       .map(Future.sequence(_))
-      .flatten
-      .map(_ => ())
+      .flatMap(_.map(_ => ()))
       .ifFailedThenToAdapterError("error in PostController.publish")
       .toSuccessGetResponse
       .recoverError

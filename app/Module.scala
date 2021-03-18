@@ -2,6 +2,7 @@ import com.google.inject.AbstractModule
 import domains.accesstokenpublisher.AccessTokenPublisherRepository
 import domains.bot.BotRepository
 import domains.post.PostRepository
+import infra.dao.slack.{ChatDao, ChatDaoImpl}
 import infra.queryprocessorimpl.PublishPostsQueryProcessorImpl
 import infra.repositoryimpl._
 import query.publishposts.PublishPostsQueryProcessor
@@ -27,5 +28,8 @@ class Module extends AbstractModule {
     // query processor impl
     bind(classOf[PublishPostsQueryProcessor])
       .to(classOf[PublishPostsQueryProcessorImpl])
+
+    // dao
+    bind(classOf[ChatDao]).to(classOf[ChatDaoImpl])
   }
 }

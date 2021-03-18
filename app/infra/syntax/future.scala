@@ -34,7 +34,8 @@ final private[syntax] class FutureEitherOps[E <: Throwable, T](
   def ifLeftThenToInfraError(message: String): Future[T] =
     futureEither.transformWith {
       case Success(Right(v)) => Future.successful(v)
-      case Success(Left(e))  => Future.failed(APIError(message + e.getMessage))
-      case Failure(e)        => Future.failed(APIError(message + e.getMessage))
+      case Success(Left(e))  =>
+        Future.failed(APIError(message + "\n" + e.getMessage))
+      case Failure(e)        => Future.failed(APIError(message + "\n" + e.getMessage))
     }
 }

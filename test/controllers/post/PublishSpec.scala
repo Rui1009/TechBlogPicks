@@ -90,7 +90,7 @@ class PostControllerPublishFailedSpec
 
             val msg = """InternalServerError
                 |error in PostController.publish
-                |InternalServerError
+                |APIError
                 |post message failed
                 |Attempt to decode value on failed cursor: DownField(channel)""".stripMargin
 
