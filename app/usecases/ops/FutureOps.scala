@@ -13,7 +13,7 @@ trait FutureOps {
       future.transformWith {
         case Success(v)         => Future.successful(v)
         case Failure(exception) =>
-          Future.failed(SystemError(message + exception.getMessage))
+          Future.failed(SystemError(message + "\n" + exception.getMessage))
       }
   }
 

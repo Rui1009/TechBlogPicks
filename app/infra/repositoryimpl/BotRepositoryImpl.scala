@@ -12,6 +12,7 @@ import play.api.libs.ws.WSClient
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
 import infra.dao.slack.{UsersDao}
+import infra.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -46,7 +47,9 @@ class BotRepositoryImpl @Inject() (
                          ),
                          postId.map(pid => PostId(Refined.unsafeApply(pid)))
                        )
-                     }
+                     }.ifFailedThenToInfraError(
+                       "error while BotRepository.find"
+                     )
 
     } yield queryResult).flatten
   }

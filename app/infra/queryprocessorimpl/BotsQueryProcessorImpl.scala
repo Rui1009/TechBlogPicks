@@ -10,19 +10,16 @@ import infra.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BotsQueryProcessorImpl @Inject()(
-    protected val dbConfigProvider: DatabaseConfigProvider,
-    protected val usersDao: UsersDao
+class BotsQueryProcessorImpl @Inject() (
+  protected val dbConfigProvider: DatabaseConfigProvider,
+  protected val usersDao: UsersDao
 )(implicit val ec: ExecutionContext)
-    extends HasDatabaseConfigProvider[PostgresProfile]
-    with BotsQueryProcessor
+    extends HasDatabaseConfigProvider[PostgresProfile] with BotsQueryProcessor
     with API {
-  override def findAll: Future[Seq[BotsView]] =
-    (for {
-      res <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-    } yield
-      for {
-        member <- res.members.filter(_.isBot)
-      } yield BotsView(member.id, member.name))
-      .ifFailedThenToInfraError("error while BotsQueryProcessorImpl.findAll")
+  override def findAll: Future[Seq[BotsView]] = (for {
+    res <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+  } yield for {
+    member <- res.members.filter(_.isBot)
+  } yield BotsView(member.id, member.name))
+    .ifFailedThenToInfraError("error while BotsQueryProcessorImpl.findAll")
 }

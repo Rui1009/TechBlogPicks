@@ -1,6 +1,6 @@
 package usecases
 
-import domains.accesstokenpublisher.{AccessTokenPublisherRepository}
+import domains.accesstokenpublisher.AccessTokenPublisherRepository
 import domains.bot.BotRepository
 import helpers.traits.UseCaseSpec
 import usecases.InstallBotUseCase._
@@ -66,8 +66,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
 
             whenReady(result.failed) { e =>
               assert(
-                e == SystemError(
-                  "error while botRepository.find in install bot use case"
+                e === SystemError(
+                  "error while botRepository.find in install bot use case" + "\n"
                     + DBError("error").getMessage
                 )
               )
@@ -102,7 +102,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
 
             whenReady(result.failed) { e =>
               assert(
-                e == NotFoundError(
+                e === NotFoundError(
                   "error while accessTokenPublisherRepository.find in install bot use case"
                 )
               )
@@ -136,8 +136,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
 
             whenReady(result.failed) { e =>
               assert(
-                e == SystemError(
-                  "error while botRepository.update in install bot use case"
+                e === SystemError(
+                  "error while botRepository.update in install bot use case" + "\n"
                     + DBError("error").getMessage
                 )
               )

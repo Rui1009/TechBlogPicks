@@ -55,8 +55,8 @@ class RegisterPostUseCaseSpec extends UseCaseSpec {
           whenReady(result.failed) { e =>
             assert(
               e == SystemError(
-                "error while postRepository.add in register post use case"
-                  + DBError("error").getMessage
+                "error while postRepository.add in register post use case" +
+                  "\n" + DBError("error").getMessage
               )
             )
           }
