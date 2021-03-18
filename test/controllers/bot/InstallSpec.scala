@@ -1,15 +1,14 @@
-package controllers
+package controllers.bot
 
 import helpers.traits.ControllerSpec
-import usecases.{InstallBotUseCase, SystemError}
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.inject._
-import io.circe.generic.auto._
 import play.api.test.Helpers._
-import play.api.http.Status.{OK, INTERNAL_SERVER_ERROR}
+import usecases.{InstallBotUseCase, SystemError}
 
 import scala.concurrent.Future
 
-trait BotControllerSpecContent {
+trait BotControllerInstallSpecContent {
   this: ControllerSpec =>
 
   val uc = mock[InstallBotUseCase]
@@ -21,7 +20,9 @@ trait BotControllerSpecContent {
     internalServerError + "error in BotController.install\nSystemError\nerror"
 }
 
-class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
+class BotControllerInstallSpec
+    extends ControllerSpec
+    with BotControllerInstallSpecContent {
   "install" when {
     "given body which is valid, ".which {
       "results succeed" should {
@@ -29,7 +30,7 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
           forAll(nonEmptyStringGen, nonEmptyStringGen) { (code, botId) =>
             when(uc.exec(*)).thenReturn(Future.unit)
             val path = "/bot?code=" + code + "&bot_id=" + botId
-            val res  = Request.get(path).unsafeExec
+            val res = Request.get(path).unsafeExec
 
             assert(status(res) === OK)
             assert(decodeRes[Unit](res).unsafeGet === Response[Unit](()))
@@ -44,7 +45,7 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
           forAll(nonEmptyStringGen, nonEmptyStringGen) { (code, botId) =>
             when(uc.exec(*)).thenReturn(Future.failed(SystemError("error")))
             val path = "/bot?code=" + code + "&bot_id=" + botId
-            val res  = Request.get(path).unsafeExec
+            val res = Request.get(path).unsafeExec
 
             assert(status(res) === INTERNAL_SERVER_ERROR)
             assert(decodeERes(res).unsafeGet.message === failedError)
@@ -58,7 +59,7 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
         "return BadRequest Error" in {
           forAll(nonEmptyStringGen) { botId =>
             val path = "/bot?code=" + "&bot_id=" + botId
-            val res  = Request.get(path).unsafeExec
+            val res = Request.get(path).unsafeExec
 
             assert(status(res) === BAD_REQUEST)
             assert(
@@ -77,7 +78,7 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
         "return BadRequest Error" in {
           forAll(nonEmptyStringGen) { code =>
             val path = "/bot?code=" + code + "&bot_id="
-            val res  = Request.get(path).unsafeExec
+            val res = Request.get(path).unsafeExec
 
             assert(status(res) === BAD_REQUEST)
             assert(
@@ -94,7 +95,7 @@ class BotControllerSpec extends ControllerSpec with BotControllerSpecContent {
       "content is invalid at all" should {
         "return BadRequest Error" in {
           val path = "/bot?code=&bot_id="
-          val res  = Request.get(path).unsafeExec
+          val res = Request.get(path).unsafeExec
 
           assert(status(res) === BAD_REQUEST)
           assert(
