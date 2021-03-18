@@ -38,5 +38,5 @@ class PostRepositoryImpl @Inject() (
         Posts.filter(_.id.inSet(ids.map(_.value.value))).delete
       )
       .transactionally
-  }
+  }.ifFailedThenToInfraError("error while PostRepository.delete")
 }
