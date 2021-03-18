@@ -14,6 +14,7 @@ import play.api.Application
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import eu.timepit.refined.auto._
+import infra.dto.Tables
 
 trait BotRepositoryImplSpecContext { this: HasDB =>
   val beforeAction = DBIO
@@ -91,12 +92,34 @@ class BotRepositoryImplSuccessSpec
         "length is right" in {
           forAll(botGen, accessTokenPublisherGen) {
             (bot, accessTokenPublisher) =>
+              db.run(AccessTokens.delete).futureValue
               repository
                 .update(bot, accessTokenPublisher.publishToken)
                 .futureValue
+
               val accessTokenColumnLen =
                 db.run(AccessTokens.length.result).futureValue
-              assert(accessTokenColumnLen === 4)
+              assert(accessTokenColumnLen === 1)
+          }
+        }
+        "value is right" in {
+          forAll(botGen, accessTokenPublisherGen) {
+            (bot, accessTokenPublisher) =>
+              db.run(AccessTokens.delete).futureValue
+              repository
+                .update(bot, accessTokenPublisher.publishToken)
+                .futureValue
+
+              val accessTokensRow = db
+                .run(AccessTokens.result.head)
+                .map(r => AccessTokensRow(r.token, r.botId))
+                .futureValue
+
+              assert(accessTokensRow.botId === bot.id.value.value)
+              assert(
+                accessTokensRow.token === accessTokenPublisher.token.value.value
+              )
+
           }
         }
       }
