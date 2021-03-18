@@ -14,50 +14,41 @@ import play.api.libs.ws.WSClient
 import io.circe.parser._
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
+import infra.dao.slack.{UsersDao, UsersDaoImpl}
 import eu.timepit.refined.auto._
-import infra.format.BotNameDecoder
-import infra.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class BotRepositoryImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
-  protected val ws: WSClient
+  protected val ws: WSClient,
+  protected val usersDao: UsersDao
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with BotRepository
-    with API with BotNameDecoder {
-  override def find(botId: Bot.BotId): Future[Option[Bot]] = {
-    val getUserURL                = "https://slack.com/api/users.info"
+    with API {
+  override def find(botId: Bot.BotId): Future[Bot] = {
     //: Todo 環境変数化する
     val winkieWorkSpaceOauthToken =
-      "xoxb-1857273131876-1879915905377-X1zH9K6jgIMp1ImtX4Vihoip"
+      "xoxb-1857273131876-1879915905377-DQEJFucCGmsNr9LLswBskuXC"
 
     (for {
-      resp <- ws.url(getUserURL)
-                .withHttpHeaders(
-                  "token" -> winkieWorkSpaceOauthToken,
-                  "user"  -> botId.value.value
-                )
-                .get
-                .ifFailedThenToInfraError(s"error while getting $getUserURL")
+      resp <- usersDao.info(winkieWorkSpaceOauthToken, botId.value.value)
     } yield for {
-      accessToken: Seq[String] <- db.run {
+      accessToken <- db.run {
                                     AccessTokens
                                       .filter(_.botId === botId.value.value)
                                       .map(_.token)
                                       .result
                                   }
-      postIds: Seq[Long]       <- db.run {
+      postIds <- db.run {
                                     BotsPosts
                                       .filter(_.botId === botId.value.value)
                                       .map(_.postId)
                                       .result
                                   }
-    } yield for {
-      botName <- decode[BotName](resp.json.toString).ifLeftThenReturnNone
     } yield Bot(
       botId,
-      botName,
+      BotName(Refined.unsafeApply(resp.name)),
       accessToken.map(at => AccessTokenPublisherToken(Refined.unsafeApply(at))),
       postIds.map(pid => PostId(Refined.unsafeApply(pid)))
     )).flatten

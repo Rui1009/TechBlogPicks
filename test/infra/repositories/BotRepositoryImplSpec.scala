@@ -2,7 +2,7 @@ package infra.repositories
 
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
 import play.api.mvc.Results.Ok
-import domains.bot.Bot
+import domains.bot.{Bot, BotRepository}
 import domains.bot.Bot.{BotId, BotName}
 import domains.post.Post.PostId
 import helpers.traits.{HasDB, RepositorySpec}
@@ -49,7 +49,7 @@ trait BotRepositoryImplSpecContext { this: HasDB =>
 
 }
 
-class BotRepositoryImplSuccessSpec extends RepositorySpec[BotRepositoryImpl] with BotRepositoryImplSpecContext {
+class BotRepositoryImplSuccessSpec extends RepositorySpec[BotRepository] with BotRepositoryImplSpecContext {
 
   val mockWs = MockWS {
     case ("GET", str: String)
@@ -69,21 +69,18 @@ class BotRepositoryImplSuccessSpec extends RepositorySpec[BotRepositoryImpl] wit
           val result = repository.find(paramBotId).futureValue
 
           assert(
-            result === Some(
-              Bot(paramBotId, 
+            result === Bot(paramBotId,
                  BotName("mock_bot_name"), 
                 Seq(AccessTokenPublisherToken("token1"), AccessTokenPublisherToken("token2")),
                 Seq(PostId(1L), PostId(2L), PostId(3L))
               )
-            )
           )
-        
       }
     }
   }
 }
 
-class BotRepositoryImplFailSpec extends RepositorySpec[BotRepositoryImpl] with BotRepositoryImplSpecContext {
+class BotRepositoryImplFailSpec extends RepositorySpec[BotRepository] with BotRepositoryImplSpecContext {
   val mockWs = MockWS {
     case ("GET", str: String)
       if str.matches("https://slack.com/api/users.info") =>
@@ -98,12 +95,19 @@ class BotRepositoryImplFailSpec extends RepositorySpec[BotRepositoryImpl] with B
 
   "find" when {
     "user not exists fail" should {
-      "return Future.none" in {
-        val result = repository.find(paramBotId).futureValue
+      "return fail & error message" in {
+        val result = repository.find(paramBotId)
 
-        assert(
-          result === None
-        )
+        val msg = """
+                    |APIError
+                    |error while converting info api response
+                    |Attempt to decode value on failed cursor: DownField(user)
+                    |""".stripMargin.trim
+
+
+        whenReady(result.failed) { e =>
+          assert(e.getMessage.trim == msg)
+        }
       }
     }
   }

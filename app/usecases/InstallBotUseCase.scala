@@ -28,7 +28,7 @@ final class InstallBotUseCaseImpl @Inject() (
   override def exec(params: Params): Future[Unit] = for {
     targetBot            <- botRepository
                               .find(params.botId)
-                              .ifNotExistsToUseCaseError(
+                              .ifFailThenToUseCaseError(
                                 "error while botRepository.find in install bot use case"
                               )
     accessTokenPublisher <-
