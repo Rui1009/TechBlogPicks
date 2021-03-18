@@ -30,7 +30,7 @@ class BotRepositoryImpl @Inject() (
     val getUserURL                = "https://slack.com/api/users.info"
     //: Todo 環境変数化する
     val winkieWorkSpaceOauthToken =
-      "xoxb-1857273131876-1879915905377-zb373h8oddEt7TqKuL022O76"
+      "xoxb-1857273131876-1879915905377-X1zH9K6jgIMp1ImtX4Vihoip"
 
     (for {
       resp <- ws.url(getUserURL)
