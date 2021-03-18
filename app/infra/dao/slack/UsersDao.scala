@@ -1,6 +1,8 @@
 package infra.dao.slack
 
 import com.google.inject.Inject
+import domains.bot.Bot.BotName
+import eu.timepit.refined.api.Refined
 import infra.dao.slack.UsersDaoImpl._
 import play.api.libs.ws.WSClient
 import io.circe.parser._
@@ -13,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait UsersDao {
   def conversations(token: String, id: String): Future[ConversationResponse]
   def list(accessToken: String): Future[ListResponse]
+  def info(token: String, id: String): Future[InfoResponse]
 }
 
 class UsersDaoImpl @Inject() (ws: WSClient)(implicit val ec: ExecutionContext)
@@ -47,6 +50,19 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit val ec: ExecutionContext)
     } yield decode[ListResponse](res))
       .ifLeftThenToInfraError("error while converting list api response")
   }
+
+  def info(token: String, id: String): Future[InfoResponse] = {
+    val url = "https://slack.com/api/users.info"
+
+    (for {
+      resp <- ws.url(url)
+                .withHttpHeaders("token" -> token, "user" -> id)
+                .get
+                .ifFailedThenToInfraError(s"error while getting $url")
+                .map(res => res.json.toString)
+    } yield decode[InfoResponse](resp))
+      .ifLeftThenToInfraError("error while converting info api response")
+  }
 }
 
 object UsersDaoImpl {
@@ -60,4 +76,12 @@ object UsersDaoImpl {
     Decoder.forProduct3("id", "name", "is_bot")((id, realName, isBot) =>
       Member(id, realName, isBot)
     )
+
+  case class InfoResponse(name: String)
+  implicit
+  val decodeBotName: Decoder[InfoResponse] = Decoder.instance { cursor =>
+    for {
+      botName <- cursor.downField("user").downField("name").as[String]
+    } yield InfoResponse(botName)
+  }
 }

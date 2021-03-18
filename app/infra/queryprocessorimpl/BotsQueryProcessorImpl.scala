@@ -1,7 +1,7 @@
 package infra.queryprocessorimpl
 
 import com.google.inject.Inject
-import infra.dao.slack.UsersDao
+import infra.dao.slack.{UsersDao, UsersDaoImpl}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import query.bots.{BotsQueryProcessor, BotsView}
 import slick.jdbc.PostgresProfile
