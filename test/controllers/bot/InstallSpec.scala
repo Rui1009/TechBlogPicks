@@ -21,8 +21,7 @@ trait BotControllerInstallSpecContent {
 }
 
 class BotControllerInstallSpec
-    extends ControllerSpec
-    with BotControllerInstallSpecContent {
+    extends ControllerSpec with BotControllerInstallSpecContent {
   "install" when {
     "given body which is valid, ".which {
       "results succeed" should {
@@ -30,7 +29,7 @@ class BotControllerInstallSpec
           forAll(nonEmptyStringGen, nonEmptyStringGen) { (code, botId) =>
             when(uc.exec(*)).thenReturn(Future.unit)
             val path = "/bot?code=" + code + "&bot_id=" + botId
-            val res = Request.get(path).unsafeExec
+            val res  = Request.get(path).unsafeExec
 
             assert(status(res) === OK)
             assert(decodeRes[Unit](res).unsafeGet === Response[Unit](()))
@@ -45,7 +44,7 @@ class BotControllerInstallSpec
           forAll(nonEmptyStringGen, nonEmptyStringGen) { (code, botId) =>
             when(uc.exec(*)).thenReturn(Future.failed(SystemError("error")))
             val path = "/bot?code=" + code + "&bot_id=" + botId
-            val res = Request.get(path).unsafeExec
+            val res  = Request.get(path).unsafeExec
 
             assert(status(res) === INTERNAL_SERVER_ERROR)
             assert(decodeERes(res).unsafeGet.message === failedError)
@@ -59,7 +58,7 @@ class BotControllerInstallSpec
         "return BadRequest Error" in {
           forAll(nonEmptyStringGen) { botId =>
             val path = "/bot?code=" + "&bot_id=" + botId
-            val res = Request.get(path).unsafeExec
+            val res  = Request.get(path).unsafeExec
 
             assert(status(res) === BAD_REQUEST)
             assert(
@@ -78,7 +77,7 @@ class BotControllerInstallSpec
         "return BadRequest Error" in {
           forAll(nonEmptyStringGen) { code =>
             val path = "/bot?code=" + code + "&bot_id="
-            val res = Request.get(path).unsafeExec
+            val res  = Request.get(path).unsafeExec
 
             assert(status(res) === BAD_REQUEST)
             assert(
@@ -95,7 +94,7 @@ class BotControllerInstallSpec
       "content is invalid at all" should {
         "return BadRequest Error" in {
           val path = "/bot?code=&bot_id="
-          val res = Request.get(path).unsafeExec
+          val res  = Request.get(path).unsafeExec
 
           assert(status(res) === BAD_REQUEST)
           assert(

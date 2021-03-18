@@ -21,16 +21,16 @@ trait BotsQueryProcessorSuccessSpecContext {
         if str.matches("https://slack.com/api/users.list") =>
       val res = Json.fromJsonObject(
         JsonObject(
-          "ok" -> Json.fromBoolean(true),
+          "ok"      -> Json.fromBoolean(true),
           "members" ->
             Json.fromValues(
-              members.map(
-                m =>
-                  Json.obj(
-                    "id" -> Json.fromString(m.id),
-                    "name" -> Json.fromString(m.name),
-                    "is_bot" -> Json.fromBoolean(m.isBot)
-                ))
+              members.map(m =>
+                Json.obj(
+                  "id"     -> Json.fromString(m.id),
+                  "name"   -> Json.fromString(m.name),
+                  "is_bot" -> Json.fromBoolean(m.isBot)
+                )
+              )
             )
         )
       )
@@ -50,9 +50,8 @@ class BotsQueryProcessorSuccessSpec
   "findAll" when {
     "succeed" should {
       "return BotsView" in {
-        val result = queryProcessor.findAll.futureValue
-        val expected =
-          members.filter(_.isBot).map(m => BotsView(m.id, m.name))
+        val result   = queryProcessor.findAll.futureValue
+        val expected = members.filter(_.isBot).map(m => BotsView(m.id, m.name))
 
         assert(result.length === expected.length)
         expected.foreach(bot => assert(result.contains(bot)))
@@ -67,7 +66,7 @@ trait BotsQueryProcessorFailSpecContext {
         if str.matches("https://slack.com/api/users.list") =>
       val res = Json.fromJsonObject(
         JsonObject(
-          "ok" -> Json.fromBoolean(false),
+          "ok"    -> Json.fromBoolean(false),
           "error" -> Json.fromString("account_inactive")
         )
       )
@@ -98,9 +97,7 @@ class BotsQueryProcessorFailSpec
             |Attempt to decode value on failed cursor: DownField(members)
             |""".stripMargin.trim
 
-        whenReady(result.failed) { e =>
-          assert(e.getMessage.trim === msg)
-        }
+        whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
       }
     }
   }

@@ -15,21 +15,20 @@ trait UsersDao {
   def list(accessToken: String): Future[ListResponse]
 }
 
-class UsersDaoImpl @Inject()(ws: WSClient)(implicit val ec: ExecutionContext)
+class UsersDaoImpl @Inject() (ws: WSClient)(implicit val ec: ExecutionContext)
     extends UsersDao {
   def conversations(
-      accessToken: String,
-      id: String
+    accessToken: String,
+    id: String
   ): Future[ConversationResponse] = {
     val url = "https://slack.com/api/users.conversations"
     (for {
-      res <- ws
-        .url(url)
-        .withQueryStringParameters("user" -> id)
-        .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
-        .get
-        .ifFailedThenToInfraError(s"error while getting $url")
-        .map(_.json.toString)
+      res <- ws.url(url)
+               .withQueryStringParameters("user" -> id)
+               .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
+               .get
+               .ifFailedThenToInfraError(s"error while getting $url")
+               .map(_.json.toString)
     } yield decode[ConversationResponse](res)).ifLeftThenToInfraError(
       "error while converting conversation api response"
     )
@@ -39,16 +38,14 @@ class UsersDaoImpl @Inject()(ws: WSClient)(implicit val ec: ExecutionContext)
     import infra.dao.slack.UsersDaoImpl._
     val url = "https://slack.com/api/users.list"
     (for {
-      res <- ws
-        .url(url)
-        .withQueryStringParameters("pretty" -> "1")
-        .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
-        .get
-        .ifFailedThenToInfraError(s"error while getting $url")
-        .map(res => res.json.toString)
-    } yield decode[ListResponse](res)).ifLeftThenToInfraError(
-      "error while converting list api response"
-    )
+      res <- ws.url(url)
+               .withQueryStringParameters("pretty" -> "1")
+               .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
+               .get
+               .ifFailedThenToInfraError(s"error while getting $url")
+               .map(res => res.json.toString)
+    } yield decode[ListResponse](res))
+      .ifLeftThenToInfraError("error while converting list api response")
   }
 }
 
@@ -61,5 +58,6 @@ object UsersDaoImpl {
   case class Member(id: String, name: String, isBot: Boolean)
   implicit val membersEncoder: Decoder[Member] =
     Decoder.forProduct3("id", "name", "is_bot")((id, realName, isBot) =>
-      Member(id, realName, isBot))
+      Member(id, realName, isBot)
+    )
 }
