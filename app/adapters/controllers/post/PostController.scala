@@ -6,7 +6,6 @@ import adapters.controllers.syntax.FutureSyntax
 import com.google.inject.Inject
 import infra.dao.slack.ChatDao
 import infra.dao.slack.ChatDaoImpl._
-import io.circe.generic.auto._
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import query.publishposts.PublishPostsQueryProcessor
 import usecases.{DeletePostsUseCase, RegisterPostUseCase}
