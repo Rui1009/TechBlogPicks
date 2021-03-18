@@ -14,45 +14,49 @@ import play.api.Application
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import eu.timepit.refined.auto._
+import infra.dto.Tables
 
 trait BotRepositoryImplSpecContext { this: HasDB =>
-  val beforeAction = DBIO.seq(
-    AccessTokens.forceInsertAll(
-      Seq(
-        AccessTokensRow("token1", "bot1"),
-        AccessTokensRow("token2", "bot1"),
-        AccessTokensRow("token3", "bot2")
-      )
-    ),
-    Posts.forceInsertAll(
-      Seq(
-        PostsRow(1, Some("url1"), "title", "daiki", 1, 2),
-        PostsRow(2, Some("url2"), "title2", "daiki", 2, 2),
-        PostsRow(3, Some("url3"), "title3", "daiki", 3, 2),
-      )
-    ),
-    BotsPosts.forceInsertAll(
-      Seq(
-        BotsPostsRow(1, "bot1", 1),
-        BotsPostsRow(2, "bot1", 2),
-        BotsPostsRow(3, "bot1", 3),
-        BotsPostsRow(4, "bot2", 1),
-        BotsPostsRow(5, "bot3", 3),
+  val beforeAction = DBIO
+    .seq(
+      AccessTokens.forceInsertAll(
+        Seq(
+          AccessTokensRow("token1", "bot1"),
+          AccessTokensRow("token2", "bot1"),
+          AccessTokensRow("token3", "bot2")
+        )
+      ),
+      Posts.forceInsertAll(
+        Seq(
+          PostsRow(1, Some("url1"), "title", "daiki", 1, 2),
+          PostsRow(2, Some("url2"), "title2", "daiki", 2, 2),
+          PostsRow(3, Some("url3"), "title3", "daiki", 3, 2)
+        )
+      ),
+      BotsPosts.forceInsertAll(
+        Seq(
+          BotsPostsRow(1, "bot1", 1),
+          BotsPostsRow(2, "bot1", 2),
+          BotsPostsRow(3, "bot1", 3),
+          BotsPostsRow(4, "bot2", 1),
+          BotsPostsRow(5, "bot3", 3)
+        )
       )
     )
-  ).transactionally
+    .transactionally
 
   val deleteAction = BotsPosts.delete >> Posts.delete >> AccessTokens.delete
-  
+
   val paramBotId = BotId("bot1")
 
 }
 
-class BotRepositoryImplSuccessSpec extends RepositorySpec[BotRepository] with BotRepositoryImplSpecContext {
+class BotRepositoryImplSuccessSpec
+    extends RepositorySpec[BotRepository] with BotRepositoryImplSpecContext {
 
   val mockWs = MockWS {
     case ("GET", str: String)
-      if str.matches("https://slack.com/api/users.info") =>
+        if str.matches("https://slack.com/api/users.info") =>
       Action(Ok(Json.obj("user" -> Json.obj("name" -> "mock_bot_name"))))
   }
 
@@ -61,28 +65,73 @@ class BotRepositoryImplSuccessSpec extends RepositorySpec[BotRepository] with Bo
 
   before(db.run(beforeAction).futureValue)
   after(db.run(deleteAction).ready())
-  
+
   "find" when {
     "success" should {
       "return Future[Bot]" in {
-          val result = repository.find(paramBotId).futureValue
+        val result = repository.find(paramBotId).futureValue
 
-          assert(
-            result === Bot(paramBotId,
-                 BotName("mock_bot_name"), 
-                Seq(AccessTokenPublisherToken("token1"), AccessTokenPublisherToken("token2")),
-                Seq(PostId(1L), PostId(2L), PostId(3L))
-              )
+        assert(
+          result === Bot(
+            paramBotId,
+            BotName("mock_bot_name"),
+            Seq(
+              AccessTokenPublisherToken("token1"),
+              AccessTokenPublisherToken("token2")
+            ),
+            Seq(PostId(1L), PostId(2L), PostId(3L))
           )
+        )
+      }
+    }
+  }
+
+  "update" when {
+    "success" should {
+      "add new data".which {
+        "length is right" in {
+          forAll(botGen, accessTokenPublisherGen) {
+            (bot, accessTokenPublisher) =>
+              db.run(AccessTokens.delete).futureValue
+              repository
+                .update(bot, accessTokenPublisher.publishToken)
+                .futureValue
+
+              val accessTokenColumnLen =
+                db.run(AccessTokens.length.result).futureValue
+              assert(accessTokenColumnLen === 1)
+          }
+        }
+        "value is right" in {
+          forAll(botGen, accessTokenPublisherGen) {
+            (bot, accessTokenPublisher) =>
+              db.run(AccessTokens.delete).futureValue
+              repository
+                .update(bot, accessTokenPublisher.publishToken)
+                .futureValue
+
+              val accessTokensRow = db
+                .run(AccessTokens.result.head)
+                .map(r => AccessTokensRow(r.token, r.botId))
+                .futureValue
+
+              assert(accessTokensRow.botId === bot.id.value.value)
+              assert(
+                accessTokensRow.token === accessTokenPublisher.token.value.value
+              )
+
+          }
+        }
       }
     }
   }
 }
 
-class BotRepositoryImplFailSpec extends RepositorySpec[BotRepository] with BotRepositoryImplSpecContext {
+class BotRepositoryImplFailSpec
+    extends RepositorySpec[BotRepository] with BotRepositoryImplSpecContext {
   val mockWs = MockWS {
     case ("GET", str: String)
-      if str.matches("https://slack.com/api/users.info") =>
+        if str.matches("https://slack.com/api/users.info") =>
       Action(Ok(Json.obj("error" -> "user_not_found")))
   }
 
@@ -103,10 +152,7 @@ class BotRepositoryImplFailSpec extends RepositorySpec[BotRepository] with BotRe
                     |Attempt to decode value on failed cursor: DownField(user)
                     |""".stripMargin.trim
 
-
-        whenReady(result.failed) { e =>
-          assert(e.getMessage.trim == msg)
-        }
+        whenReady(result.failed)(e => assert(e.getMessage.trim == msg))
       }
     }
   }
