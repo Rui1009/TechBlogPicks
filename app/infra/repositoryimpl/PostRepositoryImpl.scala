@@ -2,6 +2,7 @@ package infra.repositoryimpl
 
 import com.google.inject.Inject
 import domains.bot.Bot.BotId
+import domains.post.Post.PostId
 import domains.post.{Post, PostRepository}
 import infra.dto.Tables._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -30,5 +31,12 @@ class PostRepositoryImpl @Inject() (
     db.run(query.transactionally)
   }.ifFailedThenToInfraError("error while PostRepository.add")
 
-  override def delete(ids: Seq[BotId]): Future[Unit] = ???
+  override def delete(ids: Seq[PostId]): Future[Unit] = db.run {
+    DBIO
+      .seq(
+        BotsPosts.filter(_.postId.inSet(ids.map(_.value.value))).delete,
+        Posts.filter(_.id.inSet(ids.map(_.value.value))).delete
+      )
+      .transactionally
+  }
 }
