@@ -1,6 +1,6 @@
 package adapters.controllers.bot
 
-import adapters.{BadRequestError}
+import adapters.BadRequestError
 import adapters.controllers.helpers.JsonHelper
 import adapters.controllers.syntax.FutureSyntax
 import cats.data.ValidatedNel
@@ -13,12 +13,15 @@ import cats.syntax.apply._
 import cats.implicits.catsSyntaxEither
 import domains.{DomainError, EmptyStringError}
 import domains.bot.Bot.BotId
+import query.bots.BotsQueryProcessor
+import io.circe.generic.auto._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class BotController @Inject() (
   val controllerComponents: ControllerComponents,
-  installBotUseCase: InstallBotUseCase
+  installBotUseCase: InstallBotUseCase,
+  botsQueryProcessor: BotsQueryProcessor
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with FutureSyntax {
   def install(code: String, bot_id: String): Action[AnyContent] =
@@ -47,7 +50,12 @@ class BotController @Inject() (
               .toSuccessGetResponse
               .recoverError
         )
-
     }
 
+  def index: Action[AnyContent] = Action.async {
+    botsQueryProcessor.findAll
+      .ifFailedThenToAdapterError("error in BotController.index")
+      .toSuccessGetResponse
+      .recoverError
+  }
 }
