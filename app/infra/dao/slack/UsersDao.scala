@@ -1,6 +1,7 @@
 package infra.dao.slack
 
-import infra.dao.slack.UsersDao.ConversationResponse
+import com.google.inject.Inject
+import infra.dao.slack.UsersDaoImpl.ConversationResponse
 import play.api.libs.ws.WSClient
 import io.circe.parser._
 import io.circe.generic.auto._
@@ -8,10 +9,16 @@ import infra.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class UsersDao(ws: WSClient, accessToken: String)(implicit
-  val ec: ExecutionContext
-) {
-  def conversations(id: String): Future[ConversationResponse] = {
+trait UsersDao {
+  def conversations(token: String, id: String): Future[ConversationResponse]
+}
+
+class UsersDaoImpl @Inject() (ws: WSClient)(implicit val ec: ExecutionContext)
+    extends UsersDao {
+  def conversations(
+    accessToken: String,
+    id: String
+  ): Future[ConversationResponse] = {
     val url = "https://slack.com/api/users.conversations"
     (for {
       res <- ws.url(url)
@@ -26,7 +33,7 @@ class UsersDao(ws: WSClient, accessToken: String)(implicit
   }
 }
 
-object UsersDao {
+object UsersDaoImpl {
   case class ConversationResponse(channels: Seq[Channels])
   case class Channels(id: String)
 }

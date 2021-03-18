@@ -2,16 +2,11 @@ import com.google.inject.AbstractModule
 import domains.accesstokenpublisher.AccessTokenPublisherRepository
 import domains.bot.BotRepository
 import domains.post.PostRepository
-import infra.dao.slack.{ChatDao, ChatDaoImpl}
-import infra.queryprocessorimpl.PublishPostsQueryProcessorImpl
+import infra.dao.slack._
+import infra.queryprocessorimpl._
 import infra.repositoryimpl._
 import query.publishposts.PublishPostsQueryProcessor
-import usecases.{
-  InstallBotUseCase,
-  InstallBotUseCaseImpl,
-  RegisterPostUseCase,
-  RegisterPostUseCaseImpl
-}
+import usecases._
 
 class Module extends AbstractModule {
   override def configure(): Unit = {
@@ -31,5 +26,6 @@ class Module extends AbstractModule {
 
     // dao
     bind(classOf[ChatDao]).to(classOf[ChatDaoImpl])
+    bind(classOf[UsersDao]).to(classOf[UsersDaoImpl])
   }
 }
