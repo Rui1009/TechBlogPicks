@@ -23,6 +23,6 @@ class BotsQueryProcessorImpl @Inject()(
     } yield
       for {
         member <- res.members.filter(_.isBot)
-      } yield BotsView(member.id, member.realName))
+      } yield BotsView(member.id, member.name))
       .ifFailedThenToInfraError("error while BotsQueryProcessorImpl.findAll")
 }
