@@ -5,6 +5,9 @@ import infra.repositoryimpl.PostRepositoryImpl
 import org.scalacheck.Gen
 import infra.syntax.all._
 import infra.dto.Tables._
+import cats.syntax.option._
+import domains.post.Post.PostId
+import eu.timepit.refined.auto._
 
 class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
   "add" when {
@@ -45,6 +48,44 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
             db.run(BotsPosts.delete >> Posts.delete).futureValue
           }
         }
+      }
+    }
+  }
+
+  "delete" when {
+    "succeed" should {
+      "delete data" in {
+        val pre     = DBIO.seq(
+          Posts.forceInsertAll(
+            Seq(
+              PostsRow(1, "url".some, "test", "rui", 1, 1),
+              PostsRow(2, "url2".some, "test", "rui", 1, 1),
+              PostsRow(3, "url3".some, "test", "rui", 1, 1)
+            )
+          ),
+          BotsPosts.forceInsertAll(
+            Seq(
+              BotsPostsRow(1, "bot", 1),
+              BotsPostsRow(2, "bot2", 2),
+              BotsPostsRow(3, "bot3", 3)
+            )
+          )
+        )
+        val deleteQ = BotsPosts.delete >> Posts.delete
+
+        db.run(pre.transactionally).futureValue
+
+        val ids       = Seq(PostId(1L), PostId(2L), PostId(4L))
+        repository.delete(ids).futureValue
+        val posts     = db.run(Posts.result).futureValue
+        val botsPosts = db.run(BotsPosts.result).futureValue
+
+        assert(posts.length === 1)
+        assert(posts.head.id === 3)
+        assert(botsPosts.length === 1)
+        assert(botsPosts.head.id === 3)
+
+        db.run(deleteQ).futureValue
       }
     }
   }
