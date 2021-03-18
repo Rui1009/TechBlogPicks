@@ -29,4 +29,6 @@ class PostRepositoryImpl @Inject() (
 
     db.run(query.transactionally)
   }.ifFailedThenToInfraError("error while PostRepository.add")
+
+  override def delete(ids: Seq[BotId]): Future[Unit] = ???
 }
