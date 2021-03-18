@@ -20,10 +20,10 @@ class PostController @Inject() (
   publishPostsQueryProcessor: PublishPostsQueryProcessor,
   chatDao: ChatDao
 )(implicit val ec: ExecutionContext)
-    extends BaseController with PostCreateBodyMapper with FutureSyntax
-    with JsonHelper {
+    extends BaseController with PostCreateBodyMapper with DeletePostsBodyMapper
+    with FutureSyntax with JsonHelper {
   def create: Action[Either[AdapterError, CreatePostCommand]] =
-    Action.async(mapToCommand) { implicit request =>
+    Action.async(mapToCreateCommand) { implicit request =>
       request.body.fold(
         e => Future.successful(responseError(e)),
         body =>
@@ -57,4 +57,7 @@ class PostController @Inject() (
       .toSuccessGetResponse
       .recoverError
   }
+
+  def delete: Action[Either[AdapterError, DeletePostsCommand]] =
+    Action.async(mapToDeleteCommand)(implicit request => ???)
 }

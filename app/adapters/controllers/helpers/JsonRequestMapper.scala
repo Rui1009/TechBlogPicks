@@ -7,10 +7,9 @@ import play.api.mvc.BodyParser
 
 import scala.concurrent.ExecutionContext
 
-trait JsonRequestMapper[B, C] extends Circe {
-  def mapToValueObject(body: B): Either[AdapterError, C]
-  def mapToCommand(implicit
-    de: Decoder[B],
+trait JsonRequestMapper extends Circe {
+  def mapToValueObject[B, C](f: B => Either[AdapterError, C])(implicit
+    rds: Decoder[B],
     ec: ExecutionContext
-  ): BodyParser[Either[AdapterError, C]] = circe.json[B].map(mapToValueObject)
+  ): BodyParser[Either[AdapterError, C]] = circe.json[B].map(f)
 }
