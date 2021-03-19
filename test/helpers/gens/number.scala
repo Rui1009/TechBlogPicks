@@ -10,4 +10,7 @@ object number extends NumberGen
 trait NumberGen {
   val longRefinedPositiveGen: Gen[Refined[Long, Positive]] =
     Gen.posNum[Long].map(refineV[Positive].unsafeFrom(_))
+
+  val positiveLongGen: Gen[Long] = Gen.posNum[Long]
+
 }
