@@ -24,6 +24,7 @@ trait JsonHelper {
   def responseSuccess(status: Results.Status): Json => Result = { data: Json =>
     status(Json.obj("data" -> data).noSpaces)
       .as(JSON)
+      // Todo: ちゃんと設定する
       .withHeaders("Access-Control-Allow-Origin" -> "*")
   }
 }
