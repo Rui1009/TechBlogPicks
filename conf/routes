@@ -6,6 +6,7 @@
 # An example controller showing a sample home page
 GET     /                           adapters.controllers.HomeController.index()
 
+GET     /posts                      adapters.controllers.post.PostController.index()
 POST    /posts						adapters.controllers.post.PostController.create()
 GET     /posts/publish				adapters.controllers.post.PostController.publish()
 DELETE  /posts                  	adapters.controllers.post.PostController.delete()
