@@ -30,7 +30,7 @@ class BotControllerIndexSpec
     extends ControllerSpec with BotControllerIndexSpecContext {
   "index" when {
     "succeed" should {
-      "invoke BotsQueryProcessor.forAll once & return 200 & valid body" in {
+      "invoke BotsQueryProcessor.findAll once & return 200 & valid body" in {
         forAll(Gen.nonEmptyListOf(botsViewGen)) { views =>
           when(qp.findAll).thenReturn(Future.successful(views))
 
