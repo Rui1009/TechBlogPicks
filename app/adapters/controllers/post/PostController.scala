@@ -7,9 +7,11 @@ import com.google.inject.Inject
 import infra.dao.slack.ChatDao
 import infra.dao.slack.ChatDaoImpl._
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import query.posts.PostsQueryProcessor
 import query.publishposts.PublishPostsQueryProcessor
 import usecases.{DeletePostsUseCase, RegisterPostUseCase}
 import usecases.RegisterPostUseCase.Params
+import io.circe.generic.auto._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -18,7 +20,8 @@ class PostController @Inject() (
   registerPostUseCase: RegisterPostUseCase,
   publishPostsQueryProcessor: PublishPostsQueryProcessor,
   deleteUseCase: DeletePostsUseCase,
-  chatDao: ChatDao
+  chatDao: ChatDao,
+  postsQueryProcessor: PostsQueryProcessor
 )(implicit val ec: ExecutionContext)
     extends BaseController with PostCreateBodyMapper with DeletePostsBodyMapper
     with FutureSyntax with JsonHelper {
@@ -70,4 +73,11 @@ class PostController @Inject() (
             .recoverError
       )
     }
+
+  def index: Action[AnyContent] = Action.async {
+    postsQueryProcessor.findAll
+      .ifFailedThenToAdapterError("error in PostController.index")
+      .toSuccessGetResponse
+      .recoverError
+  }
 }
