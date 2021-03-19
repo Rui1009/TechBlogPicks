@@ -6,10 +6,9 @@ import adapters.controllers.syntax.FutureSyntax
 import com.google.inject.Inject
 import infra.dao.slack.ChatDao
 import infra.dao.slack.ChatDaoImpl._
-import io.circe.generic.auto._
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import query.publishposts.PublishPostsQueryProcessor
-import usecases.RegisterPostUseCase
+import usecases.{DeletePostsUseCase, RegisterPostUseCase}
 import usecases.RegisterPostUseCase.Params
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -18,12 +17,13 @@ class PostController @Inject() (
   val controllerComponents: ControllerComponents,
   registerPostUseCase: RegisterPostUseCase,
   publishPostsQueryProcessor: PublishPostsQueryProcessor,
+  deleteUseCase: DeletePostsUseCase,
   chatDao: ChatDao
 )(implicit val ec: ExecutionContext)
-    extends BaseController with PostCreateBodyMapper with FutureSyntax
-    with JsonHelper {
+    extends BaseController with PostCreateBodyMapper with DeletePostsBodyMapper
+    with FutureSyntax with JsonHelper {
   def create: Action[Either[AdapterError, CreatePostCommand]] =
-    Action.async(mapToCommand) { implicit request =>
+    Action.async(mapToCreateCommand) { implicit request =>
       request.body.fold(
         e => Future.successful(responseError(e)),
         body =>
@@ -57,4 +57,17 @@ class PostController @Inject() (
       .toSuccessGetResponse
       .recoverError
   }
+
+  def delete: Action[Either[AdapterError, DeletePostsCommand]] =
+    Action.async(mapToDeleteCommand) { implicit request =>
+      request.body.fold(
+        e => Future.successful(responseError(e)),
+        body =>
+          deleteUseCase
+            .exec(DeletePostsUseCase.Params(body.ids))
+            .ifFailedThenToAdapterError("error in PostController.delete")
+            .toSuccessGetResponse
+            .recoverError
+      )
+    }
 }

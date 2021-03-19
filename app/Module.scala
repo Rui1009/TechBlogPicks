@@ -20,6 +20,7 @@ class Module extends AbstractModule {
     // use case impl
     bind(classOf[RegisterPostUseCase]).to(classOf[RegisterPostUseCaseImpl])
     bind(classOf[InstallBotUseCase]).to(classOf[InstallBotUseCaseImpl])
+    bind(classOf[DeletePostsUseCase]).to(classOf[DeletePostsUseCaseImpl])
 
     // query processor impl
     bind(classOf[PublishPostsQueryProcessor])
