@@ -50,9 +50,11 @@ class PostController @Inject() (
     (for {
       publishPosts <- publishPostsQueryProcessor.findAll()
     } yield for {
-      publishPost  <- publishPosts
-      channel  <- publishPost.channels
-      text = publishPost.posts.foldLeft("今日の記事")((acc, curr) => acc + "\n" + curr.url)
+      publishPost <- publishPosts
+      channel     <- publishPost.channels
+      text         = publishPost.posts.foldLeft("今日の記事")((acc, curr) =>
+                       acc + "\n" + curr.url
+                     )
     } yield for {
       _ <- chatDao.postMessage(publishPost.token, channel, text)
     } yield ())
