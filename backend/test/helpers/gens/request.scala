@@ -9,7 +9,7 @@ object request extends RequestGen
 
 trait RequestGen {
   val createPostBodyGen: Gen[CreatePostBody] = for {
-    url      <- Gen.option(urlGen)
+    url      <- urlGen
     title    <- nonEmptyStringGen
     author   <- nonEmptyStringGen
     postedAt <- Gen.posNum[Long]

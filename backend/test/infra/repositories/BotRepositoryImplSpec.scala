@@ -28,9 +28,9 @@ trait BotRepositoryImplSpecContext { this: HasDB =>
       ),
       Posts.forceInsertAll(
         Seq(
-          PostsRow(1, Some("url1"), "title", "daiki", 1, 2),
-          PostsRow(2, Some("url2"), "title2", "daiki", 2, 2),
-          PostsRow(3, Some("url3"), "title3", "daiki", 3, 2)
+          PostsRow(1, "url1", "title", "daiki", 1, 2),
+          PostsRow(2, "url2", "title2", "daiki", 2, 2),
+          PostsRow(3, "url3", "title3", "daiki", 3, 2)
         )
       ),
       BotsPosts.forceInsertAll(

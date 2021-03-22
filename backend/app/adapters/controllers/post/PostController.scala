@@ -52,11 +52,7 @@ class PostController @Inject() (
     } yield for {
       publishPost  <- publishPosts
       channel  <- publishPost.channels
-      text = publishPost.posts.foldLeft("今日の記事")((acc, curr) =>
-        curr.url match {
-          case Some(v) => acc + "\n" + v
-          case None    => acc
-        })
+      text = publishPost.posts.foldLeft("今日の記事")((acc, curr) => acc + "\n" + curr.url)
     } yield for {
       _ <- chatDao.postMessage(publishPost.token, channel, text)
     } yield ())

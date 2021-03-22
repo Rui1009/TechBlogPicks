@@ -2,7 +2,7 @@ package query.posts
 
 case class PostsView(
   id: Long,
-  url: Option[String],
+  url: String,
   title: String,
   author: String,
   postedAt: Long,

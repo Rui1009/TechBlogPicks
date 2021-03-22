@@ -58,7 +58,7 @@ class PostControllerCreateSpec extends ControllerSpec with CreateSpecContext {
       "url is invalid" should {
         "return BadRequest Error" in {
           forAll(createPostBodyGen) { body =>
-            val req = body.copy(url = "url".some)
+            val req = body.copy(url = "url")
             val res = Request.post(path).withJsonBody(req).unsafeExec
 
             assert(status(res) === BAD_REQUEST)
@@ -145,7 +145,7 @@ class PostControllerCreateSpec extends ControllerSpec with CreateSpecContext {
 
       "content is invalid at all" should {
         "return BadRequest Error" in {
-          val req = CreatePostBody("".some, "", "", -1, Seq(""))
+          val req = CreatePostBody("", "", "", -1, Seq(""))
           val res = Request.post(path).withJsonBody(req).unsafeExec
 
           assert(status(res) === BAD_REQUEST)
