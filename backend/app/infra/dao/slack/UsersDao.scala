@@ -71,10 +71,10 @@ object UsersDaoImpl {
 
   case class ListResponse(members: Seq[Member])
 
-  case class Member(id: String, name: String, isBot: Boolean)
+  case class Member(id: String, name: String, isBot: Boolean, deleted: Boolean)
   implicit val membersEncoder: Decoder[Member] =
-    Decoder.forProduct3("id", "name", "is_bot")((id, realName, isBot) =>
-      Member(id, realName, isBot)
+    Decoder.forProduct4("id", "name", "is_bot", "deleted")(
+      (id, realName, isBot, deleted) => Member(id, realName, isBot, deleted)
     )
 
   case class InfoResponse(name: String)
