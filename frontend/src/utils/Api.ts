@@ -14,6 +14,10 @@ class Api {
   post<Data>(...args: Parameters<typeof axios.post>) {
     return this.axios.post<unknown, AxiosResponse<Data>>(...args);
   }
+
+  delete<Data>(...args: Parameters<typeof axios.delete>) {
+    return this.axios.delete<unknown, AxiosResponse<Data>>(...args);
+  }
 }
 
 const api = new Api();
