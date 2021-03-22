@@ -24,15 +24,15 @@ const mock = [
   }
 ];
 
-export const PostsIndex: React.FC<unknown> = props => {
+export const PostsIndex: React.FC = () => {
   const [fetchedPosts, setFetchedPosts] = useState<PostsIndexResponse["data"]>(
     []
   );
 
   useEffect(() => {
-    api.get<PostsIndexResponse>("http://localhost:9000/posts").then(r =>
-      // setFetchedPosts(r.data.data)
-      setFetchedPosts(mock)
+    api.get<PostsIndexResponse>("http://localhost:9000/posts").then(
+      r => setFetchedPosts(r.data.data)
+      // setFetchedPosts(mock)
     );
   }, []);
 
@@ -45,7 +45,7 @@ export const PostsIndex: React.FC<unknown> = props => {
       style={{ padding: 24 }}
     >
       <Grid item style={{ width: "100%", margin: "16px 0" }}>
-        <RegisterPostForm />
+        <RegisterPostForm setPosts={setFetchedPosts} />
       </Grid>
       <Grid item style={{ width: "100%" }}>
         <MaterialTable

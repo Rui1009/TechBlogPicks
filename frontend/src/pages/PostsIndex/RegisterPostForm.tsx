@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useFormik } from "formik";
-import React, { useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import {
   Button,
   Chip,
@@ -17,23 +17,8 @@ import {
 import { format, getUnixTime, startOfToday } from "date-fns";
 import { api } from "../../utils/Api";
 import * as Yup from "yup";
-
-type Bot = { id: string; name: string };
-
-const mock = [
-  {
-    id: "1",
-    name: "front"
-  },
-  {
-    id: "2",
-    name: "back"
-  },
-  {
-    id: "3",
-    name: "infra"
-  }
-];
+import { BotIndexResponse } from "../../utils/types/bots";
+import { PostsIndexResponse } from "../../utils/types/posts";
 
 type FormValues = {
   url: string;
@@ -43,8 +28,12 @@ type FormValues = {
   botIds: string[];
 };
 
-const RegisterPostForm: React.FC = () => {
-  const [botList, setBotList] = useState<Bot[]>([]);
+type Props = {
+  setPosts: Dispatch<SetStateAction<PostsIndexResponse["data"]>>;
+};
+
+const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
+  const [botList, setBotList] = useState<BotIndexResponse["data"]>([]);
 
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -67,28 +56,29 @@ const RegisterPostForm: React.FC = () => {
       postedAt: Yup.string().required("必須です"),
       botIds: Yup.array().min(1, "1つ以上選択してください")
     }),
-    onSubmit: (values, { setSubmitting }) => {
-      setTimeout(() => {
-        const req = {
-          ...values,
-          postedAt: getUnixTime(new Date(values.postedAt))
-        };
-        alert(JSON.stringify(req, null, 2));
-        setSubmitting(false);
-      }, 400);
+    onSubmit: values => {
+      const req = {
+        ...values,
+        postedAt: getUnixTime(new Date(values.postedAt))
+      };
+      api
+        .post("http://localhost:9000/posts", req)
+        .then(() =>
+          api
+            .get<PostsIndexResponse>("http://localhost:9000/posts")
+            .then(r => setPosts(r.data.data))
+        );
     }
   });
 
   useEffect(() => {
-    api.get<Bot[]>("http://localhost:9000/bots").then(v => {
-      // setBotList(v.data.data);
-      setBotList(mock);
-      console.log(botList);
+    api.get<BotIndexResponse>("http://localhost:9000/bots").then(v => {
+      setBotList(v.data.data);
     });
   }, []);
 
   return (
-    <Paper style={{ width: "60%" }}>
+    <Paper style={{ width: "90%", margin: "auto" }}>
       <form onSubmit={formik.handleSubmit}>
         <Grid
           container
