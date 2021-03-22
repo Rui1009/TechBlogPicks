@@ -19,7 +19,7 @@ class BotsQueryProcessorImpl @Inject() (
   override def findAll: Future[Seq[BotsView]] = (for {
     res <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
   } yield for {
-    member <- res.members.filter(_.isBot)
+    member <- res.members.filter(m => m.isBot && !m.deleted)
   } yield BotsView(member.id, member.name))
     .ifFailedThenToInfraError("error while BotsQueryProcessorImpl.findAll")
 }

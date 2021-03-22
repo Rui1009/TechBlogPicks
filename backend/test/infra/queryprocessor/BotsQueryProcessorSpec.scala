@@ -13,8 +13,11 @@ import play.api.mvc.Results.Ok
 import query.bots.{BotsQueryProcessor, BotsView}
 
 trait BotsQueryProcessorSuccessSpecContext {
-  val members =
-    Seq(Member("1", "SlackBot", false), Member("2", "front_end", true))
+  val members = Seq(
+    Member("1", "SlackBot", false, true),
+    Member("2", "front_end", true, false),
+    Member("3", "deleted", true, true)
+  )
 
   val mockWs = MockWS {
     case ("GET", str: String)
@@ -26,9 +29,10 @@ trait BotsQueryProcessorSuccessSpecContext {
             Json.fromValues(
               members.map(m =>
                 Json.obj(
-                  "id"     -> Json.fromString(m.id),
-                  "name"   -> Json.fromString(m.name),
-                  "is_bot" -> Json.fromBoolean(m.isBot)
+                  "id"      -> Json.fromString(m.id),
+                  "name"    -> Json.fromString(m.name),
+                  "deleted" -> Json.fromBoolean(m.deleted),
+                  "is_bot"  -> Json.fromBoolean(m.isBot)
                 )
               )
             )
@@ -51,7 +55,9 @@ class BotsQueryProcessorSuccessSpec
     "succeed" should {
       "return BotsView" in {
         val result   = queryProcessor.findAll.futureValue
-        val expected = members.filter(_.isBot).map(m => BotsView(m.id, m.name))
+        val expected = members
+          .filter(m => m.isBot && !m.deleted)
+          .map(m => BotsView(m.id, m.name))
 
         assert(result.length === expected.length)
         expected.foreach(bot => assert(result.contains(bot)))
