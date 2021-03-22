@@ -1,33 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { PostsIndexResponse } from "../../../utils/types/posts";
 import useAutoCloseSnack from "../../../hooks/useAutoCloseSnack";
 import { api } from "../../../utils/Api";
 import MaterialTable from "material-table";
+import { Typography } from "@material-ui/core";
 
-const mock = [
-  {
-    id: 1,
-    title: "test title",
-    url: "https:yahoo.com",
-    author: "test author",
-    postedAt: 10000,
-    createdAt: 1222
-  },
-  {
-    id: 2,
-    title: "sample title",
-    url: "https:google.com",
-    author: "sampler",
-    postedAt: 100,
-    createdAt: 122333
-  }
-];
+type Props = {
+  fetchedPosts: PostsIndexResponse["data"];
+  setPosts: Dispatch<SetStateAction<PostsIndexResponse["data"]>>;
+};
 
-export const PostsTable: React.FC<unknown> = props => {
-  const [fetchedPosts, setFetchedPosts] = useState<PostsIndexResponse["data"]>(
-    []
-  );
-
+export const PostsTable: React.FC<Props> = ({ setPosts, fetchedPosts }) => {
   const { successSnack, errorSnack } = useAutoCloseSnack();
 
   const deletePosts = (postIds: number[]) =>
@@ -40,10 +23,9 @@ export const PostsTable: React.FC<unknown> = props => {
       });
 
   const fetchPosts = () =>
-    api.get<PostsIndexResponse>("http://localhost:9000/posts").then(r =>
-      // setFetchedPosts(r.data.data)
-      setFetchedPosts(mock)
-    );
+    api
+      .get<PostsIndexResponse>("http://localhost:9000/posts")
+      .then(r => setPosts(r.data.data));
 
   useEffect(() => {
     fetchPosts();
@@ -57,10 +39,35 @@ export const PostsTable: React.FC<unknown> = props => {
           title: "タイトル",
           field: "title"
         },
-        { title: "URL", field: "url" },
+        {
+          title: "URL",
+          field: "url",
+          render: rowData => (
+            <a href={rowData.url} target={"_blank"} rel="noreferrer">
+              {rowData.url}
+            </a>
+          )
+        },
         { title: "著者", field: "author" },
-        { title: "投稿日時", field: "postedAt", type: "numeric" },
-        { title: "登録日時", field: "createdAt", type: "numeric" }
+        {
+          title: "投稿日時",
+          field: "postedAt",
+          type: "numeric",
+          render: rowData => (
+            <Typography>
+              {new Date(rowData.postedAt * 1000).toLocaleDateString()}
+            </Typography>
+          )
+        },
+        {
+          title: "登録日時",
+          field: "createdAt",
+          render: rowData => (
+            <Typography>
+              {new Date(rowData.createdAt * 1000).toLocaleDateString()}
+            </Typography>
+          )
+        }
       ]}
       data={fetchedPosts}
       title={"記事一覧"}
