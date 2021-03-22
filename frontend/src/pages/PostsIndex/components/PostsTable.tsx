@@ -29,20 +29,26 @@ export const PostsTable: React.FC<unknown> = props => {
   );
 
   const { successSnack, errorSnack } = useAutoCloseSnack();
+
   const deletePosts = (postIds: number[]) =>
     api
-      .delete("http://localhost:9000/posts", { data: postIds })
-      .then(() => successSnack("eee"))
+      .delete("http://localhost:9000/posts", { data: { ids: postIds } })
+      .then(() => successSnack("削除が完了しました"))
+      .then(fetchPosts)
       .catch(e => {
         errorSnack(e.message);
       });
 
-  useEffect(() => {
+  const fetchPosts = () =>
     api.get<PostsIndexResponse>("http://localhost:9000/posts").then(r =>
       // setFetchedPosts(r.data.data)
       setFetchedPosts(mock)
     );
+
+  useEffect(() => {
+    fetchPosts();
   }, []);
+
   return (
     <MaterialTable
       style={{ width: "90%", margin: "auto", padding: "0 16px" }}
@@ -54,8 +60,7 @@ export const PostsTable: React.FC<unknown> = props => {
         { title: "URL", field: "url" },
         { title: "著者", field: "author" },
         { title: "投稿日時", field: "postedAt", type: "numeric" },
-        { title: "登録日時", field: "createdAt", type: "numeric" },
-        { title: "id", field: "id", hidden: true }
+        { title: "登録日時", field: "createdAt", type: "numeric" }
       ]}
       data={fetchedPosts}
       title={"記事一覧"}
@@ -66,11 +71,9 @@ export const PostsTable: React.FC<unknown> = props => {
         {
           icon: "delete",
           onClick: (evt, data) => {
-            if (data instanceof Array) {
-              deletePosts(data.map(d => d.id));
-            } else {
-              deletePosts([data.id]);
-            }
+            deletePosts(
+              data instanceof Array ? data.map(d => d.id) : [data.id]
+            );
           }
         }
       ]}
