@@ -18,6 +18,9 @@ const useStyles = makeStyles({
   },
   drawerClose: {
     justifyContent: "flex-start"
+  },
+  menu: {
+    color: "#fff"
   }
 });
 
@@ -30,7 +33,7 @@ export const AppTemplate: React.FC<unknown> = props => {
       <AppBar position={"static"}>
         <Toolbar>
           <IconButton edge={"start"} onClick={() => setDrawerOpen(true)}>
-            <MenuIcon />
+            <MenuIcon className={classes.menu} />
           </IconButton>
           <Typography variant={"h5"}>Winkie</Typography>
         </Toolbar>
