@@ -15,6 +15,9 @@ import { DrawerLinks } from "./components/DrawerLinks";
 const useStyles = makeStyles({
   drawer: {
     width: 240
+  },
+  drawerClose: {
+    justifyContent: "flex-start"
   }
 });
 
@@ -33,11 +36,12 @@ export const AppTemplate: React.FC<unknown> = props => {
         </Toolbar>
       </AppBar>
       <Drawer open={drawerOpen} classes={{ paper: classes.drawer }}>
-        <div onClick={() => setDrawerOpen(false)}>
-          <IconButton onClick={() => setDrawerOpen(false)}>
-            <ChevronLeftIcon />
-          </IconButton>
-        </div>
+        <IconButton
+          onClick={() => setDrawerOpen(false)}
+          className={classes.drawerClose}
+        >
+          <ChevronLeftIcon />
+        </IconButton>
         <Divider />
         <DrawerLinks />
       </Drawer>
