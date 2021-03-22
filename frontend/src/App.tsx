@@ -7,11 +7,10 @@ import { AppTemplate } from "./templates/Apptemplate";
 function App() {
   return (
     <BrowserRouter>
-      <AppTemplate>
-        <Switch>
-          <Route path="/" component={PostsIndex} />
-        </Switch>
-      </AppTemplate>
+      <AppTemplate />
+      <Switch>
+        <Route exact path="/" component={PostsIndex} />
+      </Switch>
     </BrowserRouter>
   );
 }
