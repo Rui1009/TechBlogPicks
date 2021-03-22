@@ -8,7 +8,7 @@ import infra.dao.slack.ChatDao
 import infra.dao.slack.ChatDaoImpl._
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import query.posts.PostsQueryProcessor
-import query.publishposts.PublishPostsQueryProcessor
+import query.publishposts.{PublishPostsQueryProcessor, PublishPostsView}
 import usecases.{DeletePostsUseCase, RegisterPostUseCase}
 import usecases.RegisterPostUseCase.Params
 import io.circe.generic.auto._
@@ -50,9 +50,15 @@ class PostController @Inject() (
     (for {
       publishPosts <- publishPostsQueryProcessor.findAll()
     } yield for {
-      body <- PostMessageBody.fromViewModels(publishPosts, "今日の記事")
+      publishPost  <- publishPosts
+      channel  <- publishPost.channels
+      text = publishPost.posts.foldLeft("今日の記事")((acc, curr) =>
+        curr.url match {
+          case Some(v) => acc + "\n" + v
+          case None    => acc
+        })
     } yield for {
-      _ <- chatDao.postMessage(body)
+      _ <- chatDao.postMessage(publishPost.token, channel, text)
     } yield ())
       .map(Future.sequence(_))
       .flatMap(_.map(_ => ()))
