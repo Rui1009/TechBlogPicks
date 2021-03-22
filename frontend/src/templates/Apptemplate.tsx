@@ -21,7 +21,7 @@ const useStyles = makeStyles({
   }
 });
 
-export const AppTemplate: React.FC<unknown> = props => {
+export const AppTemplate: React.FC = () => {
   const classes = useStyles();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
