@@ -3,7 +3,7 @@ import { List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 import AssignmentIcon from "@material-ui/icons/Assignment";
 
-export const DrawerLinks: React.FC<unknown> = props => {
+export const DrawerLinks: React.FC = () => {
   const history = useHistory();
   return (
     <List>
