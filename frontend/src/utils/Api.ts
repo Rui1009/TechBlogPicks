@@ -1,5 +1,4 @@
-import axios, { AxiosInstance } from "axios";
-import { ApiResponse } from "./types";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 class Api {
   constructor() {
@@ -9,11 +8,11 @@ class Api {
   private axios: AxiosInstance;
 
   get<Data>(...args: Parameters<typeof axios.get>) {
-    return this.axios.get<unknown, ApiResponse<Data>>(...args);
+    return this.axios.get<unknown, AxiosResponse<Data>>(...args);
   }
 
   post<Data>(...args: Parameters<typeof axios.post>) {
-    return this.axios.post<unknown, ApiResponse<Data>>(...args);
+    return this.axios.post<unknown, AxiosResponse<Data>>(...args);
   }
 }
 
