@@ -1,5 +1,54 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import MaterialTable from "material-table";
+import { api } from "../../utils/Api";
+import { PostsIndexResponse } from "../../utils/types/posts";
 
-export const PostsIndex: React.FC = () => {
-  return <p>good night world</p>;
+const mock = [
+  {
+    id: 1,
+    title: "test title",
+    url: "https:yahoo.com",
+    author: "test author",
+    postedAt: 10000,
+    createdAt: 1222
+  },
+  {
+    id: 2,
+    title: "sample title",
+    url: "https:google.com",
+    author: "sampler",
+    postedAt: 100,
+    createdAt: 122333
+  }
+];
+
+export const PostsIndex: React.FC<unknown> = props => {
+  const [fetchedPosts, setFetchedPosts] = useState<PostsIndexResponse["data"]>(
+    []
+  );
+
+  useEffect(() => {
+    api.get<PostsIndexResponse>("http://localhost:9000/posts").then(r =>
+      // setFetchedPosts(r.data.data)
+      setFetchedPosts(mock)
+    );
+  }, []);
+
+  return (
+    <MaterialTable
+      style={{ width: "90%", margin: "auto", padding: "0 16px" }}
+      columns={[
+        {
+          title: "タイトル",
+          field: "title"
+        },
+        { title: "URL", field: "url" },
+        { title: "著者", field: "author" },
+        { title: "投稿日時", field: "postedAt", type: "numeric" },
+        { title: "登録日時", field: "createdAt", type: "numeric" }
+      ]}
+      data={fetchedPosts}
+      title={"記事一覧"}
+    />
+  );
 };
