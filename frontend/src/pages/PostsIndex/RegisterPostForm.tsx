@@ -181,6 +181,7 @@ const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
               type={"submit"}
               disabled={formik.isSubmitting}
               color={"primary"}
+              variant={"outlined"}
             >
               登録
             </Button>
