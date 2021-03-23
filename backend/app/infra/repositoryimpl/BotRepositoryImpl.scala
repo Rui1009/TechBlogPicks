@@ -11,10 +11,10 @@ import infra.dto.Tables._
 import play.api.libs.ws.WSClient
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
-import infra.dao.slack.{UsersDao}
+import infra.dao.slack.UsersDao
 import infra.syntax.all._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 class BotRepositoryImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
@@ -34,25 +34,23 @@ class BotRepositoryImpl @Inject() (
     (for {
       resp <-
         usersDao.info(sys.env.getOrElse("ACCESS_TOKEN", ""), botId.value.value)
-    } yield for {
-      queryResult <- db.run {
-                       for {
-                         accessToken <- accessTokenQ
-                         postId      <- postQ
-                       } yield Bot(
-                         botId,
-                         BotName(Refined.unsafeApply(resp.name)),
-                         accessToken.map(at =>
-                           AccessTokenPublisherToken(Refined.unsafeApply(at))
-                         ),
-                         postId.map(pid => PostId(Refined.unsafeApply(pid)))
-                       )
-                     }.ifFailedThenToInfraError(
-                       "error while BotRepository.find"
-                     )
-
-    } yield queryResult).flatten
+    } yield db.run {
+      for {
+        accessToken <- accessTokenQ
+        postId      <- postQ
+      } yield Bot(
+        botId,
+        BotName(Refined.unsafeApply(resp.name)),
+        accessToken.map(at =>
+          AccessTokenPublisherToken(Refined.unsafeApply(at))
+        ),
+        postId.map(pid => PostId(Refined.unsafeApply(pid))),
+        None,
+        None
+      )
+    }.ifFailedThenToInfraError("error while BotRepository.find")).flatten
   }
+
   override def update(
     bot: Bot,
     accessToken: AccessTokenPublisherToken
