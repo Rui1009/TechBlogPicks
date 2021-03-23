@@ -11,6 +11,7 @@ import { useFormik } from "formik";
 import { BotIndexResponse } from "../../../utils/types/bots";
 import * as Yup from "yup";
 import { api } from "../../../utils/Api";
+import useAutoCloseSnack from "../../../hooks/useAutoCloseSnack";
 
 type Props = {
   selectedBot?: BotIndexResponse["data"][number];
@@ -51,6 +52,8 @@ export const UpdateBotFormModal: React.FC<Props> = ({
     setSelectedBot(undefined);
   };
 
+  const { successSnack } = useAutoCloseSnack();
+
   const formik = useFormik<FormValues>({
     initialValues: {
       id: "",
@@ -79,6 +82,7 @@ export const UpdateBotFormModal: React.FC<Props> = ({
         )
         .then(() => {
           submitProps.resetForm();
+          successSnack("更新に成功しました");
           closeModal();
           api
             .get<BotIndexResponse>("http://localhost:9000/bots")
