@@ -10,6 +10,8 @@ import {
 import { useFormik } from "formik";
 import { BotIndexResponse } from "../../../utils/types/bots";
 import * as Yup from "yup";
+import { api } from "../../../utils/Api";
+import useAutoCloseSnack from "../../../hooks/useAutoCloseSnack";
 
 type Props = {
   selectedBot?: BotIndexResponse["data"][number];
@@ -18,6 +20,7 @@ type Props = {
   setSelectedBot: Dispatch<
     SetStateAction<BotIndexResponse["data"][number] | undefined>
   >;
+  setBotList: Dispatch<BotIndexResponse["data"]>;
 };
 
 type FormValues = {
@@ -39,7 +42,8 @@ export const UpdateBotFormModal: React.FC<Props> = ({
   selectedBot,
   modalOpen,
   setModalOpen,
-  setSelectedBot
+  setSelectedBot,
+  setBotList
 }) => {
   const classes = useStyles();
 
@@ -47,6 +51,8 @@ export const UpdateBotFormModal: React.FC<Props> = ({
     setModalOpen(false);
     setSelectedBot(undefined);
   };
+
+  const { successSnack } = useAutoCloseSnack();
 
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -69,8 +75,24 @@ export const UpdateBotFormModal: React.FC<Props> = ({
         clientSecret: values.clientSecret === "" ? null : values.clientSecret
       };
 
-      submitProps.resetForm();
-      closeModal();
+      api
+        .post(
+          `http://localhost:9000/bots/${selectedBot?.id || values.id}`,
+          param
+        )
+        .then(() => {
+          submitProps.resetForm();
+          successSnack("更新に成功しました");
+          closeModal();
+          api
+            .get<BotIndexResponse>("http://localhost:9000/bots")
+            .then(res => setBotList(res.data.data))
+            .catch(e => alert(e));
+        })
+        .catch(e => {
+          submitProps.resetForm();
+          alert(e);
+        });
     }
   });
 

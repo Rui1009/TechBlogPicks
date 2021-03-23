@@ -21,7 +21,13 @@ export const BotsIndex: React.FC = () => {
   return (
     <div style={{ padding: 32 }}>
       <UpdateBotFormModal
-        {...{ selectedBot, modalOpen, setModalOpen, setSelectedBot }}
+        {...{
+          selectedBot,
+          modalOpen,
+          setModalOpen,
+          setSelectedBot,
+          setBotList
+        }}
       />
       <BotsTable {...{ botList, setSelectedBot, setModalOpen }} />
     </div>
