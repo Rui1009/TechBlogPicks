@@ -1,7 +1,6 @@
 import React, { Dispatch, SetStateAction } from "react";
 import MaterialTable from "material-table";
 import { BotIndexResponse } from "../../../utils/types/bots";
-import { useFormikContext } from "formik";
 
 type Props = {
   botList: BotIndexResponse["data"];
