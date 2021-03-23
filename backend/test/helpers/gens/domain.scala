@@ -75,4 +75,7 @@ trait BotGen {
     clientId     <- Gen.option(botClientIdGen)
     clientSecret <- Gen.option(botClientSecretGen)
   } yield Bot(botId, botName, accessTokens, posts, clientId, clientSecret)
+
+  val nonOptionBotGen: Gen[Bot] =
+    botGen.suchThat(bot => bot.clientId.isDefined && bot.clientSecret.isDefined)
 }

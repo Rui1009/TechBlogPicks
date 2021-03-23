@@ -34,17 +34,19 @@ class AccessTokenPublisherRepositoryImplSuccessSpec
   "find" when {
     "succeed" should {
       "get access token" in {
-        forAll(temporaryOauthCodeGen) { code =>
-          val result = repository.find(code).futureValue
+        forAll(temporaryOauthCodeGen, botClientIdGen, botClientSecretGen) {
+          (code, clientId, clientSecret) =>
+            val result =
+              repository.find(code, clientId, clientSecret).futureValue
 
-          assert(
-            result === Some(
-              AccessTokenPublisher(
-                AccessTokenPublisherToken("mock access token"),
-                code
+            assert(
+              result === Some(
+                AccessTokenPublisher(
+                  AccessTokenPublisherToken("mock access token"),
+                  code
+                )
               )
             )
-          )
         }
       }
     }
@@ -56,12 +58,13 @@ class AccessTokenPublisherRepositoryImplFailSpec
   "find" when {
     "failed" should {
       "None returned" in {
-        forAll(temporaryOauthCodeGen) { code =>
-          val result = repository.find(code)
+        forAll(temporaryOauthCodeGen, botClientIdGen, botClientSecretGen) {
+          (code, clientId, clientSecret) =>
+            val result = repository.find(code, clientId, clientSecret)
 
-          whenReady(result, timeout(Span(1, Seconds))) { e =>
-            assert(e === None)
-          }
+            whenReady(result, timeout(Span(1, Seconds))) { e =>
+              assert(e === None)
+            }
         }
       }
     }
