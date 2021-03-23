@@ -13,21 +13,17 @@ import io.circe._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait UsersDao {
-  def conversations(token: String, id: String): Future[ConversationResponse]
+  def conversations(token: String): Future[ConversationResponse]
   def list(accessToken: String): Future[ListResponse]
   def info(token: String, id: String): Future[InfoResponse]
 }
 
 class UsersDaoImpl @Inject() (ws: WSClient)(implicit val ec: ExecutionContext)
     extends UsersDao {
-  def conversations(
-    accessToken: String,
-    id: String
-  ): Future[ConversationResponse] = {
+  def conversations(accessToken: String): Future[ConversationResponse] = {
     val url = "https://slack.com/api/users.conversations"
     (for {
       res <- ws.url(url)
-               .withQueryStringParameters("user" -> id)
                .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
                .get
                .ifFailedThenToInfraError(s"error while getting $url")
@@ -56,8 +52,9 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit val ec: ExecutionContext)
 
     (for {
       resp <- ws.url(url)
-                .withHttpHeaders("token" -> token, "user" -> id)
-                .get
+                .withHttpHeaders("Authorization" -> s"Bearer $token")
+                .withQueryStringParameters("user" -> id)
+                .post(Json.Null.noSpaces)
                 .ifFailedThenToInfraError(s"error while getting $url")
                 .map(res => res.json.toString)
     } yield decode[InfoResponse](resp))
