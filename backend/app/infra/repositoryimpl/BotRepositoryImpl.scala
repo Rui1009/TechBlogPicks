@@ -2,7 +2,7 @@ package infra.repositoryimpl
 
 import com.google.inject.Inject
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
-import domains.bot.Bot.BotName
+import domains.bot.Bot.{BotClientId, BotClientSecret, BotName}
 import domains.bot.{Bot, BotRepository}
 import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
@@ -31,13 +31,17 @@ class BotRepositoryImpl @Inject() (
     val postQ =
       BotsPosts.filter(_.botId === botId.value.value).map(_.postId).result
 
+    val clientInfoQ =
+      BotClientInfo.findBy(_.botId).apply(botId.value.value).result.headOption
+
     (for {
       resp <-
         usersDao.info(sys.env.getOrElse("ACCESS_TOKEN", ""), botId.value.value)
     } yield db.run {
       for {
-        accessToken <- accessTokenQ
-        postId      <- postQ
+        accessToken     <- accessTokenQ
+        postId          <- postQ
+        maybeClientInfo <- clientInfoQ
       } yield Bot(
         botId,
         BotName(Refined.unsafeApply(resp.name)),
@@ -45,8 +49,14 @@ class BotRepositoryImpl @Inject() (
           AccessTokenPublisherToken(Refined.unsafeApply(at))
         ),
         postId.map(pid => PostId(Refined.unsafeApply(pid))),
-        None,
-        None
+        maybeClientInfo.flatMap(info =>
+          info.clientId.map(id => BotClientId(Refined.unsafeApply(id)))
+        ),
+        maybeClientInfo.flatMap(info =>
+          info.clientSecret.map(secret =>
+            BotClientSecret(Refined.unsafeApply(secret))
+          )
+        )
       )
     }.ifFailedThenToInfraError("error while BotRepository.find")).flatten
   }
@@ -62,4 +72,20 @@ class BotRepositoryImpl @Inject() (
            )
          }.ifFailedThenToInfraError("error while BotRepository.update")
   ) yield ()
+
+  override def update(bot: Bot): Future[Unit] = {
+    val findQ   =
+      BotClientInfo.findBy(_.botId).apply(bot.id.value.value).result.headOption
+    val insertQ = BotClientInfo += bot.toClientInfoRow
+    val updateQ = BotClientInfo.update(bot.toClientInfoRow)
+
+    (for {
+      clientInfo <- db.run(findQ)
+    } yield clientInfo match {
+      case Some(_) => db.run(updateQ)
+      case None    => db.run(insertQ)
+    }).flatten
+      .map(_ => ())
+      .ifFailedThenToInfraError("error while BotRepository.update")
+  }
 }
