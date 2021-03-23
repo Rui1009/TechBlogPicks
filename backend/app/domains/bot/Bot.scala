@@ -19,6 +19,11 @@ final case class Bot(
 ) {
   def receiveToken(token: AccessTokenPublisherToken): Bot =
     this.copy(accessTokens = accessTokens :+ token)
+
+  def updateClientInfo(
+    clientId: Option[BotClientId],
+    clientSecret: Option[BotClientSecret]
+  ): Bot = this.copy(clientId = clientId, clientSecret = clientSecret)
 }
 
 object Bot {
