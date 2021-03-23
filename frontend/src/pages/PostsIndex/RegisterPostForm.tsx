@@ -19,6 +19,7 @@ import { api } from "../../utils/Api";
 import * as Yup from "yup";
 import { BotIndexResponse } from "../../utils/types/bots";
 import { PostsIndexResponse } from "../../utils/types/posts";
+import useAutoCloseSnack from "../../hooks/useAutoCloseSnack";
 
 type FormValues = {
   url: string;
@@ -34,6 +35,8 @@ type Props = {
 
 const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
   const [botList, setBotList] = useState<BotIndexResponse["data"]>([]);
+
+  const { successSnack } = useAutoCloseSnack();
 
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -61,19 +64,27 @@ const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
         ...values,
         postedAt: getUnixTime(new Date(values.postedAt))
       };
-      api.post("http://localhost:9000/posts", req).then(() => {
-        submitProps.resetForm();
-        api
-          .get<PostsIndexResponse>("http://localhost:9000/posts")
-          .then(r => setPosts(r.data.data));
-      });
+      api
+        .post("http://localhost:9000/posts", req)
+        .then(() => {
+          submitProps.resetForm();
+          successSnack("登録に成功しました");
+          api
+            .get<PostsIndexResponse>("http://localhost:9000/posts")
+            .then(r => setPosts(r.data.data))
+            .catch(e => alert(e));
+        })
+        .catch(e => alert(e));
     }
   });
 
   useEffect(() => {
-    api.get<BotIndexResponse>("http://localhost:9000/bots").then(v => {
-      setBotList(v.data.data);
-    });
+    api
+      .get<BotIndexResponse>("http://localhost:9000/bots")
+      .then(v => {
+        setBotList(v.data.data);
+      })
+      .catch(e => alert(e));
   }, []);
 
   return (
