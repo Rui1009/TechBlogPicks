@@ -2,6 +2,7 @@ package domains
 
 import domains.bot.Bot._
 import helpers.traits.ModelSpec
+import org.scalacheck.Gen
 
 class BotDomainSpec extends ModelSpec {
   "BotId.create" when {
@@ -86,6 +87,21 @@ class BotDomainSpec extends ModelSpec {
             .size === model.accessTokens.size + 1
         )
         assert(model.receiveToken(token).accessTokens.last === token)
+      }
+    }
+  }
+
+  "Bot.updateClientInfo" should {
+    "return Bot model which client info updated" in {
+      forAll(
+        botGen,
+        Gen.option(botClientIdGen),
+        Gen.option(botClientSecretGen)
+      ) { (model, id, secret) =>
+        val result = model.updateClientInfo(id, secret)
+
+        assert(result.clientId === id)
+        assert(result.clientSecret === secret)
       }
     }
   }
