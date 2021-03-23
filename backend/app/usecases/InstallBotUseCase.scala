@@ -3,7 +3,7 @@ package usecases
 import com.google.inject.Inject
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode
 import domains.accesstokenpublisher.AccessTokenPublisherRepository
-import domains.bot.{BotRepository}
+import domains.bot.{Bot, BotRepository}
 import domains.bot.Bot.BotId
 import usecases.InstallBotUseCase.Params
 
@@ -26,24 +26,36 @@ final class InstallBotUseCaseImpl @Inject() (
 )(implicit val ec: ExecutionContext)
     extends InstallBotUseCase {
   override def exec(params: Params): Future[Unit] = for {
-    targetBot            <- botRepository
-                              .find(params.botId)
-                              .ifFailThenToUseCaseError(
-                                "error while botRepository.find in install bot use case"
-                              )
-    accessTokenPublisher <-
+    targetBot             <- botRepository
+                               .find(params.botId)
+                               .ifFailThenToUseCaseError(
+                                 "error while botRepository.find in install bot use case"
+                               )
+    targetBotClientId     <-
+      targetBot.clientId.ifNotExistsToUseCaseError(
+        "error while get bot client id in install bot use case"
+      )
+    targetBotClientSecret <-
+      targetBot.clientSecret.ifNotExistsToUseCaseError(
+        "error while get bot client secret in install bot use case"
+      )
+    accessTokenPublisher  <-
       accessTokenPublisherRepository
-        .find(params.temporaryOauthCode)
+        .find(
+          params.temporaryOauthCode,
+          targetBotClientId,
+          targetBotClientSecret
+        )
         .ifNotExistsToUseCaseError(
           "error while accessTokenPublisherRepository.find in install bot use case"
         )
-    _                    <- botRepository
-                              .update(
-                                targetBot.receiveToken(accessTokenPublisher.publishToken),
-                                accessTokenPublisher.publishToken
-                              )
-                              .ifFailThenToUseCaseError(
-                                "error while botRepository.update in install bot use case"
-                              )
+    _                     <- botRepository
+                               .update(
+                                 targetBot.receiveToken(accessTokenPublisher.publishToken),
+                                 accessTokenPublisher.publishToken
+                               )
+                               .ifFailThenToUseCaseError(
+                                 "error while botRepository.update in install bot use case"
+                               )
   } yield ()
 }

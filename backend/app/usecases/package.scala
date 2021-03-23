@@ -1,3 +1,3 @@
-import usecases.ops.FutureOps
+import usecases.ops.{FutureOps, OptionOps}
 
-package object usecases extends FutureOps
+package object usecases extends FutureOps with OptionOps
