@@ -58,9 +58,9 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
         val pre     = DBIO.seq(
           Posts.forceInsertAll(
             Seq(
-              PostsRow(1, "url".some, "test", "rui", 1, 1),
-              PostsRow(2, "url2".some, "test", "rui", 1, 1),
-              PostsRow(3, "url3".some, "test", "rui", 1, 1)
+              PostsRow(1, "url", "test", "rui", 1, 1),
+              PostsRow(2, "url2", "test", "rui", 1, 1),
+              PostsRow(3, "url3", "test", "rui", 1, 1)
             )
           ),
           BotsPosts.forceInsertAll(

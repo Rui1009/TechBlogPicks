@@ -16,7 +16,7 @@ trait RegisterPostUseCase {
 
 object RegisterPostUseCase {
   final case class Params(
-    url: Option[PostUrl],
+    url: PostUrl,
     title: PostTitle,
     author: PostAuthor,
     postedAt: PostPostedAt,

@@ -12,7 +12,7 @@ import io.circe.generic.auto._
 import scala.concurrent.ExecutionContext
 
 final case class CreatePostBody(
-  url: Option[String],
+  url: String,
   title: String,
   author: String,
   postedAt: Long,
@@ -20,7 +20,7 @@ final case class CreatePostBody(
 )
 
 final case class CreatePostCommand(
-  url: Option[PostUrl],
+  url: PostUrl,
   title: PostTitle,
   author: PostAuthor,
   postedAt: PostPostedAt,
@@ -34,7 +34,7 @@ trait PostCreateBodyMapper extends JsonRequestMapper {
   ): BodyParser[Either[AdapterError, CreatePostCommand]] =
     mapToValueObject[CreatePostBody, CreatePostCommand] { body =>
       (
-        body.url.traverse(PostUrl.create(_).toValidatedNec),
+        PostUrl.create(body.url).toValidatedNec,
         PostTitle.create(body.title).toValidatedNec,
         PostAuthor.create(body.author).toValidatedNec,
         PostPostedAt.create(body.postedAt).toValidatedNec,

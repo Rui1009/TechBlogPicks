@@ -8,7 +8,7 @@ CREATE TABLE public.access_tokens
 CREATE TABLE public.posts
 (
     id BIGSERIAL PRIMARY KEY,
-    url TEXT,
+    url TEXT NOT NULL,
     title TEXT NOT NULL,
     author TEXT NOT NULL,
     posted_at BIGINT NOT NULL,
