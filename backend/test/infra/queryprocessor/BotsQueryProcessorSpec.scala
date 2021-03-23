@@ -11,13 +11,17 @@ import play.api.inject.bind
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
 import query.bots.{BotsQueryProcessor, BotsView}
+import infra.dto.Tables._
 
 trait BotsQueryProcessorSuccessSpecContext {
   val members = Seq(
     Member("1", "SlackBot", false, true),
     Member("2", "front_end", true, false),
-    Member("3", "deleted", true, true)
+    Member("3", "deleted", true, true),
+    Member("4", "back_end", true, false)
   )
+
+  val seed = Seq(BotClientInfoRow("2", Some("clientId"), Some("clientSecret")))
 
   val mockWs = MockWS {
     case ("GET", str: String)
@@ -45,6 +49,12 @@ trait BotsQueryProcessorSuccessSpecContext {
 class BotsQueryProcessorSuccessSpec
     extends QueryProcessorSpec[BotsQueryProcessor]
     with BotsQueryProcessorSuccessSpecContext {
+
+  val beforeAction = DBIO.seq(BotClientInfo.forceInsertAll(seed))
+
+  before(db.run(beforeAction.transactionally))
+  after(db.run(BotClientInfo.delete).ready())
+
   override val app: Application =
     builder.overrides(bind[WSClient].toInstance(mockWs)).build()
 
@@ -55,9 +65,10 @@ class BotsQueryProcessorSuccessSpec
     "succeed" should {
       "return BotsView" in {
         val result   = queryProcessor.findAll.futureValue
-        val expected = members
-          .filter(m => m.isBot && !m.deleted)
-          .map(m => BotsView(m.id, m.name))
+        val expected = Seq(
+          BotsView("2", "front_end", Some("clientId"), Some("clientSecret")),
+          BotsView("4", "back_end", None, None)
+        )
 
         assert(result.length === expected.length)
         expected.foreach(bot => assert(result.contains(bot)))

@@ -29,9 +29,11 @@ trait PublishPostsViewGen {
 
 trait BotsViewGen {
   val botsViewGen: Gen[BotsView] = for {
-    id   <- nonEmptyStringGen
-    name <- nonEmptyStringGen
-  } yield BotsView(id, name)
+    id           <- nonEmptyStringGen
+    name         <- nonEmptyStringGen
+    clientId     <- Gen.option(nonEmptyStringGen)
+    clientSecret <- Gen.option(nonEmptyStringGen)
+  } yield BotsView(id, name, clientId, clientSecret)
 }
 
 trait PostsViewGen {
