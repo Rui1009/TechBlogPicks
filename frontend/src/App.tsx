@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Switch } from "react-router-dom";
 import "./App.css";
 import { PostsIndex } from "./pages/PostsIndex/PostsIndex";
 import { AppTemplate } from "./templates/Apptemplate";
+import { BotsIndex } from "./pages/BotsIndex/BotsIndex";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <AppTemplate />
       <Switch>
         <Route exact path="/" component={PostsIndex} />
+        <Route path="/bots" component={BotsIndex} />
       </Switch>
     </BrowserRouter>
   );
