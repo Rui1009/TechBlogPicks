@@ -55,7 +55,7 @@ class BotRepositoryImplSuccessSpec
     extends RepositorySpec[BotRepository] with BotRepositoryImplSpecContext {
 
   val mockWs = MockWS {
-    case ("GET", str: String)
+    case ("POST", str: String)
         if str.matches("https://slack.com/api/users.info") =>
       Action(Ok(Json.obj("user" -> Json.obj("name" -> "mock_bot_name"))))
   }
@@ -130,7 +130,7 @@ class BotRepositoryImplSuccessSpec
 class BotRepositoryImplFailSpec
     extends RepositorySpec[BotRepository] with BotRepositoryImplSpecContext {
   val mockWs = MockWS {
-    case ("GET", str: String)
+    case ("POST", str: String)
         if str.matches("https://slack.com/api/users.info") =>
       Action(Ok(Json.obj("error" -> "user_not_found")))
   }
