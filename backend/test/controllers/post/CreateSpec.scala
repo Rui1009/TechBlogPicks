@@ -1,7 +1,6 @@
 package controllers.post
 
 import adapters.controllers.post.CreatePostBody
-import cats.syntax.option._
 import helpers.traits.ControllerSpec
 import io.circe.generic.auto._
 import play.api.inject._

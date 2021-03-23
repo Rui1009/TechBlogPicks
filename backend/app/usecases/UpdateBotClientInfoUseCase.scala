@@ -19,9 +19,10 @@ object UpdateBotClientInfoUseCase {
   )
 }
 
-final class UpdateBotClientUseCaseImpl @Inject() (botRepository: BotRepository)(
-  implicit val ec: ExecutionContext
-) extends UpdateBotClientInfoUseCase {
+final class UpdateBotClientInfoUseCaseImpl @Inject() (
+  botRepository: BotRepository
+)(implicit val ec: ExecutionContext)
+    extends UpdateBotClientInfoUseCase {
   override def exec(params: Params): Future[Unit] = for {
     bot <-
       botRepository

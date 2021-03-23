@@ -22,6 +22,8 @@ class Module extends AbstractModule {
     bind(classOf[RegisterPostUseCase]).to(classOf[RegisterPostUseCaseImpl])
     bind(classOf[InstallBotUseCase]).to(classOf[InstallBotUseCaseImpl])
     bind(classOf[DeletePostsUseCase]).to(classOf[DeletePostsUseCaseImpl])
+    bind(classOf[UpdateBotClientInfoUseCase])
+      .to(classOf[UpdateBotClientInfoUseCaseImpl])
 
     // query processor impl
     bind(classOf[PublishPostsQueryProcessor])

@@ -1,13 +1,13 @@
 package adapters.controllers.bot
 
-import adapters.BadRequestError
+import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonHelper
 import adapters.controllers.syntax.FutureSyntax
 import cats.data.ValidatedNel
 import com.google.inject.Inject
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
-import usecases.InstallBotUseCase
+import usecases.{InstallBotUseCase, UpdateBotClientInfoUseCase}
 import usecases.InstallBotUseCase.Params
 import cats.syntax.apply._
 import cats.implicits.catsSyntaxEither
@@ -21,9 +21,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class BotController @Inject() (
   val controllerComponents: ControllerComponents,
   installBotUseCase: InstallBotUseCase,
-  botsQueryProcessor: BotsQueryProcessor
+  botsQueryProcessor: BotsQueryProcessor,
+  updateBotClientInfoUseCase: UpdateBotClientInfoUseCase
 )(implicit val ec: ExecutionContext)
-    extends BaseController with JsonHelper with FutureSyntax {
+    extends BaseController with JsonHelper with FutureSyntax
+    with UpdateClientInfoBodyMapper {
   def install(code: String, bot_id: String): Action[AnyContent] =
     Action.async { implicit request =>
       val tempOauthCode: ValidatedNel[
@@ -58,4 +60,29 @@ class BotController @Inject() (
       .toSuccessGetResponse
       .recoverError
   }
+
+  def update(
+    id: String
+  ): Action[Either[AdapterError, UpdateClientInfoCommand]] =
+    Action.async(mapToUpdateClientInfoCommand) { implicit request =>
+      BotId
+        .create(id)
+        .fold(
+          e =>
+            Future.successful(responseError(BadRequestError(e.errorMessage))),
+          botId =>
+            request.body.fold(
+              e => Future.successful(responseError(e)),
+              body =>
+                updateBotClientInfoUseCase
+                  .exec(
+                    UpdateBotClientInfoUseCase
+                      .Params(botId, body.clientId, body.clientSecret)
+                  )
+                  .ifFailedThenToAdapterError("error in BotController.update")
+                  .toSuccessPostResponse
+                  .recoverError
+            )
+        )
+    }
 }
