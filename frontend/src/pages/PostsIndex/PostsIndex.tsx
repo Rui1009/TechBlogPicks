@@ -15,9 +15,9 @@ export const PostsIndex: React.FC = () => {
       direction={"column"}
       justify={"center"}
       alignItems={"center"}
-      style={{ padding: 24 }}
+      style={{ padding: 32 }}
     >
-      <Grid item style={{ width: "100%", margin: "16px 0" }}>
+      <Grid item style={{ width: "100%", paddingBottom: 16 }}>
         <RegisterPostForm setPosts={setFetchedPosts} />
       </Grid>
       <Grid item style={{ width: "100%" }}>
