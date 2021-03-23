@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect } from "react";
 import { PostsIndexResponse } from "../../../utils/types/posts";
 import useAutoCloseSnack from "../../../hooks/useAutoCloseSnack";
 import { api } from "../../../utils/Api";
