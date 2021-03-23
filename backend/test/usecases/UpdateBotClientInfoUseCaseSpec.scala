@@ -25,7 +25,7 @@ class UpdateBotClientInfoUseCaseSpec extends UseCaseSpec {
           when(repo.find(model.id)).thenReturn(Future.successful(model))
           when(repo.update(updated)).thenReturn(Future.unit)
 
-          new UpdateBotClientUseCaseImpl(repo).exec(params).futureValue
+          new UpdateBotClientInfoUseCaseImpl(repo).exec(params).futureValue
 
           verify(repo).find(model.id)
           verify(repo).update(updated)
@@ -47,7 +47,7 @@ class UpdateBotClientInfoUseCaseSpec extends UseCaseSpec {
 
           when(repo.find(model.id)).thenReturn(Future.failed(DBError("error")))
 
-          val result = new UpdateBotClientUseCaseImpl(repo).exec(params)
+          val result = new UpdateBotClientInfoUseCaseImpl(repo).exec(params)
 
           val msg = """
               |SystemError
@@ -78,7 +78,7 @@ class UpdateBotClientInfoUseCaseSpec extends UseCaseSpec {
           when(repo.find(model.id)).thenReturn(Future.successful(model))
           when(repo.update(updated)).thenReturn(Future.failed(DBError("error")))
 
-          val result = new UpdateBotClientUseCaseImpl(repo).exec(params)
+          val result = new UpdateBotClientInfoUseCaseImpl(repo).exec(params)
 
           val msg = """
               |SystemError
