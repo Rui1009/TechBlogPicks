@@ -56,18 +56,17 @@ const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
       postedAt: Yup.string().required("必須です"),
       botIds: Yup.array().min(1, "1つ以上選択してください")
     }),
-    onSubmit: values => {
+    onSubmit: (values, submitProps) => {
       const req = {
         ...values,
         postedAt: getUnixTime(new Date(values.postedAt))
       };
-      api
-        .post("http://localhost:9000/posts", req)
-        .then(() =>
-          api
-            .get<PostsIndexResponse>("http://localhost:9000/posts")
-            .then(r => setPosts(r.data.data))
-        );
+      api.post("http://localhost:9000/posts", req).then(() => {
+        submitProps.resetForm();
+        api
+          .get<PostsIndexResponse>("http://localhost:9000/posts")
+          .then(r => setPosts(r.data.data));
+      });
     }
   });
 

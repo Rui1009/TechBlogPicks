@@ -68,7 +68,7 @@ export const UpdateBotFormModal: React.FC<Props> = ({
         clientId: values.clientId === "" ? null : values.clientId,
         clientSecret: values.clientSecret === "" ? null : values.clientSecret
       };
-      console.log(param);
+
       submitProps.resetForm();
       closeModal();
     }
