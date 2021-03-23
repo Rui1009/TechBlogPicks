@@ -23,6 +23,9 @@ export const PostsIndex: React.FC = () => {
       <Grid item style={{ width: "100%" }}>
         <PostsTable fetchedPosts={fetchedPosts} setPosts={setFetchedPosts} />
       </Grid>
+      <button onClick={() => fetch("http://localhost:9000/posts/publish")}>
+        aaa
+      </button>
     </Grid>
   );
 };
