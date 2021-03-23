@@ -22,6 +22,13 @@ CREATE TABLE public.bots_posts
     post_id BIGINT NOT NULL REFERENCES posts(id)
 );
 
+CREATE TABLE public.bot_client_info
+(
+    bot_id TEXT PRIMARY KEY,
+    client_id TEXT UNIQUE,
+    client_secret TEXT UNIQUE
+);
+
 -- !Downs
 DROP TABLE public.access_tokens CASCADE;
 DROP TABLE public.posts CASCADE;

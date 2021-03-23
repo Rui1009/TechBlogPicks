@@ -61,10 +61,18 @@ trait BotGen {
   val accessTokensGen: Gen[Seq[AccessTokenPublisherToken]] =
     Gen.listOf(domain.accessTokenGen)
 
+  val botClientIdGen: Gen[BotClientId] =
+    stringRefinedNonEmptyGen.map(BotClientId(_))
+
+  val botClientSecretGen: Gen[BotClientSecret] =
+    stringRefinedNonEmptyGen.map(BotClientSecret(_))
+
   val botGen: Gen[Bot] = for {
     botId        <- botIdGen
     botName      <- botNameGen
     accessTokens <- accessTokensGen
     posts        <- Gen.listOf(postIdGen)
-  } yield Bot(botId, botName, accessTokens, posts)
+    clientId     <- Gen.option(botClientIdGen)
+    clientSecret <- Gen.option(botClientSecretGen)
+  } yield Bot(botId, botName, accessTokens, posts, clientId, clientSecret)
 }

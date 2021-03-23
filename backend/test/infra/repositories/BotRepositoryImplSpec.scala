@@ -3,7 +3,7 @@ package infra.repositories
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
 import play.api.mvc.Results.Ok
 import domains.bot.{Bot, BotRepository}
-import domains.bot.Bot.{BotId, BotName}
+import domains.bot.Bot.{BotClientId, BotClientSecret, BotId, BotName}
 import domains.post.Post.PostId
 import helpers.traits.{HasDB, RepositorySpec}
 import infra.dto.Tables._
@@ -14,7 +14,8 @@ import play.api.Application
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import eu.timepit.refined.auto._
-import infra.dto.Tables
+import cats.syntax.option._
+import org.scalatest.time.{Millis, Span}
 
 trait BotRepositoryImplSpecContext { this: HasDB =>
   val beforeAction = DBIO
@@ -41,11 +42,15 @@ trait BotRepositoryImplSpecContext { this: HasDB =>
           BotsPostsRow(4, "bot2", 1),
           BotsPostsRow(5, "bot3", 3)
         )
+      ),
+      BotClientInfo.forceInsertAll(
+        Seq(BotClientInfoRow("bot1", "clientId".some, "clientSecret".some))
       )
     )
     .transactionally
 
-  val deleteAction = BotsPosts.delete >> Posts.delete >> AccessTokens.delete
+  val deleteAction =
+    BotsPosts.delete >> Posts.delete >> AccessTokens.delete >> BotClientInfo.delete
 
   val paramBotId = BotId("bot1")
 
@@ -79,7 +84,9 @@ class BotRepositoryImplSuccessSpec
               AccessTokenPublisherToken("token1"),
               AccessTokenPublisherToken("token2")
             ),
-            Seq(PostId(1L), PostId(2L), PostId(3L))
+            Seq(PostId(1L), PostId(2L), PostId(3L)),
+            BotClientId("clientId").some,
+            BotClientSecret("clientSecret").some
           )
         )
       }
@@ -125,6 +132,46 @@ class BotRepositoryImplSuccessSpec
       }
     }
   }
+
+  "update" when {
+    "client info does not exist" should {
+      "insert new record" in {
+        forAll(botGen) { model =>
+          val updated = model.copy(id = BotId("bot2"))
+          repository.update(updated).futureValue
+
+          val result =
+            db.run(BotClientInfo.filter(_.botId === "bot2").result).futureValue
+
+          assert(result.length === 1)
+          assert(result.head.clientId === updated.clientId.map(_.value.value))
+          assert(
+            result.head.clientSecret === updated.clientSecret.map(_.value.value)
+          )
+
+          db.run(BotClientInfo.filter(_.botId === "bot2").delete).futureValue
+        }
+      }
+    }
+
+    "client info has already exist" should {
+      "update record" in {
+        forAll(botGen) { model =>
+          val updated = model.copy(id = BotId("bot1"))
+          repository.update(updated).futureValue
+
+          val result =
+            db.run(BotClientInfo.filter(_.botId === "bot1").result).futureValue
+
+          assert(result.length === 1)
+          assert(result.head.clientId === updated.clientId.map(_.value.value))
+          assert(
+            result.head.clientSecret === updated.clientSecret.map(_.value.value)
+          )
+        }
+      }
+    }
+  }
 }
 
 class BotRepositoryImplFailSpec
@@ -137,6 +184,9 @@ class BotRepositoryImplFailSpec
 
   override val app: Application =
     builder.overrides(bind[WSClient].toInstance(mockWs)).build()
+
+  implicit val conf: PatienceConfig =
+    PatienceConfig(scaled(Span(500, Millis)), scaled(Span(15, Millis)))
 
   before(db.run(beforeAction).futureValue)
   after(db.run(deleteAction).ready())
@@ -153,6 +203,50 @@ class BotRepositoryImplFailSpec
                     |""".stripMargin.trim
 
         whenReady(result.failed)(e => assert(e.getMessage.trim == msg))
+      }
+    }
+  }
+
+  "update" when {
+    "insert existing client id" should {
+      "return error" in {
+        forAll(botGen) { model =>
+          val updated = model
+            .copy(id = BotId("bot2"), clientId = BotClientId("clientId").some)
+
+          val result = repository.update(updated)
+
+          val msg = """
+              |DBError
+              |error while BotRepository.update
+              |ERROR: 重複したキー値は一意性制約"bot_client_info_client_id_key"違反となります
+              |  詳細: キー (client_id)=(clientId) はすでに存在します。
+              |""".stripMargin.trim
+
+          whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+        }
+      }
+    }
+
+    "insert existing client secret" should {
+      "return error" in {
+        forAll(botGen) { model =>
+          val updated = model.copy(
+            id = BotId("bot2"),
+            clientSecret = BotClientSecret("clientSecret").some
+          )
+
+          val result = repository.update(updated)
+
+          val msg = """
+                      |DBError
+                      |error while BotRepository.update
+                      |ERROR: 重複したキー値は一意性制約"bot_client_info_client_secret_key"違反となります
+                      |  詳細: キー (client_secret)=(clientSecret) はすでに存在します。
+                      |""".stripMargin.trim
+
+          whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+        }
       }
     }
   }
