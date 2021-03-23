@@ -1,5 +1,6 @@
 package helpers.gens
 
+import adapters.controllers.bot.UpdateClientInfoBody
 import adapters.controllers.post.{CreatePostBody, DeletePostsBody}
 import org.scalacheck.Gen
 import helpers.gens.string._
@@ -19,4 +20,9 @@ trait RequestGen {
   val deletePostsBodyGen: Gen[DeletePostsBody] = for {
     ids <- Gen.nonEmptyListOf(Gen.posNum[Long])
   } yield DeletePostsBody(ids)
+
+  val updateBotClientInfoBodyGen: Gen[UpdateClientInfoBody] = for {
+    clientId     <- Gen.option(nonEmptyStringGen)
+    clientSecret <- Gen.option(nonEmptyStringGen)
+  } yield UpdateClientInfoBody(clientId, clientSecret)
 }
