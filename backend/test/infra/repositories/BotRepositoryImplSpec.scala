@@ -79,7 +79,9 @@ class BotRepositoryImplSuccessSpec
               AccessTokenPublisherToken("token1"),
               AccessTokenPublisherToken("token2")
             ),
-            Seq(PostId(1L), PostId(2L), PostId(3L))
+            Seq(PostId(1L), PostId(2L), PostId(3L)),
+            None,
+            None
           )
         )
       }

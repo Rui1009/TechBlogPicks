@@ -2,7 +2,6 @@ package domains
 
 import domains.bot.Bot._
 import helpers.traits.ModelSpec
-import cats.syntax.either._
 
 class BotDomainSpec extends ModelSpec {
   "BotId.create" when {
@@ -10,7 +9,7 @@ class BotDomainSpec extends ModelSpec {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
           val result = BotId.create(str.value)
-          assert(result.map(_.value) == str.asRight)
+          assert(result.map(_.value) === Right(str))
         }
       }
     }
@@ -18,7 +17,7 @@ class BotDomainSpec extends ModelSpec {
     "given empty string" should {
       "return Left value which values equals DomainError" in {
         val result = BotId.create("")
-        assert(result.leftSide == EmptyStringError("BotId").asLeft)
+        assert(result.leftSide === Left(EmptyStringError("BotId")))
       }
     }
   }
@@ -28,7 +27,7 @@ class BotDomainSpec extends ModelSpec {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
           val result = BotName.create(str.value)
-          assert(result.map(_.value) == str.asRight)
+          assert(result.map(_.value) === Right(str))
         }
       }
     }
@@ -36,7 +35,43 @@ class BotDomainSpec extends ModelSpec {
     "given empty string" should {
       "return Left value which values equals DomainError" in {
         val result = BotName.create("")
-        assert(result.leftSide == EmptyStringError("BotName").asLeft)
+        assert(result.leftSide === Left(EmptyStringError("BotName")))
+      }
+    }
+  }
+
+  "BotClientId.create" when {
+    "given non-empty string" should {
+      "return Right value which equals given arg value" in {
+        forAll(stringRefinedNonEmptyGen) { str =>
+          val result = BotClientId.create(str.value)
+          assert(result.map(_.value) === Right(str))
+        }
+      }
+    }
+
+    "given empty string" should {
+      "return Left value which values equals DomainError" in {
+        val result = BotClientId.create("")
+        assert(result.leftSide === Left(EmptyStringError("BotClientId")))
+      }
+    }
+  }
+
+  "BotClientSecret.create" when {
+    "given non-empty string" should {
+      "return Right value which equals given arg value" in {
+        forAll(stringRefinedNonEmptyGen) { str =>
+          val result = BotClientSecret.create(str.value)
+          assert(result.map(_.value) === Right(str))
+        }
+      }
+    }
+
+    "given empty string" should {
+      "return Left value which values equals DomainError" in {
+        val result = BotClientSecret.create("")
+        assert(result.leftSide === Left(EmptyStringError("BotClientSecret")))
       }
     }
   }
@@ -48,9 +83,9 @@ class BotDomainSpec extends ModelSpec {
           model
             .receiveToken(token)
             .accessTokens
-            .size == model.accessTokens.size + 1
+            .size === model.accessTokens.size + 1
         )
-        assert(model.receiveToken(token).accessTokens.last == token)
+        assert(model.receiveToken(token).accessTokens.last === token)
       }
     }
   }
