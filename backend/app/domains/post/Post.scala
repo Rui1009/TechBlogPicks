@@ -11,7 +11,7 @@ import eu.timepit.refined.string.Url
 
 final case class Post(
   id: Option[PostId],
-  url: Option[PostUrl],
+  url: PostUrl,
   title: PostTitle,
   author: PostAuthor,
   postedAt: PostPostedAt

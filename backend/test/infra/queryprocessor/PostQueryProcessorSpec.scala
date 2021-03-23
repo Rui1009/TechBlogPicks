@@ -9,10 +9,10 @@ class PostQueryProcessorSpec extends QueryProcessorSpec[PostsQueryProcessor] {
   val beforeAction = DBIO.seq(
     Posts.forceInsertAll(
       Seq(
-        PostsRow(1, Some("url1"), "Ningen Shikkaku", "Dazai Osamu", 1, 2),
-        PostsRow(2, Some("url2"), "Kokoro", "Natsume Souseki", 2, 3),
-        PostsRow(3, Some("url3"), "Maihime", "Mori Ougai", 3, 4),
-        PostsRow(4, Some("url4"), "Takekurabe", "Higuchi ichiyou", 4, 1)
+        PostsRow(1, "url1", "Ningen Shikkaku", "Dazai Osamu", 1, 2),
+        PostsRow(2, "url2", "Kokoro", "Natsume Souseki", 2, 3),
+        PostsRow(3, "url3", "Maihime", "Mori Ougai", 3, 4),
+        PostsRow(4, "url4", "Takekurabe", "Higuchi ichiyou", 4, 1)
       )
     )
   )
@@ -27,10 +27,10 @@ class PostQueryProcessorSpec extends QueryProcessorSpec[PostsQueryProcessor] {
       "return PostsView seq" in {
         val result   = queryProcessor.findAll.futureValue
         val expected = Seq(
-          PostsView(3, Some("url3"), "Maihime", "Mori Ougai", 3, 4),
-          PostsView(2, Some("url2"), "Kokoro", "Natsume Souseki", 2, 3),
-          PostsView(1, Some("url1"), "Ningen Shikkaku", "Dazai Osamu", 1, 2),
-          PostsView(4, Some("url4"), "Takekurabe", "Higuchi ichiyou", 4, 1)
+          PostsView(3, "url3", "Maihime", "Mori Ougai", 3, 4),
+          PostsView(2, "url2", "Kokoro", "Natsume Souseki", 2, 3),
+          PostsView(1, "url1", "Ningen Shikkaku", "Dazai Osamu", 1, 2),
+          PostsView(4, "url4", "Takekurabe", "Higuchi ichiyou", 4, 1)
         )
 
         assert(result === expected)

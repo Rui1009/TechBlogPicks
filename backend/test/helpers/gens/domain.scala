@@ -49,7 +49,7 @@ trait PostGen {
     title    <- postTitleGen
     author   <- postAuthorGen
     postedAt <- postPostedAtGen
-  } yield Post(id.some, url.some, title, author, postedAt)
+  } yield Post(id.some, url, title, author, postedAt)
 }
 
 trait BotGen {

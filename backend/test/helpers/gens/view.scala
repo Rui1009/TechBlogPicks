@@ -18,7 +18,7 @@ trait PublishPostsViewGen {
   val postViewGen: Gen[Post] = for {
     url   <- urlGen
     title <- nonEmptyStringGen
-  } yield Post(url.some, title)
+  } yield Post(url, title)
 
   val publishPostsViewGen: Gen[PublishPostsView] = for {
     token    <- nonEmptyStringGen
@@ -42,5 +42,5 @@ trait PostsViewGen {
     author    <- nonEmptyStringGen
     postedAt  <- positiveLongGen
     createdAt <- positiveLongGen
-  } yield PostsView(id, Some(url), title, author, postedAt, createdAt)
+  } yield PostsView(id, url, title, author, postedAt, createdAt)
 }
