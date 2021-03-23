@@ -1,7 +1,7 @@
 export type PostsIndexResponse = {
   data: {
     id: number;
-    url?: string;
+    url: string;
     title: string;
     author: string;
     postedAt: number;
