@@ -11,12 +11,20 @@ import play.api.libs.ws.WSClient
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ChatDao {
-  def postMessage(token: String, channel: String, text: String): Future[PostMessageResponse]
+  def postMessage(
+    token: String,
+    channel: String,
+    text: String
+  ): Future[PostMessageResponse]
 }
 
 class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     extends ChatDao {
-  def postMessage(token: String, channel: String, text: String): Future[PostMessageResponse] = {
+  def postMessage(
+    token: String,
+    channel: String,
+    text: String
+  ): Future[PostMessageResponse] = {
     val url = "https://slack.com/api/chat.postMessage"
     ws.url(url)
       .withHttpHeaders("Authorization" -> s"Bearer $token")
