@@ -88,4 +88,13 @@ class BotRepositoryImpl @Inject() (
       .map(_ => ())
       .ifFailedThenToInfraError("error while BotRepository.update")
   }
+
+  override def update(accessToken: AccessTokenPublisherToken): Future[Unit] =
+    for {
+      _ <- db.run {
+             AccessTokens.filter(_.token === accessToken.value.value).delete
+           }.ifFailedThenToInfraError(
+             "error while BotRepository.update(accessToken)"
+           )
+    } yield ()
 }
