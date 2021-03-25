@@ -2,11 +2,18 @@ package adapters.controllers.bot
 
 import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonHelper
+import adapters.controllers.helpers.JsonHelper.responseSuccess
 import adapters.controllers.syntax.FutureSyntax
 import cats.data.ValidatedNel
 import com.google.inject.Inject
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import play.api.mvc.{
+  Action,
+  AnyContent,
+  BaseController,
+  ControllerComponents,
+  Results
+}
 import usecases.{
   InstallBotUseCase,
   UninstallBotUseCase,
@@ -19,6 +26,7 @@ import domains.{DomainError, EmptyStringError}
 import domains.bot.Bot.BotId
 import query.bots.BotsQueryProcessor
 import io.circe.generic.auto._
+import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -67,6 +75,8 @@ class BotController @Inject() (
           uninstallBotUseCase
             .exec(UninstallBotUseCase.Params(body.token))
             .ifFailedThenToAdapterError("error in BotController.uninstall")
+            .map(_ => Ok(Json.obj("challenge" -> body.challenge)))
+            .recoverError
       )
     }
 
