@@ -6,7 +6,7 @@ const root = (path?: string) => {
 
 const BotsEndpoint = (path?: string) => {
   const baseUrl = root("/bots");
-  return baseUrl + (path + "");
+  return baseUrl + (path || "");
 };
 
 const PostEndpoint = (path?: string) => {
