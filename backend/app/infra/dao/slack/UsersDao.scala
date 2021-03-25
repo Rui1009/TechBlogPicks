@@ -30,7 +30,7 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
                .map(_.json.toString)
     } yield decode[ConversationResponse](res).left.map(e =>
       APIError(
-        "error while converting conversations api response" + "\n" + e.getMessage + "\n" + res
+        s"error while converting conversations api response -> token: $accessToken" + "\n" + e.getMessage + "\n" + res
       )
     )).anywaySuccess(ConversationResponse.empty)
   }
