@@ -9,4 +9,5 @@ trait BotRepository {
   def find(botId: BotId): Future[Bot]
   def update(bot: Bot, accessToken: AccessTokenPublisherToken): Future[Unit]
   def update(bot: Bot): Future[Unit]
+  def update(accessToken: AccessTokenPublisherToken): Future[Unit]
 }

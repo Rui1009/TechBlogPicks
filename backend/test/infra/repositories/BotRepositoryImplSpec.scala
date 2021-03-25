@@ -15,7 +15,11 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import eu.timepit.refined.auto._
 import cats.syntax.option._
+import infra.dto
+import infra.dto.Tables
 import org.scalatest.time.{Millis, Span}
+
+import scala.concurrent.Future
 
 trait BotRepositoryImplSpecContext { this: HasDB =>
   val beforeAction = DBIO
@@ -168,6 +172,32 @@ class BotRepositoryImplSuccessSpec
           assert(
             result.head.clientSecret === updated.clientSecret.map(_.value.value)
           )
+        }
+      }
+    }
+  }
+
+  "update" when {
+    "success" should {
+      "delete target data".which {
+        "length is right" in {
+          repository.update(AccessTokenPublisherToken("token1")).futureValue
+
+          val accessTokensColumnLen =
+            db.run(AccessTokens.length.result).futureValue
+
+          assert(accessTokensColumnLen === 2)
+        }
+
+        "value is right" in {
+          repository.update(AccessTokenPublisherToken("token1")).futureValue
+
+          val rowWithTargetTokenLen = db
+            .run(AccessTokens.filter(_.token === "token").length.result)
+            .futureValue
+
+          assert(rowWithTargetTokenLen === 0)
+
         }
       }
     }
