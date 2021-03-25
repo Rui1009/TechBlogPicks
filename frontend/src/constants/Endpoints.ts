@@ -1,4 +1,4 @@
-const SERVER_URL = process.env.SERVER_URL || "http://localhost:9000";
+const SERVER_URL = process.env.REACT_APP_SERVER_URL || "http://localhost:9000";
 
 const root = (path?: string) => {
   return SERVER_URL + (path || "");
