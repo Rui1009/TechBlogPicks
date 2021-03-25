@@ -14,6 +14,7 @@ DELETE  /posts                  	adapters.controllers.post.PostController.delete
 GET     /bot                  		adapters.controllers.bot.BotController.install(code: String, bot_id: String)
 GET     /bots                  		adapters.controllers.bot.BotController.index()
 POST    /bots/:id                  	adapters.controllers.bot.BotController.update(id: String)
+POST    /bot/uninstall              adapters.controllers.bot.BotController.uninstall()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
