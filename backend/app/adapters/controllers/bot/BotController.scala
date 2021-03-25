@@ -7,7 +7,11 @@ import cats.data.ValidatedNel
 import com.google.inject.Inject
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
-import usecases.{InstallBotUseCase, UpdateBotClientInfoUseCase}
+import usecases.{
+  InstallBotUseCase,
+  UninstallBotUseCase,
+  UpdateBotClientInfoUseCase
+}
 import usecases.InstallBotUseCase.Params
 import cats.syntax.apply._
 import cats.implicits.catsSyntaxEither
@@ -22,10 +26,11 @@ class BotController @Inject() (
   val controllerComponents: ControllerComponents,
   installBotUseCase: InstallBotUseCase,
   botsQueryProcessor: BotsQueryProcessor,
-  updateBotClientInfoUseCase: UpdateBotClientInfoUseCase
+  updateBotClientInfoUseCase: UpdateBotClientInfoUseCase,
+  uninstallBotUseCase: UninstallBotUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with FutureSyntax
-    with UpdateClientInfoBodyMapper {
+    with UpdateClientInfoBodyMapper with UninstallBotBodyMapper {
   def install(code: String, bot_id: String): Action[AnyContent] =
     Action.async { implicit request =>
       val tempOauthCode: ValidatedNel[
@@ -52,6 +57,17 @@ class BotController @Inject() (
               .toSuccessGetResponse
               .recoverError
         )
+    }
+
+  def uninstall: Action[Either[AdapterError, UninstallBotCommand]] =
+    Action.async(mapToUninstallBotCommand) { implicit request =>
+      request.body.fold(
+        e => Future.successful(responseError(e)),
+        body =>
+          uninstallBotUseCase
+            .exec(UninstallBotUseCase.Params(body.token))
+            .ifFailedThenToAdapterError("error in BotController.uninstall")
+      )
     }
 
   def index: Action[AnyContent] = Action.async {
