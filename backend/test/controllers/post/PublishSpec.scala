@@ -37,7 +37,7 @@ class PostControllerPublishSuccessSpec
       bind[PublishPostsQueryProcessor].toInstance(query),
       bind[WSClient].toInstance(mockWs)
     )
-    .build
+    .build()
 
   "publish" when {
     "succeed" should {
@@ -84,7 +84,7 @@ class PostControllerPublishFailedSpec
       bind[PublishPostsQueryProcessor].toInstance(query),
       bind[WSClient].toInstance(mockWs)
     )
-    .build
+    .build()
 
   "publish" when {
     "failed post message" should {
