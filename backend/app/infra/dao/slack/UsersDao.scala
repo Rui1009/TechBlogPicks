@@ -1,8 +1,8 @@
 package infra.dao.slack
 
 import com.google.inject.Inject
-import domains.bot.Bot.BotName
-import eu.timepit.refined.api.Refined
+import infra.APIError
+import infra.dao.ApiDao
 import infra.dao.slack.UsersDaoImpl._
 import play.api.libs.ws.WSClient
 import io.circe.parser._
@@ -18,19 +18,19 @@ trait UsersDao {
   def info(token: String, id: String): Future[InfoResponse]
 }
 
-class UsersDaoImpl @Inject() (ws: WSClient)(implicit val ec: ExecutionContext)
-    extends UsersDao {
+class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
+    extends ApiDao(ws) with UsersDao {
   def conversations(accessToken: String): Future[ConversationResponse] = {
     val url = "https://slack.com/api/users.conversations"
     (for {
       res <- ws.url(url)
                .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
-               .get
+               .get()
                .ifFailedThenToInfraError(s"error while getting $url")
                .map(_.json.toString)
-    } yield decode[ConversationResponse](res)).ifLeftThenToInfraError(
-      "error while converting conversation api response"
-    )
+    } yield decode[ConversationResponse](res).left.map(e =>
+      APIError("post message failed" + "\n" + e.getMessage + "\n" + res)
+    )).anywaySuccess(ConversationResponse.empty)
   }
 
   def list(accessToken: String): Future[ListResponse] = {
@@ -40,7 +40,7 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit val ec: ExecutionContext)
       res <- ws.url(url)
                .withQueryStringParameters("pretty" -> "1")
                .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
-               .get
+               .get()
                .ifFailedThenToInfraError(s"error while getting $url")
                .map(res => res.json.toString)
     } yield decode[ListResponse](res))
@@ -64,6 +64,9 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit val ec: ExecutionContext)
 
 object UsersDaoImpl {
   case class ConversationResponse(channels: Seq[Channels])
+  object ConversationResponse {
+    def empty: ConversationResponse = ConversationResponse(Seq.empty)
+  }
   case class Channels(id: String)
 
   case class ListResponse(members: Seq[Member])
