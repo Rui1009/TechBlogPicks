@@ -29,7 +29,9 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
                .ifFailedThenToInfraError(s"error while getting $url")
                .map(_.json.toString)
     } yield decode[ConversationResponse](res).left.map(e =>
-      APIError("post message failed" + "\n" + e.getMessage + "\n" + res)
+      APIError(
+        "error while converting conversations api response" + "\n" + e.getMessage + "\n" + res
+      )
     )).anywaySuccess(ConversationResponse.empty)
   }
 
