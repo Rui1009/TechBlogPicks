@@ -46,5 +46,8 @@ lazy val root = (project in file("."))
   .settings(name := "TechBlogPicks", settings)
 
 javaOptions in Runtime += "-Dconfig.file=./conf/application.dev.conf"
-javaOptions in Test += "-Dconfig.file=./conf/application.test.conf"
+javaOptions in Test ++= Seq(
+  "-Dconfig.file=./conf/application.test.conf",
+  "-Dlogger.file=./conf/logback.test.xml"
+)
 envFileName in ThisBuild := ".env"
