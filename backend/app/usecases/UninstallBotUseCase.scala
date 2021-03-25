@@ -18,5 +18,11 @@ object UninstallBotUseCase {
 final class UninstallBotUseCaseImpl @Inject() (botRepository: BotRepository)(
   implicit val ec: ExecutionContext
 ) extends UninstallBotUseCase {
-  override def exec(params: Params): Future[Unit] = ???
+  override def exec(params: Params): Future[Unit] = for {
+    _ <- botRepository
+           .update(params.accessToken)
+           .ifFailThenToUseCaseError(
+             "error while botRepository.update in uninstall bot use case"
+           )
+  } yield ()
 }
