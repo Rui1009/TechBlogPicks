@@ -67,6 +67,13 @@ trait PublishFailedSpecContext { this: ControllerSpec =>
         if str.matches("https://slack.com/api/chat.postMessage") =>
       val res = Json.obj("ok" -> Json.fromBoolean(false))
       Action(Ok(res.noSpaces))
+    case ("POST", str: String)
+        if str.matches(sys.env.getOrElse("ERROR_NOTIFICATION_URL", "")) =>
+      val res = Json.obj(
+        "ok"      -> Json.fromBoolean(true),
+        "channel" -> Json.fromString("testId")
+      )
+      Action(Ok(res.noSpaces))
   }
 }
 
@@ -81,21 +88,15 @@ class PostControllerPublishFailedSpec
 
   "publish" when {
     "failed post message" should {
-      "return Internal Server Error" in {
+      "return OK" in {
         forAll(Gen.nonEmptyListOf(publishPostsViewGen).filter(_.nonEmpty)) {
           views =>
             when(query.findAll()).thenReturn(Future.successful(views))
 
             val res = Request.get(path).unsafeExec
 
-            val msg = """InternalServerError
-                |error in PostController.publish
-                |APIError
-                |post message failed
-                |Attempt to decode value on failed cursor: DownField(channel)""".stripMargin
-
-            assert(status(res) === INTERNAL_SERVER_ERROR)
-            assert(decodeERes(res).unsafeGet.message === msg)
+            assert(status(res) === OK)
+            assert(decodeRes[Unit](res).unsafeGet === Response[Unit](()))
         }
       }
     }
