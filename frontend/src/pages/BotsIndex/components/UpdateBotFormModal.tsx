@@ -12,6 +12,7 @@ import { BotIndexResponse } from "../../../utils/types/bots";
 import * as Yup from "yup";
 import { api } from "../../../utils/Api";
 import useAutoCloseSnack from "../../../hooks/useAutoCloseSnack";
+import { Endpoints } from "../../../constants/Endpoints";
 
 type Props = {
   selectedBot?: BotIndexResponse["data"][number];
@@ -76,16 +77,13 @@ export const UpdateBotFormModal: React.FC<Props> = ({
       };
 
       api
-        .post(
-          `http://localhost:9000/bots/${selectedBot?.id || values.id}`,
-          param
-        )
+        .post(Endpoints.bots(`/${selectedBot?.id || values.id}`), param)
         .then(() => {
           submitProps.resetForm();
           successSnack("更新に成功しました");
           closeModal();
           api
-            .get<BotIndexResponse>("http://localhost:9000/bots")
+            .get<BotIndexResponse>(Endpoints.bots())
             .then(res => setBotList(res.data.data))
             .catch(e => alert(e));
         })

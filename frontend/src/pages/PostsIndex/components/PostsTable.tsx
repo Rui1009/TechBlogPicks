@@ -4,6 +4,7 @@ import useAutoCloseSnack from "../../../hooks/useAutoCloseSnack";
 import { api } from "../../../utils/Api";
 import MaterialTable from "material-table";
 import { Typography } from "@material-ui/core";
+import { Endpoints } from "../../../constants/Endpoints";
 
 type Props = {
   fetchedPosts: PostsIndexResponse["data"];
@@ -15,7 +16,7 @@ export const PostsTable: React.FC<Props> = ({ setPosts, fetchedPosts }) => {
 
   const deletePosts = (postIds: number[]) =>
     api
-      .delete("http://localhost:9000/posts", { data: { ids: postIds } })
+      .delete(Endpoints.posts(), { data: { ids: postIds } })
       .then(() => successSnack("削除が完了しました"))
       .then(fetchPosts)
       .catch(e => {
@@ -24,7 +25,7 @@ export const PostsTable: React.FC<Props> = ({ setPosts, fetchedPosts }) => {
 
   const fetchPosts = () =>
     api
-      .get<PostsIndexResponse>("http://localhost:9000/posts")
+      .get<PostsIndexResponse>(Endpoints.posts())
       .then(r => setPosts(r.data.data));
 
   useEffect(() => {

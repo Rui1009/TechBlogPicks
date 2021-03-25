@@ -3,6 +3,7 @@ import { UpdateBotFormModal } from "./components/UpdateBotFormModal";
 import { BotsTable } from "./components/BotsTable";
 import { api } from "../../utils/Api";
 import { BotIndexResponse } from "../../utils/types/bots";
+import { Endpoints } from "../../constants/Endpoints";
 
 export const BotsIndex: React.FC = () => {
   const [botList, setBotList] = useState<BotIndexResponse["data"]>([]);
@@ -13,7 +14,7 @@ export const BotsIndex: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    api.get<BotIndexResponse>("http://localhost:9000/bots").then(v => {
+    api.get<BotIndexResponse>(Endpoints.bots()).then(v => {
       setBotList(v.data.data);
     });
   }, []);
