@@ -20,6 +20,7 @@ import * as Yup from "yup";
 import { BotIndexResponse } from "../../utils/types/bots";
 import { PostsIndexResponse } from "../../utils/types/posts";
 import useAutoCloseSnack from "../../hooks/useAutoCloseSnack";
+import { Endpoints } from "../../constants/Endpoints";
 
 type FormValues = {
   url: string;
@@ -65,12 +66,12 @@ const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
         postedAt: getUnixTime(new Date(values.postedAt))
       };
       api
-        .post("http://localhost:9000/posts", req)
+        .post(Endpoints.posts(), req)
         .then(() => {
           submitProps.resetForm();
           successSnack("登録に成功しました");
           api
-            .get<PostsIndexResponse>("http://localhost:9000/posts")
+            .get<PostsIndexResponse>(Endpoints.posts())
             .then(r => setPosts(r.data.data))
             .catch(e => alert(e));
         })
@@ -80,7 +81,7 @@ const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
 
   useEffect(() => {
     api
-      .get<BotIndexResponse>("http://localhost:9000/bots")
+      .get<BotIndexResponse>(Endpoints.bots())
       .then(v => {
         setBotList(v.data.data);
       })
