@@ -2,12 +2,23 @@ package adapters.controllers.bot
 
 import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonHelper
+import adapters.controllers.helpers.JsonHelper.responseSuccess
 import adapters.controllers.syntax.FutureSyntax
 import cats.data.ValidatedNel
 import com.google.inject.Inject
 import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
-import usecases.{InstallBotUseCase, UpdateBotClientInfoUseCase}
+import play.api.mvc.{
+  Action,
+  AnyContent,
+  BaseController,
+  ControllerComponents,
+  Results
+}
+import usecases.{
+  InstallBotUseCase,
+  UninstallBotUseCase,
+  UpdateBotClientInfoUseCase
+}
 import usecases.InstallBotUseCase.Params
 import cats.syntax.apply._
 import cats.implicits.catsSyntaxEither
@@ -15,6 +26,7 @@ import domains.{DomainError, EmptyStringError}
 import domains.bot.Bot.BotId
 import query.bots.BotsQueryProcessor
 import io.circe.generic.auto._
+import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -22,10 +34,11 @@ class BotController @Inject() (
   val controllerComponents: ControllerComponents,
   installBotUseCase: InstallBotUseCase,
   botsQueryProcessor: BotsQueryProcessor,
-  updateBotClientInfoUseCase: UpdateBotClientInfoUseCase
+  updateBotClientInfoUseCase: UpdateBotClientInfoUseCase,
+  uninstallBotUseCase: UninstallBotUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with FutureSyntax
-    with UpdateClientInfoBodyMapper {
+    with UpdateClientInfoBodyMapper with UninstallBotBodyMapper {
   def install(code: String, bot_id: String): Action[AnyContent] =
     Action.async { implicit request =>
       val tempOauthCode: ValidatedNel[
@@ -52,6 +65,20 @@ class BotController @Inject() (
               .toSuccessGetResponse
               .recoverError
         )
+    }
+
+  def uninstall: Action[Either[AdapterError, UninstallBotCommand]] =
+    Action.async(mapToUninstallBotCommand) { implicit request =>
+      request.body.fold(
+        e => Future.successful(responseError(e)),
+        body =>
+          uninstallBotUseCase
+            .exec(UninstallBotUseCase.Params(body.token))
+            .ifFailedThenToAdapterError("error in BotController.uninstall")
+            //Note: slackのevent apiが200とchallengeをjsonにして返却しないといけない仕様なため
+            .map(_ => Ok(Json.obj("challenge" -> body.challenge)))
+            .recoverError
+      )
     }
 
   def index: Action[AnyContent] = Action.async {
