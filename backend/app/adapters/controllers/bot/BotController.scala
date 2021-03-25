@@ -75,6 +75,7 @@ class BotController @Inject() (
           uninstallBotUseCase
             .exec(UninstallBotUseCase.Params(body.token))
             .ifFailedThenToAdapterError("error in BotController.uninstall")
+            //Note: slackのevent apiが200とchallengeをjsonにして返却しないといけない仕様なため
             .map(_ => Ok(Json.obj("challenge" -> body.challenge)))
             .recoverError
       )
