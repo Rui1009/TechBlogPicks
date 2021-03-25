@@ -36,7 +36,7 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
       .map(res =>
         decode[PostMessageResponse](res.json.toString).left.map(e =>
           APIError(
-            "post message failed" + "\n" + e.getMessage + "\n" + res.json.toString
+            s"post message failed -> token: $token" + "\n" + e.getMessage + "\n" + res.json.toString
           )
         )
       )
