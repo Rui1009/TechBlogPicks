@@ -5,6 +5,7 @@ const root = (path?: string) => {
 };
 
 const BotsEndpoint = (path?: string) => {
+  console.log(process.env.REACT_APP_SERVER_URL);
   const baseUrl = root("/bots");
   return baseUrl + (path || "");
 };
