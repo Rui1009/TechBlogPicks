@@ -35,6 +35,10 @@ final class UninstallBotUseCaseImpl @Inject() (
                          case None    => throw WorkSpaceNotFound
                        }
     updatedWorkSpace = targetWorkSpace.uninstallBot(targetBot)
-    _               <- workSpaceRepository.add(updatedWorkSpace)
+    _               <- workSpaceRepository
+                         .add(updatedWorkSpace)
+                         .ifFailThenToUseCaseError(
+                           "error while workSpaceRepository.add in uninstall bot use case"
+                         )
   } yield ()).recoverWith { case WorkSpaceNotFound => Future.unit }
 }
