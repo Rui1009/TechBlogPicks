@@ -21,9 +21,9 @@ class PublishPostsQueryProcessorImpl @Inject() (
     val currUnix      = System.currentTimeMillis / 1000
     val yesterdayUnix = currUnix - 3600 * 24
 
-    val accessTokensQ = for {
-      accessTokens <- AccessTokens.result
-    } yield accessTokens.groupBy(_.botId).toSeq
+    val workSpaceQ = for {
+      workSpaces <- WorkSpaces.result
+    } yield workSpaces.groupBy(_.botId).toSeq
 
     val postsQ = Posts
       .join(BotsPosts)
@@ -35,10 +35,10 @@ class PublishPostsQueryProcessorImpl @Inject() (
 
     val query =
       for {
-        accessTokens <- accessTokensQ
-        posts        <- postsQ
+        workSpaces <- workSpaceQ
+        posts      <- postsQ
       } yield for {
-        (botId, tokens) <- accessTokens
+        (botId, tokens) <- workSpaces
         postView         = posts
                              .filter(_._2.botId == botId)
                              .map(_._1)

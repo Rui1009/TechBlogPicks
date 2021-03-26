@@ -1,7 +1,7 @@
 package domains.bot
 
 import domains.EmptyStringError
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
+import domains.workspace.WorkSpace.WorkSpaceToken
 import domains.bot.Bot.{BotClientId, BotClientSecret, BotId, BotName}
 import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
@@ -12,14 +12,11 @@ import io.estatico.newtype.macros.newtype
 final case class Bot(
   id: BotId,
   name: BotName,
-  accessTokens: Seq[AccessTokenPublisherToken],
+  accessTokens: Seq[WorkSpaceToken],
   posts: Seq[PostId],
   clientId: Option[BotClientId],
   clientSecret: Option[BotClientSecret]
 ) {
-  def receiveToken(token: AccessTokenPublisherToken): Bot =
-    this.copy(accessTokens = accessTokens :+ token)
-
   def updateClientInfo(
     clientId: Option[BotClientId],
     clientSecret: Option[BotClientSecret]

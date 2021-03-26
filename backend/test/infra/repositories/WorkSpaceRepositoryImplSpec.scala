@@ -1,10 +1,7 @@
 package infra.repositories
 
-import domains.accesstokenpublisher.AccessTokenPublisher._
-import domains.accesstokenpublisher.{
-  AccessTokenPublisher,
-  AccessTokenPublisherRepository
-}
+import domains.workspace.WorkSpace._
+import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import helpers.traits.RepositorySpec
 import play.api.libs.json.Json
 import org.scalatest.time.{Seconds, Span}
@@ -15,17 +12,19 @@ import play.api.inject.bind
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
 import eu.timepit.refined.auto._
-import infra.repositoryimpl.AccessTokenPublisherRepositoryImpl
+import infra.repositoryimpl.WorkSpaceRepositoryImpl
 
-class AccessTokenPublisherRepositoryImplSpec
-    extends RepositorySpec[AccessTokenPublisherRepositoryImpl]
+class WorkSpaceRepositoryImplSpec
+    extends RepositorySpec[WorkSpaceRepositoryImpl]
 
-class AccessTokenPublisherRepositoryImplSuccessSpec
-    extends AccessTokenPublisherRepositoryImplSpec {
+class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
   val mockWs = MockWS {
     case ("POST", str: String)
         if str.matches("https://slack.com/api/oauth.v2.access") =>
       Action(Ok(Json.obj("access_token" -> "mock access token")))
+    case ("GET", str: String)
+        if str.matches("https://slack.com/api/team.info") =>
+      Action(Ok(Json.obj("team" -> Json.obj("id" -> "teamId"))))
   }
 
   override val app: Application =
@@ -33,7 +32,7 @@ class AccessTokenPublisherRepositoryImplSuccessSpec
 
   "find" when {
     "succeed" should {
-      "get access token" in {
+      "get work space" in {
         forAll(temporaryOauthCodeGen, botClientIdGen, botClientSecretGen) {
           (code, clientId, clientSecret) =>
             val result =
@@ -41,9 +40,11 @@ class AccessTokenPublisherRepositoryImplSuccessSpec
 
             assert(
               result === Some(
-                AccessTokenPublisher(
-                  AccessTokenPublisherToken("mock access token"),
-                  code
+                WorkSpace(
+                  WorkSpaceId("teamId"),
+                  Seq(WorkSpaceToken("mock access token")),
+                  Some(code),
+                  Seq()
                 )
               )
             )
@@ -53,8 +54,8 @@ class AccessTokenPublisherRepositoryImplSuccessSpec
   }
 }
 
-class AccessTokenPublisherRepositoryImplFailSpec
-    extends RepositorySpec[AccessTokenPublisherRepository] {
+class WorkSpaceRepositoryImplFailSpec
+    extends RepositorySpec[WorkSpaceRepository] {
   "find" when {
     "failed" should {
       "None returned" in {

@@ -1,5 +1,5 @@
 import com.google.inject.AbstractModule
-import domains.accesstokenpublisher.AccessTokenPublisherRepository
+import domains.workspace.WorkSpaceRepository
 import domains.bot.BotRepository
 import domains.post.PostRepository
 import infra.dao.slack._
@@ -14,8 +14,7 @@ class Module extends AbstractModule {
   override def configure(): Unit = {
     // repo impl
     bind(classOf[PostRepository]).to(classOf[PostRepositoryImpl])
-    bind(classOf[AccessTokenPublisherRepository])
-      .to(classOf[AccessTokenPublisherRepositoryImpl])
+    bind(classOf[WorkSpaceRepository]).to(classOf[WorkSpaceRepositoryImpl])
     bind(classOf[BotRepository]).to(classOf[BotRepositoryImpl])
 
     // use case impl
@@ -35,5 +34,6 @@ class Module extends AbstractModule {
     // dao
     bind(classOf[ChatDao]).to(classOf[ChatDaoImpl])
     bind(classOf[UsersDao]).to(classOf[UsersDaoImpl])
+    bind(classOf[TeamDao]).to(classOf[TeamDaoImpl])
   }
 }

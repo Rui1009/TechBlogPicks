@@ -1,8 +1,8 @@
 package usecases
 
 import com.google.inject.Inject
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode
-import domains.accesstokenpublisher.AccessTokenPublisherRepository
+import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
+import domains.workspace.WorkSpaceRepository
 import domains.bot.{Bot, BotRepository}
 import domains.bot.Bot.BotId
 import usecases.InstallBotUseCase.Params
@@ -15,22 +15,23 @@ trait InstallBotUseCase {
 
 object InstallBotUseCase {
   final case class Params(
-    temporaryOauthCode: AccessTokenPublisherTemporaryOauthCode,
+    temporaryOauthCode: WorkSpaceTemporaryOauthCode,
     botId: BotId
   )
 }
 
 final class InstallBotUseCaseImpl @Inject() (
-  accessTokenPublisherRepository: AccessTokenPublisherRepository,
+  workSpaceRepository: WorkSpaceRepository,
   botRepository: BotRepository
 )(implicit val ec: ExecutionContext)
     extends InstallBotUseCase {
   override def exec(params: Params): Future[Unit] = for {
-    targetBot             <- botRepository
-                               .find(params.botId)
-                               .ifFailThenToUseCaseError(
-                                 "error while botRepository.find in install bot use case"
-                               )
+    targetBot <- botRepository
+                   .find(params.botId)
+                   .ifFailThenToUseCaseError(
+                     "error while botRepository.find in install bot use case"
+                   )
+
     targetBotClientId     <-
       targetBot.clientId.ifNotExistsToUseCaseError(
         "error while get bot client id in install bot use case"
@@ -39,23 +40,24 @@ final class InstallBotUseCaseImpl @Inject() (
       targetBot.clientSecret.ifNotExistsToUseCaseError(
         "error while get bot client secret in install bot use case"
       )
-    accessTokenPublisher  <-
-      accessTokenPublisherRepository
+
+    workSpace <-
+      workSpaceRepository
         .find(
           params.temporaryOauthCode,
           targetBotClientId,
           targetBotClientSecret
         )
         .ifNotExistsToUseCaseError(
-          "error while accessTokenPublisherRepository.find in install bot use case"
+          "error while workSpaceRepository.find in install bot use case"
         )
-    _                     <- botRepository
-                               .update(
-                                 targetBot.receiveToken(accessTokenPublisher.publishToken),
-                                 accessTokenPublisher.publishToken
-                               )
-                               .ifFailThenToUseCaseError(
-                                 "error while botRepository.update in install bot use case"
-                               )
+
+    updatedWorkSpace = workSpace.installBot(targetBot)
+
+    _ <- workSpaceRepository
+           .update(updatedWorkSpace)
+           .ifFailThenToUseCaseError(
+             "error while workSpaceRepository.update in install bot use case"
+           )
   } yield ()
 }

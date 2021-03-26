@@ -77,20 +77,6 @@ class BotDomainSpec extends ModelSpec {
     }
   }
 
-  "Bot.receiveToken" should {
-    "return new seq that added token arg" in {
-      forAll(botGen, accessTokenGen) { (model, token) =>
-        assert(
-          model
-            .receiveToken(token)
-            .accessTokens
-            .size === model.accessTokens.size + 1
-        )
-        assert(model.receiveToken(token).accessTokens.last === token)
-      }
-    }
-  }
-
   "Bot.updateClientInfo" should {
     "return Bot model which client info updated" in {
       forAll(
