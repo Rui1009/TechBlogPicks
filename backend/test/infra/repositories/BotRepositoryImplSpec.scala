@@ -125,7 +125,7 @@ class BotRepositoryImplSuccessSpec
 
               assert(accessTokensRow.botId === bot.id.value.value)
               assert(
-                accessTokensRow.token === accessTokenPublisher.token.value.value
+                accessTokensRow.token === accessTokenPublisher.tokens.value.value
               )
 
           }
