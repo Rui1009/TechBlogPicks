@@ -5,7 +5,25 @@ import helpers.traits.ModelSpec
 import cats.syntax.either._
 
 class WorkSpaceDomainSpec extends ModelSpec {
-  "AccessTokenPublisherToken.create" when {
+  "WorkSpaceId.create" when {
+    "given non empty string" should {
+      "return Right value which equals given arg value" in {
+        forAll(stringRefinedNonEmptyGen) { str =>
+          val result = WorkSpaceId.create(str.value)
+          assert(result.map(_.value) == str.asRight)
+        }
+      }
+    }
+
+    "given empty string" should {
+      "return Left value which values equals DomainError" in {
+        val result = WorkSpaceId.create("")
+        assert(result.leftSide == EmptyStringError("WorkSpaceId").asLeft)
+      }
+    }
+  }
+
+  "WorkSpaceToken.create" when {
     "given non empty string" should {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
@@ -23,7 +41,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
     }
   }
 
-  "AccessTokenPublisherTemporaryOauthCode.create" when {
+  "WorkSpaceTemporaryOauthCode.create" when {
     "given non empty string" should {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
@@ -41,10 +59,12 @@ class WorkSpaceDomainSpec extends ModelSpec {
     }
   }
 
-  "AccessTokenPublisher.publishToken" should {
+  "WorkSpace.installBot" should {
     "return its token" in {
-      forAll(accessTokenPublisherGen) { model =>
-        assert(model.publishToken == model.tokens)
+      forAll(workSpaceGen, botGen) { (workSpace, bot) =>
+        val expected = workSpace.copy(botIds = workSpace.botIds :+ bot.id)
+
+        assert(workSpace.installBot(bot) === expected)
       }
     }
   }

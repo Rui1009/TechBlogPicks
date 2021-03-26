@@ -17,11 +17,11 @@ trait PublishPostsQueryProcessorSpecContext { this: HasDB =>
 
   val beforeAction = DBIO
     .seq(
-      AccessTokens.forceInsertAll(
+      WorkSpaces.forceInsertAll(
         Seq(
-          AccessTokensRow("token1", "bot1"),
-          AccessTokensRow("token2", "bot1"),
-          AccessTokensRow("token3", "bot2")
+          WorkSpacesRow("token1", "bot1", "team1"),
+          WorkSpacesRow("token2", "bot1", "team2"),
+          WorkSpacesRow("token3", "bot2", "team1")
         )
       ),
       Posts.forceInsertAll(
@@ -44,7 +44,7 @@ trait PublishPostsQueryProcessorSpecContext { this: HasDB =>
     )
     .transactionally
 
-  val deleteAction = BotsPosts.delete >> Posts.delete >> AccessTokens.delete
+  val deleteAction = BotsPosts.delete >> Posts.delete >> WorkSpaces.delete
 
   val channels = Seq("channel1", "channel2")
 

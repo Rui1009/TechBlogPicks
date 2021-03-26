@@ -1,90 +1,74 @@
 package usecases
 
-import domains.workspace.WorkSpaceRepository
 import domains.bot.Bot.{BotClientId, BotClientSecret}
-import domains.bot.{Bot, BotRepository}
-import helpers.traits.UseCaseSpec
-import usecases.InstallBotUseCase._
-import infra.DBError
+import domains.bot.BotRepository
+import domains.workspace.WorkSpaceRepository
 import eu.timepit.refined.auto._
+import helpers.traits.UseCaseSpec
+import infra.DBError
+import usecases.InstallBotUseCase._
 
 import scala.concurrent.Future
 
 class InstallBotUseCaseSpec extends UseCaseSpec {
   "exec" when {
-    val accessTokenRepo = mock[WorkSpaceRepository]
-    val botRepo         = mock[BotRepository]
+    val workSpaceRepo = mock[WorkSpaceRepository]
+    val botRepo       = mock[BotRepository]
     "succeed" should {
-      "invoke botRepository.find once & accessTokenPublisherRepository.find once & botRepository.update once" in {
+      "invoke botRepository.find once & workSpaceRepository.find once & workSpaceRepository.update once" in {
         forAll(
           temporaryOauthCodeGen,
           nonOptionBotGen,
-          accessTokenPublisherGen
-        ) { (tempOauthCode, bot, accessTokenPublisher) =>
-          val params = Params(tempOauthCode, bot.id)
+          workSpaceGen,
+          accessTokenGen
+        ) { (tempOauthCode, bot, _workSpace, token) =>
+          val params    = Params(tempOauthCode, bot.id)
+          val workSpace = _workSpace.copy(tokens = Seq(token), botIds = Seq())
 
           when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
           when(
-            accessTokenRepo.find(
+            workSpaceRepo.find(
               params.temporaryOauthCode,
               bot.clientId.get,
               bot.clientSecret.get
             )
-          ).thenReturn(Future.successful(Some(accessTokenPublisher)))
-          when(
-            botRepo.update(
-              bot.receiveToken(accessTokenPublisher.publishToken),
-              accessTokenPublisher.publishToken
-            )
-          ).thenReturn(Future.unit)
+          ).thenReturn(Future.successful(Some(workSpace)))
+          when(workSpaceRepo.update(workSpace.installBot(bot)))
+            .thenReturn(Future.unit)
 
-          new InstallBotUseCaseImpl(accessTokenRepo, botRepo)
+          new InstallBotUseCaseImpl(workSpaceRepo, botRepo)
             .exec(params)
             .futureValue
 
           verify(botRepo).find(params.botId)
-          verify(accessTokenRepo, only).find(
+          verify(workSpaceRepo).find(
             params.temporaryOauthCode,
             bot.clientId.get,
             bot.clientSecret.get
           )
-          verify(botRepo).update(
-            bot.receiveToken(accessTokenPublisher.publishToken),
-            accessTokenPublisher.publishToken
-          )
-          reset(accessTokenRepo)
+          verify(workSpaceRepo).update(workSpace.installBot(bot))
+          reset(workSpaceRepo)
           reset(botRepo)
         }
       }
     }
 
     "failed in botRepository.find" should {
-      "throw use case error and not invoked accessTokenPublisherRepository.find & botRepository.update" in {
+      "throw use case error and not invoked workSpaceRepository.find & workSpaceRepository.update" in {
         forAll(
           temporaryOauthCodeGen,
           nonOptionBotGen,
-          accessTokenPublisherGen
-        ) { (tempOauthCode, bot, accessTokenPublisher) =>
-          val params = Params(tempOauthCode, bot.id)
+          workSpaceGen,
+          accessTokenGen
+        ) { (tempOauthCode, bot, _workSpace, token) =>
+          val params    = Params(tempOauthCode, bot.id)
+          val workSpace = _workSpace.copy(tokens = Seq(token), botIds = Seq())
 
           when(botRepo.find(params.botId))
             .thenReturn(Future.failed(DBError("error")))
-          when(
-            accessTokenRepo.find(
-              params.temporaryOauthCode,
-              bot.clientId.get,
-              bot.clientSecret.get
-            )
-          ).thenReturn(Future.successful(Some(accessTokenPublisher)))
-          when(
-            botRepo.update(
-              bot.receiveToken(accessTokenPublisher.publishToken),
-              accessTokenPublisher.publishToken
-            )
-          ).thenReturn(Future.unit)
 
           val result =
-            new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
+            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
 
           whenReady(result.failed) { e =>
             assert(
@@ -93,145 +77,130 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
                   + DBError("error").getMessage
               )
             )
-            verify(accessTokenRepo, never).find(
+            verify(workSpaceRepo, never).find(
               params.temporaryOauthCode,
               bot.clientId.get,
               bot.clientSecret.get
             )
-            verify(botRepo, never).update(
-              bot.receiveToken(accessTokenPublisher.publishToken),
-              accessTokenPublisher.publishToken
-            )
+            verify(workSpaceRepo, never).update(workSpace.installBot(bot))
           }
         }
       }
     }
 
     "returned clientId which is None" should {
-      "throw use case error and not invoked accessTokenPublisherRepository.find and botRepository.update" in {
-        forAll(temporaryOauthCodeGen, botGen, accessTokenPublisherGen) {
-          (tempOauthCode, bot, accessTokenPublisher) =>
-            val params = Params(tempOauthCode, bot.id)
-
-            when(botRepo.find(params.botId)).thenReturn(
-              Future.successful(
-                bot.updateClientInfo(None, Some(BotClientSecret("test")))
-              )
-            )
-
-            val result =
-              new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
-
-            whenReady(result.failed) { e =>
-              assert(
-                e === SystemError(
-                  "error while get bot client id in install bot use case"
-                )
-              )
-            }
-        }
-      }
-    }
-
-    "returned clientSecret which is None" should {
-      "throw use case error and not invoked accessTokenPublisherRepository.find and botRepository.update" in {
-        forAll(temporaryOauthCodeGen, botGen, accessTokenPublisherGen) {
-          (tempOauthCode, bot, accessTokenPublisher) =>
-            val params = Params(tempOauthCode, bot.id)
-
-            when(botRepo.find(params.botId)).thenReturn(
-              Future.successful(
-                bot.updateClientInfo(Some(BotClientId("test")), None)
-              )
-            )
-
-            val result =
-              new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
-
-            whenReady(result.failed) { e =>
-              assert(
-                e === SystemError(
-                  "error while get bot client secret in install bot use case"
-                )
-              )
-            }
-        }
-      }
-    }
-
-    "failed in accessTokenPublisherRepository.find" should {
-      "throw use case error and not invoked botRepository.update" in {
-        forAll(
-          temporaryOauthCodeGen,
-          nonOptionBotGen,
-          accessTokenPublisherGen
-        ) { (tempOauthCode, bot, accessTokenPublisher) =>
+      "throw use case error and not invoked workSpaceRepository.find and workSpaceRepository.update" in {
+        forAll(temporaryOauthCodeGen, botGen) { (tempOauthCode, bot) =>
           val params = Params(tempOauthCode, bot.id)
 
-          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
-          when(
-            accessTokenRepo.find(
-              params.temporaryOauthCode,
-              bot.clientId.get,
-              bot.clientSecret.get
+          when(botRepo.find(params.botId)).thenReturn(
+            Future.successful(
+              bot.updateClientInfo(None, Some(BotClientSecret("test")))
             )
-          ).thenReturn(Future.successful(None))
-          when(
-            botRepo.update(
-              bot.receiveToken(accessTokenPublisher.publishToken),
-              accessTokenPublisher.publishToken
-            )
-          ).thenReturn(Future.unit)
+          )
 
           val result =
-            new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
+            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
 
           whenReady(result.failed) { e =>
             assert(
-              e === NotFoundError(
-                "error while accessTokenPublisherRepository.find in install bot use case"
+              e === SystemError(
+                "error while get bot client id in install bot use case"
               )
-            )
-            verify(botRepo, never).update(
-              bot.receiveToken(accessTokenPublisher.publishToken),
-              accessTokenPublisher.publishToken
             )
           }
         }
       }
     }
 
-    "failed in botRepository.update" should {
-      "throw use case error" in {
-        forAll(
-          temporaryOauthCodeGen,
-          nonOptionBotGen,
-          accessTokenPublisherGen
-        ) { (tempOauthCode, bot, accessTokenPublisher) =>
+    "returned clientSecret which is None" should {
+      "throw use case error and not invoked workSpaceRepository.find and workSpaceRepository.update" in {
+        forAll(temporaryOauthCodeGen, botGen) { (tempOauthCode, bot) =>
           val params = Params(tempOauthCode, bot.id)
 
-          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
-          when(
-            accessTokenRepo.find(
-              params.temporaryOauthCode,
-              bot.clientId.get,
-              bot.clientSecret.get
-            )
-          ).thenReturn(Future.successful(Some(accessTokenPublisher)))
-          when(
-            botRepo.update(
-              bot.receiveToken(accessTokenPublisher.publishToken),
-              accessTokenPublisher.publishToken
-            )
-          ).thenReturn(Future.failed(DBError("error")))
+          when(botRepo.find(params.botId)).thenReturn(
+            Future
+              .successful(bot.updateClientInfo(Some(BotClientId("test")), None))
+          )
 
           val result =
-            new InstallBotUseCaseImpl(accessTokenRepo, botRepo).exec(params)
+            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
 
           whenReady(result.failed) { e =>
             assert(
               e === SystemError(
-                "error while botRepository.update in install bot use case" + "\n"
+                "error while get bot client secret in install bot use case"
+              )
+            )
+          }
+        }
+      }
+    }
+
+    "failed in workSpaceRepository.find" should {
+      "throw use case error and not invoked workSpaceRepository.update" in {
+        forAll(
+          temporaryOauthCodeGen,
+          nonOptionBotGen,
+          workSpaceGen,
+          accessTokenGen
+        ) { (tempOauthCode, bot, _workSpace, token) =>
+          val params    = Params(tempOauthCode, bot.id)
+          val workSpace = _workSpace.copy(tokens = Seq(token), botIds = Seq())
+
+          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(
+            workSpaceRepo.find(
+              params.temporaryOauthCode,
+              bot.clientId.get,
+              bot.clientSecret.get
+            )
+          ).thenReturn(Future.successful(None))
+
+          val result =
+            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
+
+          whenReady(result.failed) { e =>
+            assert(
+              e === NotFoundError(
+                "error while workSpaceRepository.find in install bot use case"
+              )
+            )
+            verify(workSpaceRepo, never).update(workSpace.installBot(bot))
+          }
+        }
+      }
+    }
+
+    "failed in workSpaceRepository.update" should {
+      "throw use case error" in {
+        forAll(
+          temporaryOauthCodeGen,
+          nonOptionBotGen,
+          workSpaceGen,
+          accessTokenGen
+        ) { (tempOauthCode, bot, _workSpace, token) =>
+          val params    = Params(tempOauthCode, bot.id)
+          val workSpace = _workSpace.copy(tokens = Seq(token), botIds = Seq())
+
+          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(
+            workSpaceRepo.find(
+              params.temporaryOauthCode,
+              bot.clientId.get,
+              bot.clientSecret.get
+            )
+          ).thenReturn(Future.successful(Some(workSpace)))
+          when(workSpaceRepo.update(workSpace.installBot(bot)))
+            .thenReturn(Future.failed(DBError("error")))
+
+          val result =
+            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
+
+          whenReady(result.failed) { e =>
+            assert(
+              e === SystemError(
+                "error while workSpaceRepository.update in install bot use case" + "\n"
                   + DBError("error").getMessage
               )
             )

@@ -22,6 +22,9 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
     case ("POST", str: String)
         if str.matches("https://slack.com/api/oauth.v2.access") =>
       Action(Ok(Json.obj("access_token" -> "mock access token")))
+    case ("GET", str: String)
+        if str.matches("https://slack.com/api/team.info") =>
+      Action(Ok(Json.obj("team" -> Json.obj("id" -> "teamId"))))
   }
 
   override val app: Application =
@@ -29,7 +32,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
 
   "find" when {
     "succeed" should {
-      "get access token" in {
+      "get work space" in {
         forAll(temporaryOauthCodeGen, botClientIdGen, botClientSecretGen) {
           (code, clientId, clientSecret) =>
             val result =
@@ -37,7 +40,12 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
 
             assert(
               result === Some(
-                WorkSpace(WorkSpaceToken("mock access token"), code)
+                WorkSpace(
+                  WorkSpaceId("teamId"),
+                  Seq(WorkSpaceToken("mock access token")),
+                  Some(code),
+                  Seq()
+                )
               )
             )
         }

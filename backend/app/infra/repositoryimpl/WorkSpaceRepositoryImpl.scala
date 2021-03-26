@@ -52,7 +52,10 @@ class WorkSpaceRepositoryImpl @Inject() (
       Seq(accessToken),
       Some(code),
       Seq()
-    )).flatMap { case Some(v) => v.map(workSpace => Some(workSpace)) }
+    )).flatMap {
+      case Some(v) => v.map(workSpace => Some(workSpace))
+      case None    => Future.successful(None)
+    }
   }
 
   override def update(model: WorkSpace): Future[Unit] = {

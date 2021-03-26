@@ -15,19 +15,24 @@ import cats.syntax.option._
 
 object domain extends DomainGen
 
-trait DomainGen extends AccessTokenPublisherGen with BotGen with PostGen
+trait DomainGen extends WorkSpaceGen with BotGen with PostGen
 
-trait AccessTokenPublisherGen {
+trait WorkSpaceGen {
   val accessTokenGen: Gen[WorkSpaceToken] =
     stringRefinedNonEmptyGen.map(WorkSpaceToken(_))
 
   val temporaryOauthCodeGen: Gen[WorkSpaceTemporaryOauthCode] =
     stringRefinedNonEmptyGen.map(WorkSpaceTemporaryOauthCode(_))
 
-  val accessTokenPublisherGen: Gen[WorkSpace] = for {
-    accessToken        <- accessTokenGen
-    temporaryOauthCode <- temporaryOauthCodeGen
-  } yield WorkSpace(accessToken, temporaryOauthCode)
+  val workSpaceIdGen: Gen[WorkSpaceId] =
+    stringRefinedNonEmptyGen.map(WorkSpaceId(_))
+
+  val workSpaceGen: Gen[WorkSpace] = for {
+    id                 <- workSpaceIdGen
+    accessTokens       <- Gen.listOf(accessTokenGen)
+    temporaryOauthCode <- Gen.option(temporaryOauthCodeGen)
+    botIds             <- Gen.listOf(botIdGen)
+  } yield WorkSpace(id, accessTokens, temporaryOauthCode, botIds)
 }
 
 trait PostGen {

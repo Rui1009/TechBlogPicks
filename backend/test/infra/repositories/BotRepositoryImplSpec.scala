@@ -24,11 +24,11 @@ import scala.concurrent.Future
 trait BotRepositoryImplSpecContext { this: HasDB =>
   val beforeAction = DBIO
     .seq(
-      AccessTokens.forceInsertAll(
+      WorkSpaces.forceInsertAll(
         Seq(
-          AccessTokensRow("token1", "bot1"),
-          AccessTokensRow("token2", "bot1"),
-          AccessTokensRow("token3", "bot2")
+          WorkSpacesRow("token1", "bot1", "team1"),
+          WorkSpacesRow("token2", "bot1", "team2"),
+          WorkSpacesRow("token3", "bot2", "team1")
         )
       ),
       Posts.forceInsertAll(
@@ -54,7 +54,7 @@ trait BotRepositoryImplSpecContext { this: HasDB =>
     .transactionally
 
   val deleteAction =
-    BotsPosts.delete >> Posts.delete >> AccessTokens.delete >> BotClientInfo.delete
+    BotsPosts.delete >> Posts.delete >> WorkSpaces.delete >> BotClientInfo.delete
 
   val paramBotId = BotId("bot1")
 
@@ -90,46 +90,6 @@ class BotRepositoryImplSuccessSpec
             BotClientSecret("clientSecret").some
           )
         )
-      }
-    }
-  }
-
-  "update" when {
-    "success" should {
-      "add new data".which {
-        "length is right" in {
-          forAll(botGen, accessTokenPublisherGen) {
-            (bot, accessTokenPublisher) =>
-              db.run(AccessTokens.delete).futureValue
-              repository
-                .update(bot, accessTokenPublisher.publishToken)
-                .futureValue
-
-              val accessTokenColumnLen =
-                db.run(AccessTokens.length.result).futureValue
-              assert(accessTokenColumnLen === 1)
-          }
-        }
-        "value is right" in {
-          forAll(botGen, accessTokenPublisherGen) {
-            (bot, accessTokenPublisher) =>
-              db.run(AccessTokens.delete).futureValue
-              repository
-                .update(bot, accessTokenPublisher.publishToken)
-                .futureValue
-
-              val accessTokensRow = db
-                .run(AccessTokens.result.head)
-                .map(r => AccessTokensRow(r.token, r.botId))
-                .futureValue
-
-              assert(accessTokensRow.botId === bot.id.value.value)
-              assert(
-                accessTokensRow.token === accessTokenPublisher.tokens.value.value
-              )
-
-          }
-        }
       }
     }
   }
@@ -174,31 +134,31 @@ class BotRepositoryImplSuccessSpec
     }
   }
 
-  "update" when {
-    "success" should {
-      "delete target data".which {
-        "length is right" in {
-          repository.update(WorkSpaceToken("token1")).futureValue
-
-          val accessTokensColumnLen =
-            db.run(AccessTokens.length.result).futureValue
-
-          assert(accessTokensColumnLen === 2)
-        }
-
-        "value is right" in {
-          repository.update(WorkSpaceToken("token1")).futureValue
-
-          val rowWithTargetTokenLen = db
-            .run(AccessTokens.filter(_.token === "token").length.result)
-            .futureValue
-
-          assert(rowWithTargetTokenLen === 0)
-
-        }
-      }
-    }
-  }
+//  "update" when {
+//    "success" should {
+//      "delete target data".which {
+//        "length is right" in {
+//          repository.update(WorkSpaceToken("token1")).futureValue
+//
+//          val accessTokensColumnLen =
+//            db.run(AccessTokens.length.result).futureValue
+//
+//          assert(accessTokensColumnLen === 2)
+//        }
+//
+//        "value is right" in {
+//          repository.update(WorkSpaceToken("token1")).futureValue
+//
+//          val rowWithTargetTokenLen = db
+//            .run(AccessTokens.filter(_.token === "token").length.result)
+//            .futureValue
+//
+//          assert(rowWithTargetTokenLen === 0)
+//
+//        }
+//      }
+//    }
+//  }
 }
 
 class BotRepositoryImplFailSpec
