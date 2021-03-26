@@ -1,6 +1,7 @@
 package domains.workspace
 
 import domains.EmptyStringError
+import domains.bot.Bot
 import domains.bot.Bot.BotId
 import domains.workspace.WorkSpace._
 import eu.timepit.refined.api.Refined
@@ -15,6 +16,8 @@ final case class WorkSpace(
   botIds: Seq[BotId]
 ) {
   def publishToken: WorkSpaceToken = WorkSpaceToken(token.value)
+
+  def installBot(bot: Bot): WorkSpace = ???
 }
 
 object WorkSpace {

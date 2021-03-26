@@ -11,4 +11,6 @@ trait WorkSpaceRepository {
     clientId: BotClientId,
     clientSecret: BotClientSecret
   ): Future[Option[WorkSpace]]
+
+  def update(model: WorkSpace): Future[Unit]
 }
