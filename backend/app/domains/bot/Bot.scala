@@ -17,9 +17,6 @@ final case class Bot(
   clientId: Option[BotClientId],
   clientSecret: Option[BotClientSecret]
 ) {
-  def receiveToken(token: WorkSpaceToken): Bot =
-    this.copy(accessTokens = accessTokens :+ token)
-
   def updateClientInfo(
     clientId: Option[BotClientId],
     clientSecret: Option[BotClientSecret]

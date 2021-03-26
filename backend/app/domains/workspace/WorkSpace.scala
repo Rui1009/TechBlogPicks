@@ -17,7 +17,7 @@ final case class WorkSpace(
 ) {
   def publishToken: WorkSpaceToken = WorkSpaceToken(token.value)
 
-  def installBot(bot: Bot): WorkSpace = ???
+  def installBot(bot: Bot): WorkSpace = this.copy(botIds = botIds :+ bot.id)
 }
 
 object WorkSpace {
