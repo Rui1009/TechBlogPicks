@@ -1,5 +1,6 @@
 package infra.repositories
 
+import domains.bot.Bot.BotId
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import helpers.traits.RepositorySpec
@@ -13,6 +14,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
 import eu.timepit.refined.auto._
 import infra.repositoryimpl.WorkSpaceRepositoryImpl
+import infra.dto.Tables._
 
 class WorkSpaceRepositoryImplSpec
     extends RepositorySpec[WorkSpaceRepositoryImpl]
@@ -49,6 +51,35 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
               )
             )
         }
+      }
+    }
+  }
+
+  "update" when {
+    "succeed" should {
+      "delete data" in {
+        val beforeAction = DBIO.seq(
+          WorkSpaces.forceInsertAll(
+            Seq(
+              WorkSpacesRow("token1", "bot1", "team1"),
+              WorkSpacesRow("token2", "bot2", "team2"),
+              WorkSpacesRow("token3", "bot3", "team1")
+            )
+          )
+        )
+
+        val deleteAction = WorkSpaces.delete
+        db.run(beforeAction.transactionally).futureValue
+
+        val params     = WorkSpace(
+          WorkSpaceId("team1"),
+          Seq(WorkSpaceToken("token2"), WorkSpaceToken("token3")),
+          None,
+          Seq(BotId("bot2"), BotId("bot3"))
+        )
+        repository.update(params)
+        val workSpaces = db.run(WorkSpaces.result).futureValue
+
       }
     }
   }

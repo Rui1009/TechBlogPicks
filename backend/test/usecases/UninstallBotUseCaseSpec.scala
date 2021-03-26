@@ -14,14 +14,14 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
     val workSpaceRepo = mock[WorkSpaceRepository]
 
     "succeed" should {
-      "invoke botRepository.find once & workSpaceRepository.find once & workSpaceRepository.add once" in {
+      "invoke botRepository.find once & workSpaceRepository.find once & workSpaceRepository.update once" in {
         forAll(botGen, workSpaceGen) { (bot, workSpace) =>
           val params = Params(bot.id, workSpace.id)
 
           when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
-          when(workSpaceRepo.add(workSpace)).thenReturn(Future.unit)
+          when(workSpaceRepo.update(workSpace)).thenReturn(Future.unit)
 
           new UninstallBotUseCaseImpl(botRepo, workSpaceRepo)
             .exec(params)
@@ -29,7 +29,7 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
 
           verify(botRepo).find(params.botId)
           verify(workSpaceRepo).find(params.workSpaceId)
-          verify(workSpaceRepo).add(workSpace)
+          verify(workSpaceRepo).update(workSpace)
           reset(botRepo)
         }
       }
@@ -55,7 +55,7 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
               )
             )
             verify(workSpaceRepo, never).find(params.workSpaceId)
-            verify(workSpaceRepo, never).add(workSpace)
+            verify(workSpaceRepo, never).update(workSpace)
           }
         }
       }
@@ -80,7 +80,7 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
       }
     }
 
-    "failed in workSpaceRepository.add" should {
+    "failed in workSpaceRepository.update" should {
       "throw use case error" in {
         forAll(botGen, workSpaceGen) { (bot, workSpace) =>
           val params = Params(bot.id, workSpace.id)
@@ -88,7 +88,7 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
           when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
-          when(workSpaceRepo.add(workSpace))
+          when(workSpaceRepo.update(workSpace))
             .thenReturn(Future.failed(DBError("error")))
 
           val result =
@@ -96,7 +96,7 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
 
           whenReady(result.failed) { e =>
             e === SystemError(
-              "error while workSpaceRepository.add in uninstall bot use case" + "\n" + DBError(
+              "error while workSpaceRepository.update in uninstall bot use case" + "\n" + DBError(
                 "error"
               ).getMessage
             )
