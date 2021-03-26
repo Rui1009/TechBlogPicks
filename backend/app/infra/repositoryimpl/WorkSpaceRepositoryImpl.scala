@@ -55,5 +55,14 @@ class WorkSpaceRepositoryImpl @Inject() (
     )).flatMap { case Some(v) => v.map(workSpace => Some(workSpace)) }
   }
 
-  override def update(model: WorkSpace): Future[Unit] = ???
+  override def update(model: WorkSpace): Future[Unit] = {
+    val rows = for {
+      token <- model.tokens
+      botId <- model.botIds
+    } yield WorkSpacesRow(token.value.value, botId.value.value, model.id.value.value)
+
+    db.run(WorkSpaces ++= rows)
+      .map(_ => ())
+      .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
+  }
 }

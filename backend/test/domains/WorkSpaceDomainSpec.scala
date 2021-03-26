@@ -44,7 +44,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
   "AccessTokenPublisher.publishToken" should {
     "return its token" in {
       forAll(accessTokenPublisherGen) { model =>
-        assert(model.publishToken == model.token)
+        assert(model.publishToken == model.tokens)
       }
     }
   }
