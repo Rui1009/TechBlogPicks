@@ -1,8 +1,8 @@
 package usecases
 
 import com.google.inject.Inject
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode
-import domains.accesstokenpublisher.AccessTokenPublisherRepository
+import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
+import domains.workspace.WorkSpaceRepository
 import domains.bot.{Bot, BotRepository}
 import domains.bot.Bot.BotId
 import usecases.InstallBotUseCase.Params
@@ -15,13 +15,13 @@ trait InstallBotUseCase {
 
 object InstallBotUseCase {
   final case class Params(
-    temporaryOauthCode: AccessTokenPublisherTemporaryOauthCode,
+    temporaryOauthCode: WorkSpaceTemporaryOauthCode,
     botId: BotId
   )
 }
 
 final class InstallBotUseCaseImpl @Inject() (
-  accessTokenPublisherRepository: AccessTokenPublisherRepository,
+  accessTokenPublisherRepository: WorkSpaceRepository,
   botRepository: BotRepository
 )(implicit val ec: ExecutionContext)
     extends InstallBotUseCase {

@@ -1,6 +1,6 @@
 package usecases
 
-import domains.accesstokenpublisher.AccessTokenPublisherRepository
+import domains.workspace.WorkSpaceRepository
 import domains.bot.Bot.{BotClientId, BotClientSecret}
 import domains.bot.{Bot, BotRepository}
 import helpers.traits.UseCaseSpec
@@ -12,7 +12,7 @@ import scala.concurrent.Future
 
 class InstallBotUseCaseSpec extends UseCaseSpec {
   "exec" when {
-    val accessTokenRepo = mock[AccessTokenPublisherRepository]
+    val accessTokenRepo = mock[WorkSpaceRepository]
     val botRepo         = mock[BotRepository]
     "succeed" should {
       "invoke botRepository.find once & accessTokenPublisherRepository.find once & botRepository.update once" in {

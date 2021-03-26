@@ -1,7 +1,7 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
+import domains.workspace.WorkSpace.WorkSpaceToken
 import domains.bot.Bot.{BotClientId, BotClientSecret, BotName}
 import domains.bot.{Bot, BotRepository}
 import domains.post.Post.PostId
@@ -45,9 +45,7 @@ class BotRepositoryImpl @Inject() (
       } yield Bot(
         botId,
         BotName(Refined.unsafeApply(resp.name)),
-        accessToken.map(at =>
-          AccessTokenPublisherToken(Refined.unsafeApply(at))
-        ),
+        accessToken.map(at => WorkSpaceToken(Refined.unsafeApply(at))),
         postId.map(pid => PostId(Refined.unsafeApply(pid))),
         maybeClientInfo.flatMap(info =>
           info.clientId.map(id => BotClientId(Refined.unsafeApply(id)))
@@ -61,17 +59,15 @@ class BotRepositoryImpl @Inject() (
     }.ifFailedThenToInfraError("error while BotRepository.find")).flatten
   }
 
-  override def update(
-    bot: Bot,
-    accessToken: AccessTokenPublisherToken
-  ): Future[Unit] = for (
-    _ <- db.run {
-           AccessTokens += AccessTokensRow(
-             accessToken.value.value,
-             bot.id.value.value
-           )
-         }.ifFailedThenToInfraError("error while BotRepository.update")
-  ) yield ()
+  override def update(bot: Bot, accessToken: WorkSpaceToken): Future[Unit] =
+    for (
+      _ <- db.run {
+             AccessTokens += AccessTokensRow(
+               accessToken.value.value,
+               bot.id.value.value
+             )
+           }.ifFailedThenToInfraError("error while BotRepository.update")
+    ) yield ()
 
   override def update(bot: Bot): Future[Unit] = {
     val findQ   =
@@ -89,12 +85,11 @@ class BotRepositoryImpl @Inject() (
       .ifFailedThenToInfraError("error while BotRepository.update")
   }
 
-  override def update(accessToken: AccessTokenPublisherToken): Future[Unit] =
-    for {
-      _ <- db.run {
-             AccessTokens.filter(_.token === accessToken.value.value).delete
-           }.ifFailedThenToInfraError(
-             "error while BotRepository.update(accessToken)"
-           )
-    } yield ()
+  override def update(accessToken: WorkSpaceToken): Future[Unit] = for {
+    _ <- db.run {
+           AccessTokens.filter(_.token === accessToken.value.value).delete
+         }.ifFailedThenToInfraError(
+           "error while BotRepository.update(accessToken)"
+         )
+  } yield ()
 }

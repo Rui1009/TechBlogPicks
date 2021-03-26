@@ -2,7 +2,7 @@ package adapters.controllers.bot
 
 import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonRequestMapper
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
+import domains.workspace.WorkSpace.WorkSpaceToken
 import play.api.mvc.{BaseController, BodyParser}
 import io.circe.generic.auto._
 import cats.implicits._
@@ -15,10 +15,7 @@ final case class UninstallBotBody(
   `type`: String
 )
 
-final case class UninstallBotCommand(
-  token: AccessTokenPublisherToken,
-  challenge: String
-)
+final case class UninstallBotCommand(token: WorkSpaceToken, challenge: String)
 
 trait UninstallBotBodyMapper extends JsonRequestMapper {
   this: BaseController =>
@@ -26,7 +23,7 @@ trait UninstallBotBodyMapper extends JsonRequestMapper {
     ec: ExecutionContext
   ): BodyParser[Either[AdapterError, UninstallBotCommand]] =
     mapToValueObject[UninstallBotBody, UninstallBotCommand] { body =>
-      AccessTokenPublisherToken
+      WorkSpaceToken
         .create(body.token)
         .map(t => UninstallBotCommand(t, body.challenge))
         .leftMap(error => BadRequestError(error.errorMessage))

@@ -1,11 +1,8 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
-import domains.accesstokenpublisher.{
-  AccessTokenPublisher,
-  AccessTokenPublisherRepository
-}
+import domains.workspace.WorkSpace.WorkSpaceToken
+import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import domains.bot.Bot.{BotClientId, BotClientSecret}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.ws._
@@ -19,18 +16,17 @@ import io.circe.Json
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AccessTokenPublisherRepositoryImpl @Inject() (
+class WorkSpaceRepositoryImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
   protected val ws: WSClient
 )(implicit val ec: ExecutionContext)
-    extends HasDatabaseConfigProvider[PostgresProfile]
-    with AccessTokenPublisherRepository with API
-    with AccessTokenPublisherTokenDecoder {
+    extends HasDatabaseConfigProvider[PostgresProfile] with WorkSpaceRepository
+    with API with AccessTokenPublisherTokenDecoder {
   override def find(
-    code: AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode,
+    code: WorkSpace.WorkSpaceTemporaryOauthCode,
     clientId: BotClientId,
     clientSecret: BotClientSecret
-  ): Future[Option[AccessTokenPublisher]] = {
+  ): Future[Option[WorkSpace]] = {
     val oauthURL = "https://slack.com/api/oauth.v2.access"
 
     for {
@@ -43,10 +39,8 @@ class AccessTokenPublisherRepositoryImpl @Inject() (
                 .post(Json.Null.noSpaces)
                 .ifFailedThenToInfraError(s"error while posting $oauthURL")
     } yield for {
-      accessToken: AccessTokenPublisherToken <-
-        decode[AccessTokenPublisherToken](
-          resp.json.toString()
-        ).ifLeftThenReturnNone
-    } yield AccessTokenPublisher(accessToken, code)
+      accessToken: WorkSpaceToken <-
+        decode[WorkSpaceToken](resp.json.toString()).ifLeftThenReturnNone
+    } yield WorkSpace(accessToken, code)
   }
 }

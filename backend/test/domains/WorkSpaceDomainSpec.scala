@@ -1,15 +1,15 @@
 package domains
 
-import domains.accesstokenpublisher.AccessTokenPublisher._
+import domains.workspace.WorkSpace._
 import helpers.traits.ModelSpec
 import cats.syntax.either._
 
-class AccessTokenPublisherDomainSpec extends ModelSpec {
+class WorkSpaceDomainSpec extends ModelSpec {
   "AccessTokenPublisherToken.create" when {
     "given non empty string" should {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
-          val result = AccessTokenPublisherToken.create(str.value)
+          val result = WorkSpaceToken.create(str.value)
           assert(result.map(_.value) == str.asRight)
         }
       }
@@ -17,7 +17,7 @@ class AccessTokenPublisherDomainSpec extends ModelSpec {
 
     "given empty string" should {
       "return Left value which values equals DomainError" in {
-        val result = AccessTokenPublisherToken.create("")
+        val result = WorkSpaceToken.create("")
         assert(result.leftSide == EmptyStringError("Token").asLeft)
       }
     }
@@ -27,7 +27,7 @@ class AccessTokenPublisherDomainSpec extends ModelSpec {
     "given non empty string" should {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
-          val result = AccessTokenPublisherTemporaryOauthCode.create(str.value)
+          val result = WorkSpaceTemporaryOauthCode.create(str.value)
           assert(result.map(_.value) == str.asRight)
         }
       }
@@ -35,7 +35,7 @@ class AccessTokenPublisherDomainSpec extends ModelSpec {
 
     "given empty string" should {
       "return Left value which values equals DomainError" in {
-        val result = AccessTokenPublisherTemporaryOauthCode.create("")
+        val result = WorkSpaceTemporaryOauthCode.create("")
         assert(result.leftSide == EmptyStringError("temporaryOauthCode").asLeft)
       }
     }

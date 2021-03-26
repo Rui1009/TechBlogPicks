@@ -6,7 +6,7 @@ import adapters.controllers.helpers.JsonHelper.responseSuccess
 import adapters.controllers.syntax.FutureSyntax
 import cats.data.ValidatedNel
 import com.google.inject.Inject
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherTemporaryOauthCode
+import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
 import play.api.mvc.{
   Action,
   AnyContent,
@@ -41,11 +41,10 @@ class BotController @Inject() (
     with UpdateClientInfoBodyMapper with UninstallBotBodyMapper {
   def install(code: String, bot_id: String): Action[AnyContent] =
     Action.async { implicit request =>
-      val tempOauthCode: ValidatedNel[
-        EmptyStringError,
-        AccessTokenPublisherTemporaryOauthCode
-      ]                                                = AccessTokenPublisherTemporaryOauthCode.create(code).toValidatedNel
-      val botId: ValidatedNel[EmptyStringError, BotId] =
+      val tempOauthCode
+        : ValidatedNel[EmptyStringError, WorkSpaceTemporaryOauthCode] =
+        WorkSpaceTemporaryOauthCode.create(code).toValidatedNel
+      val botId: ValidatedNel[EmptyStringError, BotId]                =
         BotId.create(bot_id).toValidatedNel
       (tempOauthCode, botId)
         .mapN((_, _))

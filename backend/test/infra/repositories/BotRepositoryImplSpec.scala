@@ -1,6 +1,6 @@
 package infra.repositories
 
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
+import domains.workspace.WorkSpace.WorkSpaceToken
 import play.api.mvc.Results.Ok
 import domains.bot.{Bot, BotRepository}
 import domains.bot.Bot.{BotClientId, BotClientSecret, BotId, BotName}
@@ -84,10 +84,7 @@ class BotRepositoryImplSuccessSpec
           result === Bot(
             paramBotId,
             BotName("mock_bot_name"),
-            Seq(
-              AccessTokenPublisherToken("token1"),
-              AccessTokenPublisherToken("token2")
-            ),
+            Seq(WorkSpaceToken("token1"), WorkSpaceToken("token2")),
             Seq(PostId(1L), PostId(2L), PostId(3L)),
             BotClientId("clientId").some,
             BotClientSecret("clientSecret").some
@@ -181,7 +178,7 @@ class BotRepositoryImplSuccessSpec
     "success" should {
       "delete target data".which {
         "length is right" in {
-          repository.update(AccessTokenPublisherToken("token1")).futureValue
+          repository.update(WorkSpaceToken("token1")).futureValue
 
           val accessTokensColumnLen =
             db.run(AccessTokens.length.result).futureValue
@@ -190,7 +187,7 @@ class BotRepositoryImplSuccessSpec
         }
 
         "value is right" in {
-          repository.update(AccessTokenPublisherToken("token1")).futureValue
+          repository.update(WorkSpaceToken("token1")).futureValue
 
           val rowWithTargetTokenLen = db
             .run(AccessTokens.filter(_.token === "token").length.result)

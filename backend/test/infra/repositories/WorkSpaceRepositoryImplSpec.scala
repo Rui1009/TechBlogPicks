@@ -1,10 +1,7 @@
 package infra.repositories
 
-import domains.accesstokenpublisher.AccessTokenPublisher._
-import domains.accesstokenpublisher.{
-  AccessTokenPublisher,
-  AccessTokenPublisherRepository
-}
+import domains.workspace.WorkSpace._
+import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import helpers.traits.RepositorySpec
 import play.api.libs.json.Json
 import org.scalatest.time.{Seconds, Span}
@@ -15,13 +12,12 @@ import play.api.inject.bind
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
 import eu.timepit.refined.auto._
-import infra.repositoryimpl.AccessTokenPublisherRepositoryImpl
+import infra.repositoryimpl.WorkSpaceRepositoryImpl
 
-class AccessTokenPublisherRepositoryImplSpec
-    extends RepositorySpec[AccessTokenPublisherRepositoryImpl]
+class WorkSpaceRepositoryImplSpec
+    extends RepositorySpec[WorkSpaceRepositoryImpl]
 
-class AccessTokenPublisherRepositoryImplSuccessSpec
-    extends AccessTokenPublisherRepositoryImplSpec {
+class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
   val mockWs = MockWS {
     case ("POST", str: String)
         if str.matches("https://slack.com/api/oauth.v2.access") =>
@@ -41,10 +37,7 @@ class AccessTokenPublisherRepositoryImplSuccessSpec
 
             assert(
               result === Some(
-                AccessTokenPublisher(
-                  AccessTokenPublisherToken("mock access token"),
-                  code
-                )
+                WorkSpace(WorkSpaceToken("mock access token"), code)
               )
             )
         }
@@ -53,8 +46,8 @@ class AccessTokenPublisherRepositoryImplSuccessSpec
   }
 }
 
-class AccessTokenPublisherRepositoryImplFailSpec
-    extends RepositorySpec[AccessTokenPublisherRepository] {
+class WorkSpaceRepositoryImplFailSpec
+    extends RepositorySpec[WorkSpaceRepository] {
   "find" when {
     "failed" should {
       "None returned" in {

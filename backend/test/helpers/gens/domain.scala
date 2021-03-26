@@ -1,8 +1,8 @@
 package helpers.gens
 
-import domains.accesstokenpublisher.AccessTokenPublisher
+import domains.workspace.WorkSpace
 import domains.post.Post._
-import domains.accesstokenpublisher.AccessTokenPublisher._
+import domains.workspace.WorkSpace._
 import domains.bot.Bot
 import domains.bot.Bot._
 import domains.post.Post.PostId
@@ -18,16 +18,16 @@ object domain extends DomainGen
 trait DomainGen extends AccessTokenPublisherGen with BotGen with PostGen
 
 trait AccessTokenPublisherGen {
-  val accessTokenGen: Gen[AccessTokenPublisherToken] =
-    stringRefinedNonEmptyGen.map(AccessTokenPublisherToken(_))
+  val accessTokenGen: Gen[WorkSpaceToken] =
+    stringRefinedNonEmptyGen.map(WorkSpaceToken(_))
 
-  val temporaryOauthCodeGen: Gen[AccessTokenPublisherTemporaryOauthCode] =
-    stringRefinedNonEmptyGen.map(AccessTokenPublisherTemporaryOauthCode(_))
+  val temporaryOauthCodeGen: Gen[WorkSpaceTemporaryOauthCode] =
+    stringRefinedNonEmptyGen.map(WorkSpaceTemporaryOauthCode(_))
 
-  val accessTokenPublisherGen: Gen[AccessTokenPublisher] = for {
+  val accessTokenPublisherGen: Gen[WorkSpace] = for {
     accessToken        <- accessTokenGen
     temporaryOauthCode <- temporaryOauthCodeGen
-  } yield AccessTokenPublisher(accessToken, temporaryOauthCode)
+  } yield WorkSpace(accessToken, temporaryOauthCode)
 }
 
 trait PostGen {
@@ -58,7 +58,7 @@ trait BotGen {
 
   val botNameGen: Gen[BotName] = stringRefinedNonEmptyGen.map(BotName(_))
 
-  val accessTokensGen: Gen[Seq[AccessTokenPublisherToken]] =
+  val accessTokensGen: Gen[Seq[WorkSpaceToken]] =
     Gen.listOf(domain.accessTokenGen)
 
   val botClientIdGen: Gen[BotClientId] =

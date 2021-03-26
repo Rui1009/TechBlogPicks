@@ -1,7 +1,7 @@
 package usecases
 
 import com.google.inject.Inject
-import domains.accesstokenpublisher.AccessTokenPublisher.AccessTokenPublisherToken
+import domains.workspace.WorkSpace.WorkSpaceToken
 import domains.bot.BotRepository
 import usecases.UninstallBotUseCase.Params
 
@@ -12,7 +12,7 @@ trait UninstallBotUseCase {
 }
 
 object UninstallBotUseCase {
-  final case class Params(accessToken: AccessTokenPublisherToken)
+  final case class Params(accessToken: WorkSpaceToken)
 }
 
 final class UninstallBotUseCaseImpl @Inject() (botRepository: BotRepository)(
