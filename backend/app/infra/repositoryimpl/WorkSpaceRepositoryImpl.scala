@@ -3,7 +3,7 @@ package infra.repositoryimpl
 import com.google.inject.Inject
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
-import domains.bot.Bot.{BotClientId, BotClientSecret}
+import domains.bot.Bot._
 import eu.timepit.refined.api.Refined
 import infra.dao.slack.TeamDao
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -16,6 +16,7 @@ import infra.syntax.all._
 import infra.dto.Tables._
 import io.circe.Json
 import eu.timepit.refined.auto._
+import infra.dto.Tables
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -58,7 +59,21 @@ class WorkSpaceRepositoryImpl @Inject() (
     }
   }
 
-  override def update(model: WorkSpace): Future[Unit] = {
+  override def find(id: WorkSpaceId): Future[Option[WorkSpace]] =
+    for {
+      rows <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
+    } yield
+      if (rows.isEmpty) None
+      else Some(
+        WorkSpace(
+          id,
+          rows.map(row => WorkSpaceToken(Refined.unsafeApply(row.token))),
+          None,
+          rows.map(row => BotId(Refined.unsafeApply(row.botId)))
+        )
+      )
+
+  override def add(model: WorkSpace): Future[Unit] = {
     val rows = for {
       token <- model.tokens
       botId <- model.botIds
@@ -68,4 +83,13 @@ class WorkSpaceRepositoryImpl @Inject() (
       .map(_ => ())
       .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
   }
+
+  override def update(model: WorkSpace): Future[Unit] = db
+    .run(
+      WorkSpaces
+        .filter(_.teamId === model.id.value.value)
+        .filter(!_.botId.inSet(model.botIds.map(_.value.value)))
+        .delete
+    )
+    .map(_ => ())
 }
