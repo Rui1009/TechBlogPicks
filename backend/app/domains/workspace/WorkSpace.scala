@@ -11,7 +11,7 @@ import io.estatico.newtype.macros.newtype
 
 final case class WorkSpace(
   id: WorkSpaceId,
-  token: Seq[WorkSpaceToken],
+  tokens: Seq[WorkSpaceToken],
   temporaryOauthCode: Option[WorkSpaceTemporaryOauthCode],
   botIds: Seq[BotId]
 ) {
