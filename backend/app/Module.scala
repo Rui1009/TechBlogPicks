@@ -34,5 +34,6 @@ class Module extends AbstractModule {
     // dao
     bind(classOf[ChatDao]).to(classOf[ChatDaoImpl])
     bind(classOf[UsersDao]).to(classOf[UsersDaoImpl])
+    bind(classOf[TeamDao]).to(classOf[TeamDaoImpl])
   }
 }

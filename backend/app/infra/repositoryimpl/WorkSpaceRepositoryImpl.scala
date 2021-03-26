@@ -1,9 +1,11 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.workspace.WorkSpace.WorkSpaceToken
+import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import domains.bot.Bot.{BotClientId, BotClientSecret}
+import eu.timepit.refined.api.Refined
+import infra.dao.slack.TeamDao
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.ws._
 import slick.jdbc.PostgresProfile
@@ -13,23 +15,25 @@ import io.circe.parser._
 import infra.syntax.all._
 import infra.dto.Tables._
 import io.circe.Json
+import eu.timepit.refined.auto._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class WorkSpaceRepositoryImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
-  protected val ws: WSClient
+  protected val ws: WSClient,
+  protected val teamDao: TeamDao
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with WorkSpaceRepository
     with API with AccessTokenPublisherTokenDecoder {
   override def find(
-    code: WorkSpace.WorkSpaceTemporaryOauthCode,
+    code: WorkSpaceTemporaryOauthCode,
     clientId: BotClientId,
     clientSecret: BotClientSecret
   ): Future[Option[WorkSpace]] = {
     val oauthURL = "https://slack.com/api/oauth.v2.access"
 
-    for {
+    (for {
       resp <- ws.url(oauthURL)
                 .withQueryStringParameters(
                   "code"          -> code.value.value,
@@ -39,8 +43,17 @@ class WorkSpaceRepositoryImpl @Inject() (
                 .post(Json.Null.noSpaces)
                 .ifFailedThenToInfraError(s"error while posting $oauthURL")
     } yield for {
-      accessToken: WorkSpaceToken <-
+      accessToken <-
         decode[WorkSpaceToken](resp.json.toString()).ifLeftThenReturnNone
-    } yield WorkSpace(accessToken, code)
+    } yield for {
+      info <- teamDao.info(accessToken.value.value)
+    } yield WorkSpace(
+      WorkSpaceId(Refined.unsafeApply(info.team.id)),
+      Seq(accessToken),
+      Some(code),
+      Seq()
+    )).flatMap { case Some(v) => v.map(workSpace => Some(workSpace)) }
   }
+
+  override def update(model: WorkSpace): Future[Unit] = ???
 }

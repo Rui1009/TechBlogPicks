@@ -11,12 +11,10 @@ import io.estatico.newtype.macros.newtype
 
 final case class WorkSpace(
   id: WorkSpaceId,
-  token: WorkSpaceToken,
-  temporaryOauthCode: WorkSpaceTemporaryOauthCode,
+  token: Seq[WorkSpaceToken],
+  temporaryOauthCode: Option[WorkSpaceTemporaryOauthCode],
   botIds: Seq[BotId]
 ) {
-  def publishToken: WorkSpaceToken = WorkSpaceToken(token.value)
-
   def installBot(bot: Bot): WorkSpace = this.copy(botIds = botIds :+ bot.id)
 }
 
