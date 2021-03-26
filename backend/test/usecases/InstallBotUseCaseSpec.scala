@@ -33,7 +33,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
               bot.clientSecret.get
             )
           ).thenReturn(Future.successful(Some(workSpace)))
-          when(workSpaceRepo.update(workSpace.installBot(bot)))
+          when(workSpaceRepo.add(workSpace.installBot(bot)))
             .thenReturn(Future.unit)
 
           new InstallBotUseCaseImpl(workSpaceRepo, botRepo)
@@ -46,7 +46,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
             bot.clientId.get,
             bot.clientSecret.get
           )
-          verify(workSpaceRepo).update(workSpace.installBot(bot))
+          verify(workSpaceRepo).add(workSpace.installBot(bot))
           reset(workSpaceRepo)
           reset(botRepo)
         }
@@ -82,7 +82,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
               bot.clientId.get,
               bot.clientSecret.get
             )
-            verify(workSpaceRepo, never).update(workSpace.installBot(bot))
+            verify(workSpaceRepo, never).add(workSpace.installBot(bot))
           }
         }
       }
@@ -166,7 +166,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
                 "error while workSpaceRepository.find in install bot use case"
               )
             )
-            verify(workSpaceRepo, never).update(workSpace.installBot(bot))
+            verify(workSpaceRepo, never).add(workSpace.installBot(bot))
           }
         }
       }
@@ -191,7 +191,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
               bot.clientSecret.get
             )
           ).thenReturn(Future.successful(Some(workSpace)))
-          when(workSpaceRepo.update(workSpace.installBot(bot)))
+          when(workSpaceRepo.add(workSpace.installBot(bot)))
             .thenReturn(Future.failed(DBError("error")))
 
           val result =
