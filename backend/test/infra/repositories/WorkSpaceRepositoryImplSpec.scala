@@ -69,6 +69,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
         )
 
         val deleteAction = WorkSpaces.delete
+
         db.run(beforeAction.transactionally).futureValue
 
         val params     = WorkSpace(
@@ -79,6 +80,11 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
         )
         repository.update(params)
         val workSpaces = db.run(WorkSpaces.result).futureValue
+
+        assert(workSpaces.length === 2)
+        assert(workSpaces.head.token === "token2")
+
+        db.run(deleteAction).futureValue
 
       }
     }
