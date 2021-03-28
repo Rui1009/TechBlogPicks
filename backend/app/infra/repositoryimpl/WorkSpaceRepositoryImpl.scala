@@ -92,4 +92,5 @@ class WorkSpaceRepositoryImpl @Inject() (
         .delete
     )
     .map(_ => ())
+    .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
 }
