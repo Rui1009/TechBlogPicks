@@ -73,11 +73,23 @@ object UsersDaoImpl {
 
   case class ListResponse(members: Seq[Member])
 
-  case class Member(id: String, name: String, isBot: Boolean, deleted: Boolean)
-  implicit val membersEncoder: Decoder[Member] =
-    Decoder.forProduct4("id", "name", "is_bot", "deleted")(
-      (id, realName, isBot, deleted) => Member(id, realName, isBot, deleted)
-    )
+  case class Member(
+    id: String,
+    name: String,
+    isBot: Boolean,
+    deleted: Boolean,
+    botId: Option[String]
+  )
+  implicit val membersEncoder: Decoder[Member] = Decoder.instance { cursor =>
+    for {
+      id      <- cursor.downField("id").as[String]
+      name    <- cursor.downField("name").as[String]
+      isBot   <- cursor.downField("is_bot").as[Boolean]
+      deleted <- cursor.downField("deleted").as[Boolean]
+      botId   <-
+        cursor.downField("profile").downField("api_app_id").as[Option[String]]
+    } yield Member(id, name, isBot, deleted, botId)
+  }
 
   case class InfoResponse(name: String)
   implicit
