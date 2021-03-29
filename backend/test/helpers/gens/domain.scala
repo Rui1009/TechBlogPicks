@@ -33,6 +33,12 @@ trait WorkSpaceGen {
     temporaryOauthCode <- Gen.option(temporaryOauthCodeGen)
     botIds             <- Gen.listOf(botIdGen)
   } yield WorkSpace(id, accessTokens, temporaryOauthCode, botIds)
+
+  val newWorkSpaceGen: Gen[WorkSpace] = for {
+    workSpace   <- workSpaceGen
+    accessToken <- accessTokenGen
+    botId       <- botIdGen
+  } yield workSpace.copy(tokens = Seq(accessToken), botIds = Seq(botId))
 }
 
 trait PostGen {
