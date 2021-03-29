@@ -11,7 +11,7 @@ import infra.dto.Tables._
 import play.api.libs.ws.WSClient
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
-import infra.dao.slack.UsersDao
+import infra.dao.slack.{UsersDao, UsersDaoImpl}
 import infra.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future, blocking}
@@ -23,7 +23,7 @@ class BotRepositoryImpl @Inject() (
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with BotRepository
     with API {
-  override def find(botId: Bot.BotId): Future[Bot] = {
+  override def find(botId: Bot.BotId): Future[Option[Bot]] = {
 
     val workSpaceQ =
       WorkSpaces.filter(_.botId === botId.value.value).map(_.token).result
@@ -35,24 +35,31 @@ class BotRepositoryImpl @Inject() (
       BotClientInfo.findBy(_.botId).apply(botId.value.value).result.headOption
 
     (for {
-      resp <-
-        usersDao.info(sys.env.getOrElse("ACCESS_TOKEN", ""), botId.value.value)
+      members      <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+      targetMember <- members.members.find(member =>
+                        member.botId == Some(botId.value.value)
+                      ) match {
+                        case Some(v) => Future.successful(Some(v))
+                        case None    => Future.successful(None)
+                      }
     } yield db.run {
       for {
         workSpaces      <- workSpaceQ
         postId          <- postQ
         maybeClientInfo <- clientInfoQ
-      } yield Bot(
-        botId,
-        BotName(Refined.unsafeApply(resp.name)),
-        workSpaces.map(at => WorkSpaceToken(Refined.unsafeApply(at))),
-        postId.map(pid => PostId(Refined.unsafeApply(pid))),
-        maybeClientInfo.flatMap(info =>
-          info.clientId.map(id => BotClientId(Refined.unsafeApply(id)))
-        ),
-        maybeClientInfo.flatMap(info =>
-          info.clientSecret.map(secret =>
-            BotClientSecret(Refined.unsafeApply(secret))
+      } yield targetMember.map(bot =>
+        Bot(
+          botId,
+          BotName(Refined.unsafeApply(bot.name)),
+          workSpaces.map(at => WorkSpaceToken(Refined.unsafeApply(at))),
+          postId.map(pid => PostId(Refined.unsafeApply(pid))),
+          maybeClientInfo.flatMap(info =>
+            info.clientId.map(id => BotClientId(Refined.unsafeApply(id)))
+          ),
+          maybeClientInfo.flatMap(info =>
+            info.clientSecret.map(secret =>
+              BotClientSecret(Refined.unsafeApply(secret))
+            )
           )
         )
       )
