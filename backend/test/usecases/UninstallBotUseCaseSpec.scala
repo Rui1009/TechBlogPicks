@@ -48,10 +48,8 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
 
           whenReady(result.failed) { e =>
             assert(
-              e === SystemError(
-                "error while botRepository.find in uninstall bot use case" + "\n" + DBError(
-                  "error"
-                ).getMessage
+              e === NotFoundError(
+                "error while botRepository.find in uninstall bot use case"
               )
             )
             verify(workSpaceRepo, never).find(params.workSpaceId)

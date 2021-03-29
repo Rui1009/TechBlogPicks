@@ -56,7 +56,13 @@ class UpdateBotClientInfoUseCaseSpec extends UseCaseSpec {
               |error
               |""".stripMargin.trim
 
-          whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+          whenReady(result.failed)(e =>
+            assert(
+              e === NotFoundError(
+                "error while botRepository.find in update bot client info use case"
+              )
+            )
+          )
 
           verify(repo, never).update(updated)
 
