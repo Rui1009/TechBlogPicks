@@ -15,16 +15,21 @@ class EventController @Inject() (
   uninstallBotUseCase: UninstallBotUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
+  object EventType {
+    val UrlVerification = "url_verification"
+    val AppUninstalled  = "app_uninstalled"
+  }
+
   def handleEvent: Action[Either[AdapterError, EventRootCommand]] =
     Action.async(mapToEventCommand) { implicit request =>
       request.body.fold(
         e => Future.successful(responseError(e)),
         body =>
           (body.eventType match {
-            case "url_verification" => urlVerification(body)
-            case _                  => body.event.flatMap { e =>
+            case EventType.UrlVerification => urlVerification(body)
+            case _                         => body.event.flatMap { e =>
                 e.eventType match {
-                  case "app_uninstalled" => appUninstalled(body)
+                  case EventType.AppUninstalled => appUninstalled(body)
                 }
               }
           }).toSuccessResponseForEvent.recoverError
@@ -34,7 +39,9 @@ class EventController @Inject() (
   private def urlVerification(body: EventRootCommand) =
     body.challenge.map { c =>
       Future.successful(
-        Ok(Json.obj("challenge" -> Json.fromString(c)).noSpaces).as(JSON)
+        Ok(Json.obj("challenge" -> Json.fromString(c)).noSpaces)
+          .as(JSON)
+          .withHeaders("Access-Control-Allow-Origin" -> "*")
       )
     }
 
