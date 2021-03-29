@@ -3,6 +3,7 @@ package infra.queryprocessor
 import helpers.traits.QueryProcessorSpec
 import infra.dao.slack.UsersDaoImpl._
 import io.circe.{Json, JsonObject}
+import io.circe.syntax._
 import mockws.MockWS
 import mockws.MockWSHelpers.Action
 import org.scalatest.time.{Millis, Span}
@@ -16,9 +17,9 @@ import infra.dto.Tables._
 trait BotsQueryProcessorSuccessSpecContext {
   val members = Seq(
     Member("1", "SlackBot", false, true, None),
-    Member("2", "front_end", true, false, None),
-    Member("3", "deleted", true, true, None),
-    Member("4", "back_end", true, false, None)
+    Member("2", "front_end", true, false, Some("2")),
+    Member("3", "deleted", true, true, Some("3")),
+    Member("4", "back_end", true, false, Some("4"))
   )
 
   val seed = Seq(BotClientInfoRow("2", Some("clientId"), Some("clientSecret")))
@@ -36,7 +37,9 @@ trait BotsQueryProcessorSuccessSpecContext {
                   "id"      -> Json.fromString(m.id),
                   "name"    -> Json.fromString(m.name),
                   "deleted" -> Json.fromBoolean(m.deleted),
-                  "is_bot"  -> Json.fromBoolean(m.isBot)
+                  "is_bot"  -> Json.fromBoolean(m.isBot),
+                  "profile" -> Json
+                    .fromJsonObject(JsonObject("api_app_id" -> m.botId.asJson))
                 )
               )
             )

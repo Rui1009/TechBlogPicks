@@ -21,9 +21,10 @@ class BotsQueryProcessorImpl @Inject() (
     res <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
   } yield for {
     member <- res.members.filter(m => m.isBot && !m.deleted)
+    botId  <- member.botId.toList
   } yield for {
     clientInfo <-
-      db.run(BotClientInfo.findBy(_.botId).apply(member.id).result.headOption)
+      db.run(BotClientInfo.findBy(_.botId).apply(botId).result.headOption)
   } yield BotsView(
     member.id,
     member.name,
