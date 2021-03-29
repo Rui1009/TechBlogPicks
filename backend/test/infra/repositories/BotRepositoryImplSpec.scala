@@ -12,7 +12,6 @@ import play.api.inject.bind
 import mockws.MockWS
 import mockws.MockWSHelpers.Action
 import play.api.Application
-import play.api.libs.json.{Json => PlayJson}
 import play.api.libs.ws.WSClient
 import eu.timepit.refined.auto._
 import cats.syntax.option._
@@ -76,7 +75,15 @@ class BotRepositoryImplSuccessSpec
     case ("POST", str: String)
         if str.matches("https://slack.com/api/users.info") =>
       Action(
-        Ok(PlayJson.obj("user" -> PlayJson.obj("name" -> "mock_bot_name")))
+        Ok(
+          Json
+            .fromJsonObject(
+              JsonObject(
+                "user" -> Json.obj("name" -> Json.fromString("mock_bot_name"))
+              )
+            )
+            .noSpaces
+        )
       )
     case ("GET", str: String)
         if str.matches("https://slack.com/api.users.list") =>
@@ -215,7 +222,9 @@ class BotRepositoryImplFailSpec
   val mockWs = MockWS {
     case ("POST", str: String)
         if str.matches("https://slack.com/api/users.info") =>
-      Action(Ok(PlayJson.obj("error" -> "user_not_found")))
+      Action(
+        Ok(Json.obj("error" -> Json.fromString("user_not_found")).noSpaces)
+      )
   }
 
   override val app: Application =
