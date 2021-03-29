@@ -15,7 +15,6 @@ import scala.concurrent.{ExecutionContext, Future}
 trait UsersDao {
   def conversations(token: String): Future[ConversationResponse]
   def list(accessToken: String): Future[ListResponse]
-  def info(token: String, id: String): Future[InfoResponse]
 }
 
 class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
@@ -48,20 +47,6 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     } yield decode[ListResponse](res))
       .ifLeftThenToInfraError("error while converting list api response")
   }
-
-  def info(token: String, id: String): Future[InfoResponse] = {
-    val url = "https://slack.com/api/users.info"
-
-    (for {
-      resp <- ws.url(url)
-                .withHttpHeaders("Authorization" -> s"Bearer $token")
-                .withQueryStringParameters("user" -> id)
-                .post(Json.Null.noSpaces)
-                .ifFailedThenToInfraError(s"error while getting $url")
-                .map(res => res.json.toString)
-    } yield decode[InfoResponse](resp))
-      .ifLeftThenToInfraError("error while converting info api response")
-  }
 }
 
 object UsersDaoImpl {
@@ -73,17 +58,21 @@ object UsersDaoImpl {
 
   case class ListResponse(members: Seq[Member])
 
-  case class Member(id: String, name: String, isBot: Boolean, deleted: Boolean)
-  implicit val membersEncoder: Decoder[Member] =
-    Decoder.forProduct4("id", "name", "is_bot", "deleted")(
-      (id, realName, isBot, deleted) => Member(id, realName, isBot, deleted)
-    )
-
-  case class InfoResponse(name: String)
-  implicit
-  val decodeBotName: Decoder[InfoResponse] = Decoder.instance { cursor =>
+  case class Member(
+    id: String,
+    name: String,
+    isBot: Boolean,
+    deleted: Boolean,
+    botId: Option[String]
+  )
+  implicit val membersEncoder: Decoder[Member] = Decoder.instance { cursor =>
     for {
-      botName <- cursor.downField("user").downField("name").as[String]
-    } yield InfoResponse(botName)
+      id      <- cursor.downField("id").as[String]
+      name    <- cursor.downField("name").as[String]
+      isBot   <- cursor.downField("is_bot").as[Boolean]
+      deleted <- cursor.downField("deleted").as[Boolean]
+      botId   <-
+        cursor.downField("profile").downField("api_app_id").as[Option[String]]
+    } yield Member(id, name, isBot, deleted, botId)
   }
 }

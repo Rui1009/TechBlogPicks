@@ -27,7 +27,7 @@ final class UninstallBotUseCaseImpl @Inject() (
   override def exec(params: Params): Future[Unit] = (for {
     targetBot       <- botRepository
                          .find(params.botId)
-                         .ifFailThenToUseCaseError(
+                         .ifNotExistsToUseCaseError(
                            "error while botRepository.find in uninstall bot use case"
                          )
     targetWorkSpace <- workSpaceRepository.find(params.workSpaceId).map {

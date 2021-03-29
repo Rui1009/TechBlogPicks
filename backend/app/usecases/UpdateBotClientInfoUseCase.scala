@@ -27,7 +27,7 @@ final class UpdateBotClientInfoUseCaseImpl @Inject() (
     bot <-
       botRepository
         .find(params.botId)
-        .ifFailThenToUseCaseError(
+        .ifNotExistsToUseCaseError(
           "error while botRepository.find in update bot client info use case"
         )
 
