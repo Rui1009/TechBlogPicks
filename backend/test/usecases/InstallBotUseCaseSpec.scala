@@ -25,7 +25,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           val params    = Params(tempOauthCode, bot.id)
           val workSpace = _workSpace.copy(tokens = Seq(token), botIds = Seq())
 
-          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(botRepo.find(params.botId))
+            .thenReturn(Future.successful(Some(bot)))
           when(
             workSpaceRepo.find(
               params.temporaryOauthCode,
@@ -53,7 +54,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
       }
     }
 
-    "failed in botRepository.find" should {
+    "return None in botRepository.find" should {
       "throw use case error and not invoked workSpaceRepository.find & workSpaceRepository.update" in {
         forAll(
           temporaryOauthCodeGen,
@@ -64,17 +65,15 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           val params    = Params(tempOauthCode, bot.id)
           val workSpace = _workSpace.copy(tokens = Seq(token), botIds = Seq())
 
-          when(botRepo.find(params.botId))
-            .thenReturn(Future.failed(DBError("error")))
+          when(botRepo.find(params.botId)).thenReturn(Future.successful(None))
 
           val result =
             new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
 
           whenReady(result.failed) { e =>
             assert(
-              e === SystemError(
-                "error while botRepository.find in install bot use case" + "\n"
-                  + DBError("error").getMessage
+              e === NotFoundError(
+                "error while botRepository.find in install bot use case"
               )
             )
             verify(workSpaceRepo, never).find(
@@ -95,7 +94,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
 
           when(botRepo.find(params.botId)).thenReturn(
             Future.successful(
-              bot.updateClientInfo(None, Some(BotClientSecret("test")))
+              Some(bot.updateClientInfo(None, Some(BotClientSecret("test"))))
             )
           )
 
@@ -119,8 +118,9 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           val params = Params(tempOauthCode, bot.id)
 
           when(botRepo.find(params.botId)).thenReturn(
-            Future
-              .successful(bot.updateClientInfo(Some(BotClientId("test")), None))
+            Future.successful(
+              Some(bot.updateClientInfo(Some(BotClientId("test")), None))
+            )
           )
 
           val result =
@@ -148,7 +148,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           val params    = Params(tempOauthCode, bot.id)
           val workSpace = _workSpace.copy(tokens = Seq(token), botIds = Seq())
 
-          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(botRepo.find(params.botId))
+            .thenReturn(Future.successful(Some(bot)))
           when(
             workSpaceRepo.find(
               params.temporaryOauthCode,
@@ -183,7 +184,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           val params    = Params(tempOauthCode, bot.id)
           val workSpace = _workSpace.copy(tokens = Seq(token), botIds = Seq())
 
-          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(botRepo.find(params.botId))
+            .thenReturn(Future.successful(Some(bot)))
           when(
             workSpaceRepo.find(
               params.temporaryOauthCode,

@@ -18,7 +18,8 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
         forAll(botGen, workSpaceGen) { (bot, workSpace) =>
           val params = Params(bot.id, workSpace.id)
 
-          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(botRepo.find(params.botId))
+            .thenReturn(Future.successful(Some(bot)))
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
           when(workSpaceRepo.update(workSpace)).thenReturn(Future.unit)
@@ -35,13 +36,12 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
       }
     }
 
-    "failed in botRepository.find" should {
+    "return None in botRepository.find" should {
       "throw use case error" in {
         forAll(botGen, workSpaceGen) { (bot, workSpace) =>
           val params = Params(bot.id, workSpace.id)
 
-          when(botRepo.find(params.botId))
-            .thenReturn(Future.failed(DBError("error")))
+          when(botRepo.find(params.botId)).thenReturn(Future.successful(None))
 
           val result =
             new UninstallBotUseCaseImpl(botRepo, workSpaceRepo).exec(params)
@@ -66,7 +66,8 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
         forAll(botGen, workSpaceGen) { (bot, workSpace) =>
           val params = Params(bot.id, workSpace.id)
 
-          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(botRepo.find(params.botId))
+            .thenReturn(Future.successful(Some(bot)))
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(None))
 
@@ -85,7 +86,8 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
         forAll(botGen, workSpaceGen) { (bot, workSpace) =>
           val params = Params(bot.id, workSpace.id)
 
-          when(botRepo.find(params.botId)).thenReturn(Future.successful(bot))
+          when(botRepo.find(params.botId))
+            .thenReturn(Future.successful(Some(bot)))
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
           when(workSpaceRepo.update(workSpace))
