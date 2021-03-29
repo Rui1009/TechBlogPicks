@@ -15,10 +15,10 @@ import infra.dto.Tables._
 
 trait BotsQueryProcessorSuccessSpecContext {
   val members = Seq(
-    Member("1", "SlackBot", false, true),
-    Member("2", "front_end", true, false),
-    Member("3", "deleted", true, true),
-    Member("4", "back_end", true, false)
+    Member("1", "SlackBot", false, true, None),
+    Member("2", "front_end", true, false, None),
+    Member("3", "deleted", true, true, None),
+    Member("4", "back_end", true, false, None)
   )
 
   val seed = Seq(BotClientInfoRow("2", Some("clientId"), Some("clientSecret")))

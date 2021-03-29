@@ -6,17 +6,19 @@ import domains.bot.{Bot, BotRepository}
 import domains.bot.Bot.{BotClientId, BotClientSecret, BotId, BotName}
 import domains.post.Post.PostId
 import helpers.traits.{HasDB, RepositorySpec}
+import infra.dao.slack.UsersDaoImpl.Member
 import infra.dto.Tables._
 import play.api.inject.bind
 import mockws.MockWS
 import mockws.MockWSHelpers.Action
 import play.api.Application
-import play.api.libs.json.Json
+import play.api.libs.json.{Json => PlayJson}
 import play.api.libs.ws.WSClient
 import eu.timepit.refined.auto._
 import cats.syntax.option._
 import infra.dto
 import infra.dto.Tables
+import io.circe.{Json, JsonObject}
 import org.scalatest.time.{Millis, Span}
 
 import scala.concurrent.Future
@@ -63,35 +65,82 @@ trait BotRepositoryImplSpecContext { this: HasDB =>
 class BotRepositoryImplSuccessSpec
     extends RepositorySpec[BotRepository] with BotRepositoryImplSpecContext {
 
+  val members = Seq(
+    Member("1", "SlackBot", false, true, None),
+    Member("2", "front_end", true, false, Some("frontId")),
+    Member("3", "deleted", true, true, Some("deletedId")),
+    Member("4", "back_end", true, false, Some("bot1"))
+  )
+
   val mockWs = MockWS {
     case ("POST", str: String)
         if str.matches("https://slack.com/api/users.info") =>
-      Action(Ok(Json.obj("user" -> Json.obj("name" -> "mock_bot_name"))))
+      Action(
+        Ok(PlayJson.obj("user" -> PlayJson.obj("name" -> "mock_bot_name")))
+      )
+    case ("GET", str: String)
+        if str.matches("https://slack.com/api.users.list") =>
+      val res = Json.fromJsonObject(
+        JsonObject(
+          "ok"      -> Json.fromBoolean(true),
+          "members" ->
+            Json.fromValues(
+              members.map(m =>
+                Json.obj(
+                  "id"      -> Json.fromString(m.id),
+                  "name"    -> Json.fromString(m.name),
+                  "deleted" -> Json.fromBoolean(m.deleted),
+                  "is_bot"  -> Json.fromBoolean(m.isBot),
+                  m.botId match {
+                    case Some(v) =>
+                      "profile" -> Json.obj("api_app_id" -> Json.fromString(v))
+                    case None    => "profile" -> Json.obj()
+                  }
+                )
+              )
+            )
+        )
+      )
+      Action(Ok(res.noSpaces))
   }
 
   override val app: Application =
     builder.overrides(bind[WSClient].toInstance(mockWs)).build()
+
+  implicit val conf: PatienceConfig =
+    PatienceConfig(scaled(Span(500, Millis)), scaled(Span(15, Millis)))
 
   before(db.run(beforeAction).futureValue)
   after(db.run(deleteAction).ready())
 
   "find" when {
     "success" should {
-      "return Future[Bot]" in {
+      "return Future[Some[Bot]]" in {
         val result = repository.find(paramBotId).futureValue
 
         assert(
-          result === Bot(
-            paramBotId,
-            BotName("mock_bot_name"),
-            Seq(WorkSpaceToken("token1"), WorkSpaceToken("token2")),
-            Seq(PostId(1L), PostId(2L), PostId(3L)),
-            BotClientId("clientId").some,
-            BotClientSecret("clientSecret").some
+          result === Some(
+            Bot(
+              paramBotId,
+              BotName("back_end"),
+              Seq(WorkSpaceToken("token1"), WorkSpaceToken("token2")),
+              Seq(PostId(1L), PostId(2L), PostId(3L)),
+              BotClientId("clientId").some,
+              BotClientSecret("clientSecret").some
+            )
           )
         )
       }
     }
+
+    "target bot does not exist in returned value" should {
+      "return future successful none" in {
+        val result = repository.find(BotId("non exists bot id")).futureValue
+
+        assert(result === None)
+      }
+    }
+
   }
 
   "update" when {
@@ -166,7 +215,7 @@ class BotRepositoryImplFailSpec
   val mockWs = MockWS {
     case ("POST", str: String)
         if str.matches("https://slack.com/api/users.info") =>
-      Action(Ok(Json.obj("error" -> "user_not_found")))
+      Action(Ok(PlayJson.obj("error" -> "user_not_found")))
   }
 
   override val app: Application =
@@ -179,14 +228,16 @@ class BotRepositoryImplFailSpec
   after(db.run(deleteAction).ready())
 
   "find" when {
-    "user not exists fail" should {
+    // slackのapiを叩いた際にエラーが返ってきた場合: {ok: false, error: invalid_cursor}
+    "user not exists fail in user dao" should {
       "return fail & error message" in {
         val result = repository.find(paramBotId)
 
         val msg = """
                     |APIError
-                    |error while converting info api response
-                    |Attempt to decode value on failed cursor: DownField(user)
+                    |error while converting list api response
+                    |No content to map due to end-of-input
+                    | at [Source: (String)""; line: 1, column: 0]
                     |""".stripMargin.trim
 
         whenReady(result.failed)(e => assert(e.getMessage.trim == msg))
