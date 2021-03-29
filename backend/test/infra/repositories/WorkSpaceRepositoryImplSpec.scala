@@ -55,6 +55,27 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
     }
   }
 
+  "add" when {
+    "succeed" should {
+      "add new data" in {
+        forAll(newWorkSpaceGen) { newModel =>
+          repository.add(newModel).futureValue
+
+          val result = db.run(WorkSpaces.result).futureValue
+
+          val expected = for {
+            token <- newModel.tokens
+            botId <- newModel.botIds
+          } yield WorkSpacesRow(token.value.value, botId.value.value, newModel.id.value.value)
+
+          assert(result === expected)
+
+          db.run(WorkSpaces.delete).futureValue
+        }
+      }
+    }
+  }
+
   "update" when {
     "succeed" should {
       "delete data" in {

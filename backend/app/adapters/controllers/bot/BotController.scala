@@ -1,32 +1,20 @@
 package adapters.controllers.bot
 
-import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonHelper
-import adapters.controllers.helpers.JsonHelper.responseSuccess
 import adapters.controllers.syntax.FutureSyntax
+import adapters.{AdapterError, BadRequestError}
 import cats.data.ValidatedNel
-import com.google.inject.Inject
-import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
-import play.api.mvc.{
-  Action,
-  AnyContent,
-  BaseController,
-  ControllerComponents,
-  Results
-}
-import usecases.{
-  InstallBotUseCase,
-  UninstallBotUseCase,
-  UpdateBotClientInfoUseCase
-}
-import usecases.InstallBotUseCase.Params
-import cats.syntax.apply._
 import cats.implicits.catsSyntaxEither
-import domains.{DomainError, EmptyStringError}
+import cats.syntax.apply._
+import com.google.inject.Inject
 import domains.bot.Bot.BotId
-import query.bots.BotsQueryProcessor
+import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
+import domains.{DomainError, EmptyStringError}
 import io.circe.generic.auto._
-import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import query.bots.BotsQueryProcessor
+import usecases.InstallBotUseCase.Params
+import usecases.{InstallBotUseCase, UpdateBotClientInfoUseCase}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,8 +22,7 @@ class BotController @Inject() (
   val controllerComponents: ControllerComponents,
   installBotUseCase: InstallBotUseCase,
   botsQueryProcessor: BotsQueryProcessor,
-  updateBotClientInfoUseCase: UpdateBotClientInfoUseCase,
-  uninstallBotUseCase: UninstallBotUseCase
+  updateBotClientInfoUseCase: UpdateBotClientInfoUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with FutureSyntax
     with UpdateClientInfoBodyMapper with UninstallBotBodyMapper {
@@ -64,19 +51,6 @@ class BotController @Inject() (
               .toSuccessGetResponse
               .recoverError
         )
-    }
-
-  def uninstall: Action[Either[AdapterError, UninstallBotCommand]] =
-    Action.async(mapToUninstallBotCommand) { implicit request =>
-      request.body.fold(
-        e => Future.successful(responseError(e)),
-        body =>
-          uninstallBotUseCase
-            .exec(UninstallBotUseCase.Params(body.botId, body.workSpaceId))
-            .ifFailedThenToAdapterError("error in BotController.uninstall")
-            .toSuccessPostResponse
-            .recoverError
-      )
     }
 
   def index: Action[AnyContent] = Action.async {
