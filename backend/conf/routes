@@ -14,7 +14,6 @@ DELETE  /posts                  	adapters.controllers.post.PostController.delete
 GET     /bot                  		adapters.controllers.bot.BotController.install(code: String, bot_id: String)
 GET     /bots                  		adapters.controllers.bot.BotController.index()
 POST    /bots/:id                  	adapters.controllers.bot.BotController.update(id: String)
-POST    /bot/uninstall              adapters.controllers.bot.BotController.uninstall()
 
 POST	/events						adapters.controllers.event.EventController.handleEvent()
 
