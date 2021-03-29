@@ -26,7 +26,7 @@ class BotsQueryProcessorImpl @Inject() (
     clientInfo <-
       db.run(BotClientInfo.findBy(_.botId).apply(botId).result.headOption)
   } yield BotsView(
-    member.id,
+    botId,
     member.name,
     clientInfo.flatMap(_.clientId),
     clientInfo.flatMap(_.clientSecret)
