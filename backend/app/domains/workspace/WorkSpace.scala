@@ -16,6 +16,12 @@ final case class WorkSpace(
   botIds: Seq[BotId]
 ) {
   def installBot(bot: Bot): WorkSpace = this.copy(botIds = botIds :+ bot.id)
+
+  def uninstallBot(bot: Bot): WorkSpace = {
+    val nonTargetIds             = botIds.filter(id => id != bot.id)
+    val nonTargetWorkSpaceTokens = tokens.diff(bot.accessTokens)
+    this.copy(tokens = nonTargetWorkSpaceTokens, botIds = nonTargetIds)
+  }
 }
 
 object WorkSpace {

@@ -2,20 +2,17 @@ package adapters.controllers.bot
 
 import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonRequestMapper
-import domains.workspace.WorkSpace.WorkSpaceToken
+import domains.workspace.WorkSpace.{WorkSpaceId, WorkSpaceToken}
 import play.api.mvc.{BaseController, BodyParser}
 import io.circe.generic.auto._
 import cats.implicits._
+import domains.bot.Bot.BotId
 
 import scala.concurrent.ExecutionContext
 
-final case class UninstallBotBody(
-  token: String,
-  challenge: String,
-  `type`: String
-)
+final case class UninstallBotBody(team_id: String, api_app_id: String)
 
-final case class UninstallBotCommand(token: WorkSpaceToken, challenge: String)
+final case class UninstallBotCommand(workSpaceId: WorkSpaceId, botId: BotId)
 
 trait UninstallBotBodyMapper extends JsonRequestMapper {
   this: BaseController =>
@@ -23,9 +20,16 @@ trait UninstallBotBodyMapper extends JsonRequestMapper {
     ec: ExecutionContext
   ): BodyParser[Either[AdapterError, UninstallBotCommand]] =
     mapToValueObject[UninstallBotBody, UninstallBotCommand] { body =>
-      WorkSpaceToken
-        .create(body.token)
-        .map(t => UninstallBotCommand(t, body.challenge))
-        .leftMap(error => BadRequestError(error.errorMessage))
+      (
+        WorkSpaceId.create(body.team_id).toValidatedNec,
+        BotId.create(body.api_app_id).toValidatedNec
+      ).mapN(UninstallBotCommand.apply)
+        .toEither
+        .leftMap(errors =>
+          BadRequestError(
+            errors.foldLeft("")((acc, cur) => acc + cur.errorMessage)
+          )
+        )
+
     }
 }

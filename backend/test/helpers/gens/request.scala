@@ -27,8 +27,7 @@ trait RequestGen {
   } yield UpdateClientInfoBody(clientId, clientSecret)
 
   val uninstallBotBodyGen: Gen[UninstallBotBody] = for {
-    token     <- nonEmptyStringGen
-    challenge <- Gen.alphaStr
-    typeParam <- Gen.alphaStr
-  } yield UninstallBotBody(token, challenge, typeParam)
+    teamId <- nonEmptyStringGen
+    appId  <- nonEmptyStringGen
+  } yield UninstallBotBody(teamId, appId)
 }
