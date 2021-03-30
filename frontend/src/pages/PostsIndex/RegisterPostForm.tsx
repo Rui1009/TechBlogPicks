@@ -124,9 +124,13 @@ const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
                 name={"botIds"}
                 renderValue={selected => (
                   <Grid container direction={"row"}>
-                    {(selected as string[]).map((value, index) => (
+                    {(selected as string[]).map(value => (
                       <Grid item key={value}>
-                        <Chip label={botList[index].name} />
+                        <Chip
+                          label={
+                            botList.find(bot => bot.id === value)?.name || ""
+                          }
+                        />
                       </Grid>
                     ))}
                   </Grid>
