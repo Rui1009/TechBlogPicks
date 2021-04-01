@@ -15,38 +15,29 @@ class EventController @Inject() (
   uninstallBotUseCase: UninstallBotUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
-  object EventType {
-    val UrlVerification = "url_verification"
-    val AppUninstalled  = "app_uninstalled"
-  }
-
-  def handleEvent: Action[Either[AdapterError, EventRootCommand]] =
+  def handleEvent: Action[Either[AdapterError, EventCommand]] =
     Action.async(mapToEventCommand) { implicit request =>
       request.body.fold(
         e => Future.successful(responseError(e)),
-        body =>
-          (body.eventType match {
-            case EventType.UrlVerification => urlVerification(body)
-            case _                         => body.event.flatMap { e =>
-                e.eventType match {
-                  case EventType.AppUninstalled => appUninstalled(body)
-                }
-              }
-          }).toSuccessResponseForEvent.recoverError
+        {
+          case command: AppUninstalledEventCommand  => appUninstalled(command)
+          case command: UrlVerificationEventCommand => urlVerification(command)
+        }
       )
     }
 
-  private def urlVerification(body: EventRootCommand) =
-    body.challenge.map { c =>
-      Future.successful(
-        Ok(Json.obj("challenge" -> Json.fromString(c)).noSpaces)
-          .as(JSON)
-          .withHeaders("Access-Control-Allow-Origin" -> "*")
-      )
-    }
+  private def urlVerification(command: UrlVerificationEventCommand) = Future
+    .successful(
+      Ok(Json.obj("challenge" -> Json.fromString(command.challenge)).noSpaces)
+        .as(JSON)
+        .withHeaders("Access-Control-Allow-Origin" -> "*")
+    )
+    .recoverError
 
-  private def appUninstalled(body: EventRootCommand) = for {
-    botId       <- body.apiAppId
-    workSpaceId <- body.teamId
-  } yield uninstallBotUseCase.exec(UninstallBotUseCase.Params(botId, workSpaceId)).ifFailedThenToAdapterError("error in EventController.appUninstalled").toSuccessPostResponse
+  private def appUninstalled(command: AppUninstalledEventCommand) =
+    uninstallBotUseCase
+      .exec(UninstallBotUseCase.Params(command.botId, command.workSpaceId))
+      .ifFailedThenToAdapterError("error in EventController.appUninstalled")
+      .toSuccessPostResponse
+      .recoverError
 }
