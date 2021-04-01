@@ -58,12 +58,10 @@ class BotController @Inject() (
           tuple =>
             installBotUseCase
               .exec(Params(tuple._1, tuple._2))
-              .ifFailedThenToAdapterError("error in BotController.install")
               .transformWith[Result]({
                 case Success(_) =>
                   Future.successful(Redirect("https://google.com"))
                 case Failure(e) =>
-                  println(e)
                   logger.error(e.toString)
                   Future.successful(Redirect("https://yahoo.com"))
               })
