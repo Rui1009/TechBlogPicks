@@ -29,12 +29,9 @@ final case class AppUninstalledEventBody(teamId: String, apiAppId: String)
 
 object AppUninstalledEventBody {
   implicit val decodeAppUninstalledEventBody: Decoder[AppUninstalledEventBody] =
-    Decoder.instance { cursor =>
-      for {
-        teamId   <- cursor.downField("team_id").as[String]
-        apiAppId <- cursor.downField("api_app_id").as[String]
-      } yield AppUninstalledEventBody(teamId, apiAppId)
-    }
+    Decoder.forProduct2("team_id", "api_app_id")((teamId, apiAppId) =>
+      AppUninstalledEventBody(teamId, apiAppId)
+    )
 }
 
 final case class AppUninstalledEventCommand(
