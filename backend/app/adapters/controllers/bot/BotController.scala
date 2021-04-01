@@ -62,7 +62,7 @@ class BotController @Inject() (
                 case Success(_) =>
                   Future.successful(Redirect("https://google.com"))
                 case Failure(e) =>
-                  logger.error(e.toString)
+                  logger.error(e.toString.trim)
                   Future.successful(Redirect("https://yahoo.com"))
               })
               .recoverError
