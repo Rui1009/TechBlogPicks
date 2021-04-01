@@ -11,11 +11,18 @@ import domains.bot.Bot.BotId
 import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
 import domains.{DomainError, EmptyStringError}
 import io.circe.generic.auto._
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import play.api.mvc.{
+  Action,
+  AnyContent,
+  BaseController,
+  ControllerComponents,
+  Result
+}
 import query.bots.BotsQueryProcessor
 import usecases.InstallBotUseCase.Params
 import usecases.{InstallBotUseCase, UpdateBotClientInfoUseCase}
 
+import scala.util.{Failure, Success}
 import scala.concurrent.{ExecutionContext, Future}
 
 class BotController @Inject() (
@@ -47,9 +54,16 @@ class BotController @Inject() (
           tuple =>
             installBotUseCase
               .exec(Params(tuple._1, tuple._2))
-              .ifFailedThenToAdapterError("error in BotController.install")
-              .toSuccessGetResponse
-              .recoverError
+              .transformWith({
+                  case Success(_) =>
+                    Future.successful(Redirect("https://google.com"))
+                  case Failure(_) =>
+                    Future.successful(Redirect("https://yahoo.com"))
+                }
+//                  .ifFailedThenToAdapterError("error in BotController.install")
+//                  .toSuccessGetResponse
+//                  .recoverError
+              )
         )
     }
 
