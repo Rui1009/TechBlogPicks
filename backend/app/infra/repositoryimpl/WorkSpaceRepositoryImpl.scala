@@ -39,9 +39,9 @@ class WorkSpaceRepositoryImpl @Inject() (
                 .withQueryStringParameters(
                   "code"          -> code.value.value,
                   "client_id"     -> clientId.value.value,
-                  "client_secret" -> clientSecret.value.value,
-                  // 実際に検証したいから一旦固定
-                  "redirect_uri"  -> "https://winkie.app"
+                  "client_secret" -> clientSecret.value.value
+//                  // 実際に検証したいから一旦固定
+//                  "redirect_uri"  -> "https://winkie.app"
                 )
                 .post(Json.Null.noSpaces)
                 .ifFailedThenToInfraError(s"error while posting $oauthURL")
