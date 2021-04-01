@@ -31,8 +31,7 @@ class BotControllerInstallSpec
             val path = "/bot?code=" + code + "&bot_id=" + botId
             val res  = Request.get(path).unsafeExec
 
-            assert(status(res) === OK)
-            assert(decodeRes[Unit](res).unsafeGet === Response[Unit](()))
+            assert(redirectLocation(res) === Some("https://google.com"))
             verify(uc).exec(*)
             reset(uc)
           }
@@ -46,8 +45,9 @@ class BotControllerInstallSpec
             val path = "/bot?code=" + code + "&bot_id=" + botId
             val res  = Request.get(path).unsafeExec
 
-            assert(status(res) === INTERNAL_SERVER_ERROR)
-            assert(decodeERes(res).unsafeGet.message === failedError)
+            assert(redirectLocation(res) === Some("https://yahoo.com"))
+            verify(uc).exec(*)
+            reset(uc)
           }
         }
       }
