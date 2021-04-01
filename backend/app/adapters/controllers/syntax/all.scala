@@ -1,5 +1,5 @@
 package adapters.controllers.syntax
 
-object all extends FutureSyntax with OptionSyntax
+object all extends FutureSyntax
 
-trait AllSyntax extends FutureSyntax with OptionSyntax
+trait AllSyntax extends FutureSyntax
