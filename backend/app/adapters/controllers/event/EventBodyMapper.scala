@@ -9,58 +9,62 @@ import domains.workspace.WorkSpace.WorkSpaceId
 import io.circe._
 import io.circe.generic.auto._
 import play.api.mvc.{BaseController, BodyParser}
+import adapters.controllers.event.AppUninstalledEventBody._
+import adapters.controllers.event.EventBody._
 
 import scala.concurrent.ExecutionContext
 
-final case class EventRootBody(
-  teamId: Option[String],
-  apiAppId: Option[String],
-  `type`: String,
-  event: Option[EventBody],
-  challenge: Option[String]
-)
-object EventRootBody {
-  implicit val bodyDecoder: Decoder[EventRootBody] =
-    Decoder.forProduct5("team_id", "api_app_id", "type", "event", "challenge")(
-      (teamId, apiAppId, _type, event, challenge) =>
-        EventRootBody(teamId, apiAppId, _type, event, challenge)
+sealed trait EventBody
+object EventBody {
+  implicit val decodeEvent: Decoder[EventBody] = List[Decoder[EventBody]](
+    Decoder[AppUninstalledEventBody](decodeAppUninstalledEventBody).widen,
+    Decoder[UrlVerificationEventBody].widen
+  ).reduceLeft(_ or _)
+}
+
+sealed trait EventCommand
+
+final case class AppUninstalledEventBody(teamId: String, apiAppId: String)
+    extends EventBody
+
+object AppUninstalledEventBody {
+  implicit val decodeAppUninstalledEventBody: Decoder[AppUninstalledEventBody] =
+    Decoder.forProduct2("team_id", "api_app_id")((teamId, apiAppId) =>
+      AppUninstalledEventBody(teamId, apiAppId)
     )
 }
 
-final case class EventBody(`type`: String)
+final case class AppUninstalledEventCommand(
+  workSpaceId: WorkSpaceId,
+  botId: BotId
+) extends EventCommand
+object AppUninstalledEventCommand {
+  def validate(
+    body: AppUninstalledEventBody
+  ): Either[BadRequestError, EventCommand] = (
+    WorkSpaceId.create(body.teamId).toValidatedNec,
+    BotId.create(body.apiAppId).toValidatedNec
+  ).mapN(AppUninstalledEventCommand.apply)
+    .toEither
+    .leftMap(errors =>
+      BadRequestError(
+        errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
+      )
+    )
+}
 
-final case class EventRootCommand(
-  teamId: Option[WorkSpaceId],
-  apiAppId: Option[BotId],
-  eventType: String,
-  event: Option[EventCommand],
-  challenge: Option[String]
-)
-
-final case class EventCommand(eventType: String)
+final case class UrlVerificationEventBody(challenge: String) extends EventBody
+final case class UrlVerificationEventCommand(challenge: String)
+    extends EventCommand
 
 trait EventBodyMapper extends JsonRequestMapper { this: BaseController =>
   def mapToEventCommand(implicit
     ec: ExecutionContext
-  ): BodyParser[Either[AdapterError, EventRootCommand]] =
-    mapToValueObject[EventRootBody, EventRootCommand] { body =>
-      (
-        body.teamId.traverse(id => WorkSpaceId.create(id).toValidatedNec),
-        body.apiAppId.traverse(id => BotId.create(id).toValidatedNec)
-      ).mapN((teamId, apiAppId) =>
-        EventRootCommand(
-          teamId,
-          apiAppId,
-          body.`type`,
-          body.event.map(e => EventCommand(e.`type`)),
-          body.challenge
-        )
-      ).toEither
-        .leftMap(errors =>
-          BadRequestError(
-            errors
-              .foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-          )
-        )
-    }
+  ): BodyParser[Either[AdapterError, EventCommand]] =
+    mapToValueObject[EventBody, EventCommand] {
+      case body: AppUninstalledEventBody  =>
+        AppUninstalledEventCommand.validate(body)
+      case body: UrlVerificationEventBody =>
+        Right(UrlVerificationEventCommand(body.challenge))
+    }(decodeEvent, ec)
 }
