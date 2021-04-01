@@ -11,6 +11,7 @@ import domains.bot.Bot.BotId
 import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
 import domains.{DomainError, EmptyStringError}
 import io.circe.generic.auto._
+import play.api.Logger
 import play.api.mvc.{
   Action,
   AnyContent,
@@ -33,6 +34,9 @@ class BotController @Inject() (
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with FutureSyntax
     with UpdateClientInfoBodyMapper with UninstallBotBodyMapper {
+
+  private lazy val logger = Logger(this.getClass)
+
   def install(code: String, bot_id: String): Action[AnyContent] =
     Action.async { implicit request =>
       val tempOauthCode
@@ -54,16 +58,16 @@ class BotController @Inject() (
           tuple =>
             installBotUseCase
               .exec(Params(tuple._1, tuple._2))
-              .transformWith({
-                  case Success(_) =>
-                    Future.successful(Redirect("https://google.com"))
-                  case Failure(_) =>
-                    Future.successful(Redirect("https://yahoo.com"))
-                }
-//                  .ifFailedThenToAdapterError("error in BotController.install")
-//                  .toSuccessGetResponse
-//                  .recoverError
-              )
+              .ifFailedThenToAdapterError("error in BotController.install")
+              .transformWith[Result]({
+                case Success(_) =>
+                  Future.successful(Redirect("https://google.com"))
+                case Failure(e) =>
+                  println(e)
+                  logger.error(e.toString)
+                  Future.successful(Redirect("https://yahoo.com"))
+              })
+              .recoverError
         )
     }
 
