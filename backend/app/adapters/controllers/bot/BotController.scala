@@ -60,10 +60,10 @@ class BotController @Inject() (
               .exec(Params(tuple._1, tuple._2))
               .transformWith[Result]({
                 case Success(_) =>
-                  Future.successful(Redirect("https://google.com"))
+                  Future.successful(Redirect("https://winkie.app/success"))
                 case Failure(e) =>
                   logger.error(e.toString.trim)
-                  Future.successful(Redirect("https://yahoo.com"))
+                  Future.successful(Redirect("https://winkie.app/failure"))
               })
               .recoverError
         )

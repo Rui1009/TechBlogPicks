@@ -31,7 +31,7 @@ class BotControllerInstallSpec
             val path = "/bot?code=" + code + "&bot_id=" + botId
             val res  = Request.get(path).unsafeExec
 
-            assert(redirectLocation(res) === Some("https://google.com"))
+            assert(redirectLocation(res) === Some("https://winkie.app/success"))
             verify(uc).exec(*)
             reset(uc)
           }
@@ -45,7 +45,7 @@ class BotControllerInstallSpec
             val path = "/bot?code=" + code + "&bot_id=" + botId
             val res  = Request.get(path).unsafeExec
 
-            assert(redirectLocation(res) === Some("https://yahoo.com"))
+            assert(redirectLocation(res) === Some("https://winkie.app/failure"))
             verify(uc).exec(*)
             reset(uc)
           }
