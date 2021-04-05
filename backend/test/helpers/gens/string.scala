@@ -3,7 +3,7 @@ package helpers.gens
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.refineV
-import eu.timepit.refined.string.Url
+import eu.timepit.refined.string.{Url, ValidFloat}
 import org.scalacheck.Gen
 import org.scalacheck.Gen._
 
@@ -26,4 +26,12 @@ trait StringGen {
 
   val stringRefinedUrlGen: Gen[Refined[String, Url]] =
     urlGen.map(refineV[Url].unsafeFrom(_))
+
+  val validFloatStringGen: Gen[String] = (for {
+    integer    <- Gen.posNum[Long]
+    fractional <- Gen.posNum[Long]
+  } yield integer.toString + "." + fractional.toString).label("validFloat")
+
+  val refinedValidFloatGen: Gen[Refined[String, ValidFloat]] =
+    validFloatStringGen.map(refineV[ValidFloat].unsafeFrom(_))
 }
