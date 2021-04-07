@@ -1,9 +1,6 @@
 package domains.message
 
-import domains.message.Message.AccessoryImage.{
-  AccessoryImageAltText,
-  AccessoryImageUrl
-}
+import domains.message.Message.AccessoryImage.{ImageAltText, ImageUrl}
 import domains.message.Message.ActionSelect.{SelectActionId, SelectActionType}
 import domains.{EmptyStringError, RegexError}
 import domains.message.Message.{
@@ -68,26 +65,24 @@ object Message {
 
   sealed trait MessageBlock
   case class SectionBlock(
-    BlockText: SectionBlockText,
+    BlockText: BlockText,
     BlockAccessory: Option[BlockAccessory]
-  ) extends MessageBlock
-  case class SectionBlockText(text: String)
+  )                                  extends MessageBlock
+  case class BlockText(text: String) extends AnyVal
 
   sealed trait BlockAccessory
-  case class AccessoryImage(
-    ImageUrl: AccessoryImageUrl,
-    ImageAltText: AccessoryImageAltText
-  ) extends BlockAccessory
+  case class AccessoryImage(ImageUrl: ImageUrl, ImageAltText: ImageAltText)
+      extends BlockAccessory
   object AccessoryImage {
-    @newtype case class AccessoryImageUrl(value: String Refined Url)
-    object AccessoryImageUrl {
-      def create(value: String): Either[RegexError, AccessoryImageUrl] =
+    @newtype case class ImageUrl(value: String Refined Url)
+    object ImageUrl {
+      def create(value: String): Either[RegexError, ImageUrl] =
         refineV[Url](value) match {
-          case Right(v) => Right(AccessoryImageUrl(v))
+          case Right(v) => Right(ImageUrl(v))
           case Left(_)  => Left(RegexError("AccessoryImageUrl"))
         }
     }
-    case class AccessoryImageAltText(text: String)
+    case class ImageAltText(text: String) extends AnyVal
   }
 
   case class ActionBlock(ActionBlockElements: Seq[ActionBlockElement])

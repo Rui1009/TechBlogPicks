@@ -8,7 +8,7 @@ import domains.message.Message.{
 }
 import helpers.traits.ModelSpec
 import cats.syntax.either._
-import domains.message.Message.AccessoryImage.AccessoryImageUrl
+import domains.message.Message.AccessoryImage.ImageUrl
 import domains.message.Message.ActionSelect.{SelectActionId, SelectActionType}
 
 class MessageDomainSpec extends ModelSpec {
@@ -90,7 +90,7 @@ class MessageDomainSpec extends ModelSpec {
     "given valid string url" should {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedUrlGen) { url =>
-          val result = AccessoryImageUrl.create(url.value)
+          val result = ImageUrl.create(url.value)
           assert(result.map(_.value) == url.asRight)
         }
       }
@@ -99,7 +99,7 @@ class MessageDomainSpec extends ModelSpec {
     "given invalid string" should {
       "return Left value which equals DomainError" in {
         forAll(nonEmptyStringGen) { str =>
-          val result = AccessoryImageUrl.create(str)
+          val result = ImageUrl.create(str)
           assert(result.leftSide == RegexError("AccessoryImageUrl").asLeft)
         }
       }
