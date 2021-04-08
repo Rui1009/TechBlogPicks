@@ -65,13 +65,13 @@ object Message {
 
   sealed trait MessageBlock
   case class SectionBlock(
-    BlockText: BlockText,
-    BlockAccessory: Option[BlockAccessory]
+    blockText: BlockText,
+    blockAccessory: Option[BlockAccessory]
   )                                  extends MessageBlock
   case class BlockText(text: String) extends AnyVal
 
   sealed trait BlockAccessory
-  case class AccessoryImage(ImageUrl: ImageUrl, ImageAltText: ImageAltText)
+  case class AccessoryImage(imageUrl: ImageUrl, imageAltText: ImageAltText)
       extends BlockAccessory
   object AccessoryImage {
     @newtype case class ImageUrl(value: String Refined Url)
@@ -85,7 +85,7 @@ object Message {
     case class ImageAltText(text: String) extends AnyVal
   }
 
-  case class ActionBlock(ActionBlockElements: Seq[ActionBlockElement])
+  case class ActionBlock(actionBlockElements: Seq[ActionBlockElement])
       extends MessageBlock
   sealed trait ActionBlockElement
   case class ActionSelect(
