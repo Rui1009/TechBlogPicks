@@ -3,6 +3,7 @@ package domains
 import domains.message.Message.{
   AccessoryImage,
   ActionSelect,
+  BlockText,
   MessageChannelId,
   MessageId,
   MessageSentAt,
@@ -88,6 +89,23 @@ class MessageDomainSpec extends ModelSpec {
     }
   }
 
+  "BlockText.create" when {
+    "given non empty string" should {
+      "return Right value which equals given arg value" in {
+        forAll(stringRefinedNonEmptyGen) { str =>
+          val result = BlockText(str)
+          assert(result == BlockText(str))
+        }
+      }
+    }
+
+    "given empty string" should {
+      "return Left value which equals DomainError" in {
+        val result = BlockText.create("")
+        assert(result.leftSide == EmptyStringError("BlockText").asLeft)
+      }
+    }
+  }
   "AccessoryImage.create" when {
     "given imageUrl valid url string" should {
       "return Right value which equals given arg value" in {
@@ -141,8 +159,9 @@ class MessageDomainSpec extends ModelSpec {
     "given actionType & actionId invalid string" should {
       "return Left value which equals DomainError" in {
         val result = ActionSelect.create("", SelectPlaceHolder("", false), "")
+        println(result.leftSide)
         assert(
-          result.leftSide == EmptyStringError("actionType, actionId").asLeft
+          result.leftSide == EmptyStringError("actionType,actionId").asLeft
         )
       }
     }

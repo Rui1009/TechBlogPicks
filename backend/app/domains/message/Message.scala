@@ -16,6 +16,7 @@ import eu.timepit.refined.refineV
 import eu.timepit.refined.string.{Url, ValidFloat}
 import io.estatico.newtype.macros.newtype
 import eu.timepit.refined.auto._
+import cats.implicits._
 
 final case class Message(
   id: Option[MessageId],
@@ -66,8 +67,15 @@ object Message {
   case class SectionBlock(
     blockText: BlockText,
     blockAccessory: Option[BlockAccessory]
-  )                                  extends MessageBlock
-  case class BlockText(text: String) extends AnyVal
+  ) extends MessageBlock
+  case class BlockText(text: String Refined NonEmpty)
+  object BlockText {
+    def create(text: String): Either[EmptyStringError, BlockText] =
+      refineV[NonEmpty](text) match {
+        case Right(v) => Right(BlockText(v))
+        case Left(_)  => Left(EmptyStringError("BlockText"))
+      }
+  }
 
   sealed trait BlockAccessory
   case class AccessoryImage(imageUrl: String Refined Url, imageAltText: String)
@@ -96,14 +104,20 @@ object Message {
       actionType: String,
       placeholder: SelectPlaceHolder,
       actionId: String
-    ): Either[EmptyStringError, ActionSelect] =
-      (refineV[NonEmpty](actionType), refineV[NonEmpty](actionId)) match {
-        case (Right(at), Right(ai)) => Right(ActionSelect(at, placeholder, ai))
-        case (Right(_), Left(_))    => Left(EmptyStringError("actionId"))
-        case (Left(_), Right(_))    => Left(EmptyStringError("actionType"))
-        case (Left(_), Left(_))     =>
-          Left(EmptyStringError("actionType, actionId"))
-      }
+    ): Either[EmptyStringError, ActionSelect] = (
+      refineV[NonEmpty](actionType).left
+        .map(_ => EmptyStringError("actionType"))
+        .toValidatedNec,
+      refineV[NonEmpty](actionId).left
+        .map(_ => EmptyStringError("actionId"))
+        .toValidatedNec
+    ).mapN(ActionSelect.apply(_, placeholder, _))
+      .toEither
+      .leftMap(errors =>
+        EmptyStringError(
+          errors.foldLeft("")((acc, curr) => acc + "," + curr.className).drop(1)
+        )
+      )
   }
 
   case class SelectPlaceHolder(
