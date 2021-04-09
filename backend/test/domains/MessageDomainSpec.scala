@@ -159,7 +159,6 @@ class MessageDomainSpec extends ModelSpec {
     "given actionType & actionId invalid string" should {
       "return Left value which equals DomainError" in {
         val result = ActionSelect.create("", SelectPlaceHolder("", false), "")
-        println(result.leftSide)
         assert(
           result.leftSide == EmptyStringError("actionType,actionId").asLeft
         )
