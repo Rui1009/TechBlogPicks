@@ -1,7 +1,5 @@
 package domains.message
 
-import domains.message.Message.AccessoryImage.{ImageAltText, ImageUrl}
-import domains.message.Message.ActionSelect.{SelectActionId, SelectActionType}
 import domains.{EmptyStringError, RegexError}
 import domains.message.Message.{
   MessageBlock,
@@ -17,6 +15,7 @@ import eu.timepit.refined.generic.Equal
 import eu.timepit.refined.refineV
 import eu.timepit.refined.string.{Url, ValidFloat}
 import io.estatico.newtype.macros.newtype
+import eu.timepit.refined.auto._
 
 final case class Message(
   id: Option[MessageId],
@@ -71,17 +70,41 @@ object Message {
   case class BlockText(text: String) extends AnyVal
 
   sealed trait BlockAccessory
-  case class AccessoryImage(imageUrl: String, imageAltText: String)
+  case class AccessoryImage(imageUrl: String Refined Url, imageAltText: String)
       extends BlockAccessory
+  object AccessoryImage {
+    def create(
+      imageUrl: String,
+      imageAltText: String
+    ): Either[RegexError, AccessoryImage] = refineV[Url](imageUrl) match {
+      case Right(v) => Right(AccessoryImage(v, imageAltText))
+      case Left(_)  => Left(RegexError("ImageUrl"))
+    }
+  }
 
   case class ActionBlock(actionBlockElements: Seq[ActionBlockElement])
       extends MessageBlock
   sealed trait ActionBlockElement
+
   case class ActionSelect(
-    actionType: String,
+    actionType: String Refined NonEmpty,
     placeholder: SelectPlaceHolder,
-    actionId: String
+    actionId: String Refined NonEmpty
   ) extends ActionBlockElement
+  object ActionSelect {
+    def create(
+      actionType: String,
+      placeholder: SelectPlaceHolder,
+      actionId: String
+    ): Either[EmptyStringError, ActionSelect] =
+      (refineV[NonEmpty](actionType), refineV[NonEmpty](actionId)) match {
+        case (Right(at), Right(ai)) => Right(ActionSelect(at, placeholder, ai))
+        case (Right(_), Left(_))    => Left(EmptyStringError("actionId"))
+        case (Left(_), Right(_))    => Left(EmptyStringError("actionType"))
+        case (Left(_), Left(_))     =>
+          Left(EmptyStringError("actionType, actionId"))
+      }
+  }
 
   case class SelectPlaceHolder(
     placeHolderText: String,

@@ -1,15 +1,17 @@
 package domains
 
 import domains.message.Message.{
+  AccessoryImage,
+  ActionSelect,
   MessageChannelId,
   MessageId,
   MessageSentAt,
-  MessageUserId
+  MessageUserId,
+  SelectPlaceHolder
 }
 import helpers.traits.ModelSpec
 import cats.syntax.either._
-import domains.message.Message.AccessoryImage.ImageUrl
-import domains.message.Message.ActionSelect.{SelectActionId, SelectActionType}
+import org.scalacheck.Gen
 
 class MessageDomainSpec extends ModelSpec {
   "MessageId.create" when {
@@ -43,7 +45,7 @@ class MessageDomainSpec extends ModelSpec {
     "given invalid string" should {
       "return Left value which equals DomainError" in {
         forAll(refinedValidFloatGen) { str =>
-          val result = MessageSentAt.create(str + "text")
+          val result = MessageSentAt.create(s"${str}text")
           assert(result.map(_.value) == RegexError("MessageSentAt").asLeft)
         }
       }
@@ -86,58 +88,62 @@ class MessageDomainSpec extends ModelSpec {
     }
   }
 
-  "AccessoryImageUrl.create" when {
-    "given valid string url" should {
+  "AccessoryImage.create" when {
+    "given imageUrl valid url string" should {
       "return Right value which equals given arg value" in {
-        forAll(stringRefinedUrlGen) { url =>
-          val result = ImageUrl.create(url.value)
-          assert(result.map(_.value) == url.asRight)
+        forAll(stringRefinedUrlGen, Gen.alphaStr) { (url, str) =>
+          val result = AccessoryImage(url, str)
+          assert(result == AccessoryImage(url, str))
         }
       }
     }
 
-    "given invalid string" should {
+    "given iamgeUrl invalid url string" should {
+      "return Left value which equals DomainError" in {
+        forAll(Gen.alphaStr) { str =>
+          val result = AccessoryImage.create(str, str)
+          assert(result.leftSide == RegexError("ImageUrl").asLeft)
+        }
+      }
+    }
+  }
+
+  "ActionSelect.create" when {
+    "given actionType & actionId valid string" should {
+      "return Right value which equals given arg value" in {
+        forAll(stringRefinedNonEmptyGen) { str =>
+          val result = ActionSelect(str, SelectPlaceHolder("", false), str)
+          assert(result == ActionSelect(str, SelectPlaceHolder("", false), str))
+        }
+      }
+    }
+
+    "given actionType invalid string" should {
       "return Left value which equals DomainError" in {
         forAll(nonEmptyStringGen) { str =>
-          val result = ImageUrl.create(str)
-          assert(result.leftSide == RegexError("AccessoryImageUrl").asLeft)
-        }
-      }
-    }
-  }
-
-  "SelectActionType.create" when {
-    "given non empty string" should {
-      "return Right value which equals given arg value" in {
-        forAll(stringRefinedNonEmptyGen) { str =>
-          val result = SelectActionType.create(str.value)
-          assert(result.map(_.value) == str.asRight)
+          val result =
+            ActionSelect.create("", SelectPlaceHolder("", false), str)
+          assert(result.leftSide == EmptyStringError("actionType").asLeft)
         }
       }
     }
 
-    "given empty string" should {
+    "given actionId invalid string" should {
       "return Left value which equals DomainError" in {
-        val result = SelectActionType.create("")
-        assert(result.leftSide == EmptyStringError("SelectActionType").asLeft)
-      }
-    }
-  }
-
-  "SelectActionId.create" when {
-    "given non empty string" should {
-      "return Right value which equals given arg value" in {
-        forAll(stringRefinedNonEmptyGen) { str =>
-          val result = SelectActionId.create(str.value)
-          assert(result.map(_.value) == str.asRight)
+        forAll(nonEmptyStringGen) { str =>
+          val result =
+            ActionSelect.create(str, SelectPlaceHolder("", false), "")
+          assert(result.leftSide == EmptyStringError("actionId").asLeft)
         }
       }
     }
 
-    "given empty string" should {
+    "given actionType & actionId invalid string" should {
       "return Left value which equals DomainError" in {
-        val result = SelectActionId.create("")
-        assert(result.leftSide == EmptyStringError("SelectActionId").asLeft)
+        val result = ActionSelect.create("", SelectPlaceHolder("", false), "")
+        assert(
+          result.leftSide == EmptyStringError("actionType, actionId").asLeft
+        )
       }
     }
   }
