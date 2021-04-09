@@ -71,47 +71,18 @@ object Message {
   case class BlockText(text: String) extends AnyVal
 
   sealed trait BlockAccessory
-  case class AccessoryImage(imageUrl: ImageUrl, imageAltText: ImageAltText)
+  case class AccessoryImage(imageUrl: String, imageAltText: String)
       extends BlockAccessory
-  object AccessoryImage {
-    @newtype case class ImageUrl(value: String Refined Url)
-    object ImageUrl {
-      def create(value: String): Either[RegexError, ImageUrl] =
-        refineV[Url](value) match {
-          case Right(v) => Right(ImageUrl(v))
-          case Left(_)  => Left(RegexError("AccessoryImageUrl"))
-        }
-    }
-    case class ImageAltText(text: String) extends AnyVal
-  }
 
   case class ActionBlock(actionBlockElements: Seq[ActionBlockElement])
       extends MessageBlock
   sealed trait ActionBlockElement
   case class ActionSelect(
-    actionType: SelectActionType,
+    actionType: String,
     placeholder: SelectPlaceHolder,
-    actionId: SelectActionId
+    actionId: String
   ) extends ActionBlockElement
-  object ActionSelect {
-    @newtype case class SelectActionType(value: String Refined NonEmpty)
-    object SelectActionType {
-      def create(value: String): Either[EmptyStringError, SelectActionType] =
-        refineV[NonEmpty](value) match {
-          case Right(v) => Right(SelectActionType(v))
-          case Left(_)  => Left(EmptyStringError("SelectActionType"))
-        }
-    }
 
-    @newtype case class SelectActionId(value: String Refined NonEmpty)
-    object SelectActionId {
-      def create(value: String): Either[EmptyStringError, SelectActionId] =
-        refineV[NonEmpty](value) match {
-          case Right(v) => Right(SelectActionId(v))
-          case Left(_)  => Left(EmptyStringError("SelectActionId"))
-        }
-    }
-  }
   case class SelectPlaceHolder(
     placeHolderText: String,
     placeHolderEmoji: Boolean
