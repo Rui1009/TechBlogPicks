@@ -89,8 +89,8 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
               e === SystemError(
                 "error while messageRepository.isEmpty in post onboarding message use case" + "\n" + DBError(
                   "error"
-                )
-              ).getMessage
+                ).getMessage
+              )
             )
           }
           reset(workSpaceRepo)
@@ -99,7 +99,7 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
       }
     }
 
-    "failed in messageRepository.add" when {
+    "failed in messageRepository.add" should {
       "throw use case error" in {
         forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
           val params = Params(bot.id, workSpace.id, message.channelId)
@@ -122,10 +122,38 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
               e === SystemError(
                 "error while messageRepository.add in post onboarding message use case" + "\n" + DBError(
                   "error"
-                )
-              ).getMessage
+                ).getMessage
+              )
             )
           }
+        }
+      }
+    }
+
+    "return false in messageRepository.isEmpty" should {
+      "return future unit without exec messageRepository.add" in {
+        forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
+          val params = Params(bot.id, workSpace.id, message.channelId)
+
+          val targetToken = WorkSpaceToken("mockToken")
+          when(workSpaceRepo.find(params.workSpaceId, params.botId)).thenReturn(
+            Future.successful(Some(workSpace.copy(tokens = Seq(targetToken))))
+          )
+          when(messageRepo.isEmpty(targetToken, params.channelId))
+            .thenReturn(Future.successful(false))
+
+          val result: Unit = new PostOnboardingMessageUseCaseImpl(
+            workSpaceRepo,
+            messageRepo
+          ).exec(params).futureValue
+
+          verify(workSpaceRepo).find(params.workSpaceId, params.botId)
+          verify(messageRepo).isEmpty(targetToken, params.channelId)
+          verify(messageRepo, times(0))
+            .add(targetToken, params.channelId, Seq())
+          assert(result === ())
+          reset(workSpaceRepo)
+          reset(messageRepo)
         }
       }
     }
