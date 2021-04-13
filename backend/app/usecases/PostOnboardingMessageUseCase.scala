@@ -9,7 +9,6 @@ import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import usecases.PostOnboardingMessageUseCase.Params
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Success
 
 trait PostOnboardingMessageUseCase {
   def exec(params: Params): Future[Unit]
@@ -28,7 +27,6 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
   messageRepository: MessageRepository
 )(implicit val ec: ExecutionContext)
     extends PostOnboardingMessageUseCase {
-  object MessageIsNotEmpty extends Exception
   override def exec(params: Params): Future[Unit] = (for {
     targetWorkSpace <-
       workSpaceRepository
@@ -37,23 +35,21 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
           "error while workSpaceRepository.find in post onboarding message use case"
         )
     targetToken      = targetWorkSpace.tokens.head
-    _               <- messageRepository
-                         .isEmpty(targetToken, params.channelId)
-                         .ifFailThenToUseCaseError(
-                           "error while messageRepository.isEmpty in post onboarding message use case"
-                         )
-                         .map {
-                           case true  => true
-                           case false => throw MessageIsNotEmpty
-                         }
-    _               <- messageRepository
-                         .add(
-                           targetToken,
-                           params.channelId,
-                           Seq()
-                         ) // どこでblocks(投稿される内容)を定義するかは決めてないのでとりあえず空配列で
-                         .ifFailThenToUseCaseError(
-                           "error while messageRepository.add in post onboarding message use case"
-                         )
-  } yield ()).recoverWith { case MessageIsNotEmpty => Future.unit }
+    isEmpty         <-
+      messageRepository
+        .isEmpty(targetToken, params.channelId)
+        .ifFailThenToUseCaseError(
+          "error while messageRepository.isEmpty in post onboarding message use case"
+        )
+  } yield
+    if (isEmpty) messageRepository
+      .add(
+        targetToken,
+        params.channelId,
+        Seq()
+      ) // どこでblocks(投稿される内容)を定義するかは決めてないのでとりあえず空配列で
+      .ifFailThenToUseCaseError(
+        "error while messageRepository.add in post onboarding message use case"
+      )
+    else Future.unit).flatten
 }
