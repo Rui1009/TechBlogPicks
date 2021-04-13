@@ -17,7 +17,10 @@ trait ConversationDao {
 class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
   ec: ExecutionContext
 ) extends ApiDao(ws) with ConversationDao {
-  def info(token: String, channelId: String): Future[InfoResponse] = ???
+  def info(token: String, channelId: String): Future[InfoResponse] = {
+    val url = "https://slack.com/api/conversations.info"
+
+  }
 }
 
 object ConversationDaoImpl {
