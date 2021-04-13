@@ -21,18 +21,15 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
 }
 
 object ConversationDaoImpl {
-  case class InfoResponse(isFirst: Boolean)
-  implicit
-  val conversationDecoder: Decoder[InfoResponse] = Decoder.instance { cursor =>
-    cursor
-      .downField("channel")
-      .downField("latest")
-      .withFocus(lh =>
-        if (lh.isNull) Json.obj("isFirst" -> Json.fromBoolean(true))
-        else Json.obj("isFirst"           -> Json.fromBoolean(false))
-      )
-      .downField("isFirst")
-      .as[Boolean]
-      .map(isFirst => InfoResponse(isFirst))
+  case class InfoResponse(latest: Json) {
+    def isFirst(latest: Json): Boolean = latest.isNull
   }
+  implicit val conversationDecoder: Decoder[InfoResponse] =
+    Decoder.instance { cursor =>
+      cursor
+        .downField("channel")
+        .downField("latest")
+        .as[Json]
+        .map(v => InfoResponse(v))
+    }
 }
