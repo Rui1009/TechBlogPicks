@@ -22,7 +22,7 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
 
 object ConversationDaoImpl {
   case class InfoResponse(latest: Json) {
-    def isFirst(latest: Json): Boolean = latest.isNull
+    def isFirst: Boolean = this.latest.isNull
   }
   implicit val conversationDecoder: Decoder[InfoResponse] =
     Decoder.instance { cursor =>

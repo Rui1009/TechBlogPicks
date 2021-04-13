@@ -18,7 +18,7 @@ class MessageRepositoryImpl @Inject() (
     channelId: Message.MessageChannelId
   ): Future[Boolean] = for {
     info <- conversationDao.info(token.value.value, channelId.value.value)
-  } yield info.isFirst()
+  } yield info.isFirst
 
   override def add(
     token: WorkSpace.WorkSpaceToken,
