@@ -73,6 +73,9 @@ class WorkSpaceRepositoryImpl @Inject() (
         )
       )
 
+  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
+    ???
+
   override def add(model: WorkSpace): Future[Unit] = {
     val rows = for {
       token <- model.tokens

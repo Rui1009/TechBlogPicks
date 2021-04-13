@@ -1,6 +1,7 @@
 import com.google.inject.AbstractModule
 import domains.workspace.WorkSpaceRepository
 import domains.bot.BotRepository
+import domains.message.MessageRepository
 import domains.post.PostRepository
 import infra.dao.slack._
 import infra.queryprocessorimpl._
@@ -16,6 +17,7 @@ class Module extends AbstractModule {
     bind(classOf[PostRepository]).to(classOf[PostRepositoryImpl])
     bind(classOf[WorkSpaceRepository]).to(classOf[WorkSpaceRepositoryImpl])
     bind(classOf[BotRepository]).to(classOf[BotRepositoryImpl])
+    bind(classOf[MessageRepository]).to(classOf[MessageRepositoryImpl])
 
     // use case impl
     bind(classOf[RegisterPostUseCase]).to(classOf[RegisterPostUseCaseImpl])
@@ -24,6 +26,9 @@ class Module extends AbstractModule {
     bind(classOf[UpdateBotClientInfoUseCase])
       .to(classOf[UpdateBotClientInfoUseCaseImpl])
     bind(classOf[UninstallBotUseCase]).to(classOf[UninstallBotUseCaseImpl])
+    bind(classOf[PostOnboardingMessageUseCase]) to (classOf[
+      PostOnboardingMessageUseCaseImpl
+    ])
 
     // query processor impl
     bind(classOf[PublishPostsQueryProcessor])
@@ -35,5 +40,6 @@ class Module extends AbstractModule {
     bind(classOf[ChatDao]).to(classOf[ChatDaoImpl])
     bind(classOf[UsersDao]).to(classOf[UsersDaoImpl])
     bind(classOf[TeamDao]).to(classOf[TeamDaoImpl])
+    bind(classOf[ConversationDao]).to(classOf[ConversationDaoImpl])
   }
 }

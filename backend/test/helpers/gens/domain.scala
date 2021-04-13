@@ -12,10 +12,17 @@ import helpers.gens.number._
 import domain._
 import domains.post.Post
 import cats.syntax.option._
+import domains.message.Message
+import domains.message.Message.{
+  MessageChannelId,
+  MessageId,
+  MessageSentAt,
+  MessageUserId
+}
 
 object domain extends DomainGen
 
-trait DomainGen extends WorkSpaceGen with BotGen with PostGen
+trait DomainGen extends WorkSpaceGen with BotGen with PostGen with MessageGen
 
 trait WorkSpaceGen {
   val accessTokenGen: Gen[WorkSpaceToken] =
@@ -89,4 +96,21 @@ trait BotGen {
 
   val nonOptionBotGen: Gen[Bot] =
     botGen.suchThat(bot => bot.clientId.isDefined && bot.clientSecret.isDefined)
+}
+
+trait MessageGen {
+  val messageIdGen: Gen[MessageId]               = stringRefinedNonEmptyGen.map(MessageId(_))
+  val messageSentAtGen: Gen[MessageSentAt]       =
+    refinedValidFloatGen.map(MessageSentAt(_))
+  val messageUserIdGen: Gen[MessageUserId]       =
+    stringRefinedNonEmptyGen.map(MessageUserId(_))
+  val messageChannelIdGen: Gen[MessageChannelId] =
+    stringRefinedNonEmptyGen.map(MessageChannelId(_))
+
+  val messageGen: Gen[Message] = for {
+    id        <- messageIdGen
+    sentAt    <- messageSentAtGen
+    userId    <- messageUserIdGen
+    channelId <- messageChannelIdGen
+  } yield Message(Some(id), Some(sentAt), userId, channelId, Seq())
 }
