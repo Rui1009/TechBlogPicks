@@ -74,7 +74,25 @@ class WorkSpaceRepositoryImpl @Inject() (
       )
 
   override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
-    ???
+    for {
+      rows <-
+        db.run(
+          WorkSpaces
+            .filter(workSpaces =>
+              workSpaces.teamId === id.value.value && workSpaces.botId === botId.value.value
+            )
+            .result
+        ).ifFailedThenToInfraError("error while WorkSpaceRepository.find")
+    } yield
+      if (rows.isEmpty) None
+      else Some(
+        WorkSpace(
+          id,
+          rows.map(row => WorkSpaceToken(Refined.unsafeApply(row.token))),
+          None,
+          rows.map(row => BotId(Refined.unsafeApply(row.botId)))
+        )
+      )
 
   override def add(model: WorkSpace): Future[Unit] = {
     val rows = for {
