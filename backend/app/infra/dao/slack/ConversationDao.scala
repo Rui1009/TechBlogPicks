@@ -7,6 +7,8 @@ import infra.dao.slack.ConversationDaoImpl.InfoResponse
 import io.circe.{Decoder, Json}
 import io.circe.Decoder.Result
 import play.api.libs.ws.WSClient
+import infra.syntax.all._
+import io.circe.parser._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -17,7 +19,18 @@ trait ConversationDao {
 class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
   ec: ExecutionContext
 ) extends ApiDao(ws) with ConversationDao {
-  def info(token: String, channelId: String): Future[InfoResponse] = ???
+  def info(token: String, channelId: String): Future[InfoResponse] = {
+    val url = "https://slack.com/api/conversations.info"
+    (for {
+      resp <- ws.url(url)
+                .withHttpHeaders("Authorization" -> s"Bearer $token")
+                .get()
+                .ifFailedThenToInfraError(s"error while getting $url")
+                .map(res => res.json.toString)
+    } yield decode[InfoResponse](resp)).ifLeftThenToInfraError(
+      "error while converting conversation info api response"
+    )
+  }
 }
 
 object ConversationDaoImpl {
