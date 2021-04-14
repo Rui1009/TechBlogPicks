@@ -55,6 +55,38 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
     }
   }
 
+  "find(by id & botId)" when {
+    "succeed" should {
+      "get work space" in {
+        val beforeAction              = DBIO.seq(
+          WorkSpaces.forceInsertAll(
+            Seq(
+              WorkSpacesRow("token1", "bot1", "teamA"),
+              WorkSpacesRow("token2", "bot1", "teamB"),
+              WorkSpacesRow("token3", "bot2", "teamA")
+            )
+          )
+        )
+        val afterAction               = WorkSpaces.delete
+        db.run(beforeAction.transactionally).futureValue
+        val result: Option[WorkSpace] =
+          repository.find(WorkSpaceId("teamA"), BotId("bot2")).futureValue
+
+        assert(
+          result === Some(
+            WorkSpace(
+              WorkSpaceId("teamA"),
+              Seq(WorkSpaceToken("token3")),
+              None,
+              Seq(BotId("bot2"))
+            )
+          )
+        )
+        db.run(afterAction).futureValue
+      }
+    }
+  }
+
   "add" when {
     "succeed" should {
       "add new data" in {
@@ -124,6 +156,20 @@ class WorkSpaceRepositoryImplFailSpec
             whenReady(result, timeout(Span(1, Seconds))) { e =>
               assert(e === None)
             }
+        }
+      }
+    }
+  }
+
+  "find(by id & botId)" when {
+    "failed" should {
+      "None returned" in {
+        forAll(workSpaceIdGen, botIdGen) { (workSpaceId, botId) =>
+          val result = repository.find(workSpaceId, botId)
+
+          whenReady(result, timeout(Span(1, Seconds))) { e =>
+            assert(e === None)
+          }
         }
       }
     }
