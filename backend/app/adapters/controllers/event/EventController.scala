@@ -6,13 +6,14 @@ import adapters.controllers.syntax.AllSyntax
 import com.google.inject.Inject
 import io.circe.Json
 import play.api.mvc._
-import usecases.UninstallBotUseCase
+import usecases.{PostOnboardingMessageUseCase, UninstallBotUseCase}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class EventController @Inject() (
   val controllerComponents: ControllerComponents,
-  uninstallBotUseCase: UninstallBotUseCase
+  uninstallBotUseCase: UninstallBotUseCase,
+  postOnboardingMessageUseCase: PostOnboardingMessageUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
   def handleEvent: Action[Either[AdapterError, EventCommand]] =
@@ -22,6 +23,7 @@ class EventController @Inject() (
         {
           case command: AppUninstalledEventCommand  => appUninstalled(command)
           case command: UrlVerificationEventCommand => urlVerification(command)
+          case command: AppHomeOpenedEventCommand   => appHomeOpened(command)
         }
       )
     }
@@ -38,6 +40,16 @@ class EventController @Inject() (
     uninstallBotUseCase
       .exec(UninstallBotUseCase.Params(command.botId, command.workSpaceId))
       .ifFailedThenToAdapterError("error in EventController.appUninstalled")
+      .toSuccessPostResponse
+      .recoverError
+
+  private def appHomeOpened(command: AppHomeOpenedEventCommand) =
+    postOnboardingMessageUseCase
+      .exec(
+        PostOnboardingMessageUseCase
+          .Params(command.botId, command.workSpaceId, command.channelId)
+      )
+      .ifFailedThenToAdapterError("error in EventController.appHomeOpened")
       .toSuccessPostResponse
       .recoverError
 }
