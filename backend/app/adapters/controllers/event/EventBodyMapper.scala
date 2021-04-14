@@ -11,6 +11,7 @@ import io.circe.generic.auto._
 import play.api.mvc.{BaseController, BodyParser}
 import adapters.controllers.event.AppUninstalledEventBody._
 import adapters.controllers.event.EventBody._
+import domains.message.Message.MessageChannelId
 
 import scala.concurrent.ExecutionContext
 
@@ -53,6 +54,44 @@ object AppUninstalledEventCommand {
     )
 }
 
+final case class AppHomeOpenedEventBody(
+  channel: String,
+  apiAppId: String,
+  teamId: String
+) extends EventBody
+object AppHomeOpenedEventBody {
+  implicit val decodeAppHomeOpenedEventBody: Decoder[AppHomeOpenedEventBody] =
+    Decoder.instance { cursor =>
+      for {
+        channel <- cursor.downField("channel").as[String]
+        appId   <- cursor.downField("view").downField("app_id").as[String]
+        teamId  <-
+          cursor.downField("view").downField("app_installed_team_id").as[String]
+      } yield AppHomeOpenedEventBody(channel, appId, teamId)
+    }
+}
+
+final case class AppHomeOpenedEventCommand(
+  channelId: MessageChannelId,
+  botId: BotId,
+  workSpaceId: WorkSpaceId
+) extends EventCommand
+object AppHomeOpenedEventCommand {
+  def validate(
+    body: AppHomeOpenedEventBody
+  ): Either[BadRequestError, EventCommand] = (
+    MessageChannelId.create(body.channel).toValidatedNec,
+    BotId.create(body.apiAppId).toValidatedNec,
+    WorkSpaceId.create(body.teamId).toValidatedNec
+  ).mapN(AppHomeOpenedEventCommand.apply)
+    .toEither
+    .leftMap(errors =>
+      BadRequestError(
+        errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
+      )
+    )
+}
+
 final case class UrlVerificationEventBody(challenge: String) extends EventBody
 final case class UrlVerificationEventCommand(challenge: String)
     extends EventCommand
@@ -66,5 +105,7 @@ trait EventBodyMapper extends JsonRequestMapper { this: BaseController =>
         AppUninstalledEventCommand.validate(body)
       case body: UrlVerificationEventBody =>
         Right(UrlVerificationEventCommand(body.challenge))
+      case body: AppHomeOpenedEventBody   =>
+        AppHomeOpenedEventCommand.validate(body)
     }(decodeEvent, ec)
 }
