@@ -10,6 +10,7 @@ import io.circe._
 import io.circe.generic.auto._
 import play.api.mvc.{BaseController, BodyParser}
 import adapters.controllers.event.AppUninstalledEventBody._
+import adapters.controllers.event.AppHomeOpenedEventBody._
 import adapters.controllers.event.EventBody._
 import domains.message.Message.MessageChannelId
 
@@ -19,7 +20,8 @@ sealed trait EventBody
 object EventBody {
   implicit val decodeEvent: Decoder[EventBody] = List[Decoder[EventBody]](
     Decoder[AppUninstalledEventBody](decodeAppUninstalledEventBody).widen,
-    Decoder[UrlVerificationEventBody].widen
+    Decoder[UrlVerificationEventBody].widen,
+    Decoder[AppHomeOpenedEventBody](decodeAppHomeOpenedEventBody).widen
   ).reduceLeft(_ or _)
 }
 
@@ -56,7 +58,7 @@ object AppUninstalledEventCommand {
 
 final case class AppHomeOpenedEventBody(
   channel: String,
-  apiAppId: String,
+  appId: String,
   teamId: String
 ) extends EventBody
 object AppHomeOpenedEventBody {
@@ -81,7 +83,7 @@ object AppHomeOpenedEventCommand {
     body: AppHomeOpenedEventBody
   ): Either[BadRequestError, EventCommand] = (
     MessageChannelId.create(body.channel).toValidatedNec,
-    BotId.create(body.apiAppId).toValidatedNec,
+    BotId.create(body.appId).toValidatedNec,
     WorkSpaceId.create(body.teamId).toValidatedNec
   ).mapN(AppHomeOpenedEventCommand.apply)
     .toEither
