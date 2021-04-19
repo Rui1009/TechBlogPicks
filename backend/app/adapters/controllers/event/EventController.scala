@@ -50,6 +50,7 @@ class EventController @Inject() (
 
   private def appHomeOpened(command: AppHomeOpenedEventCommand) = {
     logger.warn("app home opened")
+    logger.warn(command.channelId.value.value)
     postOnboardingMessageUseCase
       .exec(
         PostOnboardingMessageUseCase
