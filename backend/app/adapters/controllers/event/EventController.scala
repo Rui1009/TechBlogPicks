@@ -19,6 +19,7 @@ class EventController @Inject() (
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
   private lazy val logger             = Logger(this.getClass)
   def handleEvent: Action[AnyContent] = Action { implicit request =>
+    logger.warn(request.body.toString)
     Ok(request.body.toString)
   }
 //  def handleEvent: Action[Either[AdapterError, EventCommand]] =
