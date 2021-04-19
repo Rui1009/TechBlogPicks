@@ -9,6 +9,7 @@ import io.circe.Decoder.Result
 import play.api.libs.ws.WSClient
 import infra.syntax.all._
 import io.circe.parser._
+import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,6 +20,7 @@ trait ConversationDao {
 class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
   ec: ExecutionContext
 ) extends ApiDao(ws) with ConversationDao {
+  private lazy val logger = Logger(this.getClass)
   def info(token: String, channelId: String): Future[InfoResponse] = {
     val url = "https://slack.com/api/conversations.info"
     (for {
@@ -27,6 +29,7 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
                 .get()
                 .ifFailedThenToInfraError(s"error while getting $url")
                 .map(res => res.json.toString)
+      _     = logger.warn(resp)
     } yield decode[InfoResponse](resp)).ifLeftThenToInfraError(
       "error while converting conversation info api response"
     )
