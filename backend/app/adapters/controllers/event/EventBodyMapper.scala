@@ -13,6 +13,7 @@ import adapters.controllers.event.AppUninstalledEventBody._
 import adapters.controllers.event.AppHomeOpenedEventBody._
 import adapters.controllers.event.EventBody._
 import domains.message.Message.MessageChannelId
+import play.api.Logger
 
 import scala.concurrent.ExecutionContext
 
@@ -109,15 +110,19 @@ final case class UrlVerificationEventCommand(challenge: String)
     extends EventCommand
 
 trait EventBodyMapper extends JsonRequestMapper { this: BaseController =>
+  private lazy val logger                           = Logger(this.getClass)
   def mapToEventCommand(implicit
     ec: ExecutionContext
   ): BodyParser[Either[AdapterError, EventCommand]] =
     mapToValueObject[EventBody, EventCommand] {
-      case body: AppUninstalledEventBody  =>
+      case body: AppUninstalledEventBody =>
+        logger.warn("failed case match")
         AppUninstalledEventCommand.validate(body)
+
       case body: UrlVerificationEventBody =>
         Right(UrlVerificationEventCommand(body.challenge))
       case body: AppHomeOpenedEventBody   =>
+        logger.warn("success case match")
         AppHomeOpenedEventCommand.validate(body)
     }(decodeEvent, ec)
 }
