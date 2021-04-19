@@ -17,25 +17,21 @@ class EventController @Inject() (
   postOnboardingMessageUseCase: PostOnboardingMessageUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
-  private lazy val logger             = Logger(this.getClass)
-  def handleEvent: Action[AnyContent] = Action { implicit request =>
-    logger.warn(request.body.toString)
-    Ok(request.body.toString)
-  }
-//  def handleEvent: Action[Either[AdapterError, EventCommand]] =
-//    Action.async(mapToEventCommand) { implicit request =>
-//      request.body.fold(
-//        e => {
-//          logger.warn(e.getMessage)
-//          Future.successful(responseError(e))
-//        },
-//        {
-//          case command: AppUninstalledEventCommand  => appUninstalled(command)
-//          case command: UrlVerificationEventCommand => urlVerification(command)
-//          case command: AppHomeOpenedEventCommand   => appHomeOpened(command)
-//        }
-//      )
-//    }
+  private lazy val logger                                     = Logger(this.getClass)
+  def handleEvent: Action[Either[AdapterError, EventCommand]] =
+    Action.async(mapToEventCommand) { implicit request =>
+      request.body.fold(
+        e => {
+          logger.warn(e.getMessage)
+          Future.successful(responseError(e))
+        },
+        {
+          case command: AppUninstalledEventCommand  => appUninstalled(command)
+          case command: UrlVerificationEventCommand => urlVerification(command)
+          case command: AppHomeOpenedEventCommand   => appHomeOpened(command)
+        }
+      )
+    }
 
   private def urlVerification(command: UrlVerificationEventCommand) = Future
     .successful(
@@ -52,7 +48,8 @@ class EventController @Inject() (
       .toSuccessPostResponse
       .recoverError
 
-  private def appHomeOpened(command: AppHomeOpenedEventCommand) =
+  private def appHomeOpened(command: AppHomeOpenedEventCommand) = {
+    logger.warn("app home opened")
     postOnboardingMessageUseCase
       .exec(
         PostOnboardingMessageUseCase
@@ -61,4 +58,5 @@ class EventController @Inject() (
       .ifFailedThenToAdapterError("error in EventController.appHomeOpened")
       .toSuccessPostResponse
       .recoverError
+  }
 }
