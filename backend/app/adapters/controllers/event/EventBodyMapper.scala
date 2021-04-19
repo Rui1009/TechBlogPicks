@@ -90,19 +90,21 @@ final case class AppHomeOpenedEventCommand(
   workSpaceId: WorkSpaceId
 ) extends EventCommand
 object AppHomeOpenedEventCommand {
+  private lazy val logger                  = Logger(this.getClass)
   def validate(
     body: AppHomeOpenedEventBody
   ): Either[BadRequestError, EventCommand] = (
     MessageChannelId.create(body.channel).toValidatedNec,
     BotId.create(body.appId).toValidatedNec,
     WorkSpaceId.create(body.teamId).toValidatedNec
-  ).mapN(AppHomeOpenedEventCommand.apply)
-    .toEither
-    .leftMap(errors =>
-      BadRequestError(
-        errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-      )
+  ).mapN(AppHomeOpenedEventCommand.apply).toEither.leftMap { errors =>
+    logger.warn(
+      errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
     )
+    BadRequestError(
+      errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
+    )
+  }
 }
 
 final case class UrlVerificationEventBody(challenge: String) extends EventBody
