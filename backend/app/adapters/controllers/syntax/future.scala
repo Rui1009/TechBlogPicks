@@ -4,7 +4,6 @@ import adapters.{AdapterError, InternalServerError}
 import io.circe.Encoder
 import io.circe.syntax._
 import adapters.controllers.helpers.JsonHelper._
-import play.api.Logger
 import play.api.mvc.{Result, Results}
 import usecases.UseCaseError
 
@@ -17,7 +16,6 @@ trait FutureSyntax {
   implicit class FutureOps[T](val future: Future[T])(implicit
     ec: ExecutionContext
   ) {
-    private lazy val logger                                                 = Logger(this.getClass)
     def toSuccessPostResponse(implicit encoder: Encoder[T]): Future[Result] =
       _toSuccessResponse(Results.Created)
 
@@ -28,7 +26,6 @@ trait FutureSyntax {
       future.transformWith {
         case Success(v)               => Future.successful(v)
         case Failure(e: UseCaseError) =>
-          logger.warn(e.getMessage)
           Future.failed(AdapterError.fromUseCaseError(message, e))
         case Failure(e)               =>
           Future.failed(InternalServerError(message + "\n" + e.getMessage))

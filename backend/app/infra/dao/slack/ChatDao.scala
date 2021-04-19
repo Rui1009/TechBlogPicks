@@ -17,7 +17,6 @@ import io.circe.generic.auto._
 import io.circe.parser._
 import play.api.libs.ws.WSClient
 import io.circe.syntax._
-import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,7 +36,6 @@ trait ChatDao {
 
 class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     extends ApiDao(ws) with ChatDao {
-  private lazy val logger = Logger(this.getClass)
   def postMessage(
     token: String,
     channel: String,
@@ -106,7 +104,6 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
                )
                .post(Json.Null.noSpaces)
                .ifFailedThenToInfraError(s"error while posting $url")
-      _    = logger.warn(res.json.toString)
     } yield decode[PostMessageResponse](res.json.toString))
       .ifLeftThenToInfraError("error while converting list api response")
   }

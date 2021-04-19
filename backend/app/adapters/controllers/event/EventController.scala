@@ -5,7 +5,6 @@ import adapters.controllers.helpers.JsonHelper
 import adapters.controllers.syntax.AllSyntax
 import com.google.inject.Inject
 import io.circe.Json
-import play.api.Logger
 import play.api.mvc._
 import usecases.{PostOnboardingMessageUseCase, UninstallBotUseCase}
 
@@ -17,14 +16,10 @@ class EventController @Inject() (
   postOnboardingMessageUseCase: PostOnboardingMessageUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
-  private lazy val logger                                     = Logger(this.getClass)
   def handleEvent: Action[Either[AdapterError, EventCommand]] =
     Action.async(mapToEventCommand) { implicit request =>
       request.body.fold(
-        e => {
-          logger.warn(e.getMessage)
-          Future.successful(responseError(e))
-        },
+        e => Future.successful(responseError(e)),
         {
           case command: AppUninstalledEventCommand  => appUninstalled(command)
           case command: UrlVerificationEventCommand => urlVerification(command)
@@ -48,9 +43,7 @@ class EventController @Inject() (
       .toSuccessPostResponse
       .recoverError
 
-  private def appHomeOpened(command: AppHomeOpenedEventCommand) = {
-    logger.warn("app home opened")
-    logger.warn(command.channelId.value.value)
+  private def appHomeOpened(command: AppHomeOpenedEventCommand) =
     postOnboardingMessageUseCase
       .exec(
         PostOnboardingMessageUseCase
@@ -59,5 +52,4 @@ class EventController @Inject() (
       .ifFailedThenToAdapterError("error in EventController.appHomeOpened")
       .toSuccessPostResponse
       .recoverError
-  }
 }

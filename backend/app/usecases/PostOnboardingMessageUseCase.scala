@@ -58,26 +58,7 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
       .add(
         targetToken,
         params.channelId,
-        Seq(
-          SectionBlock(
-            BlockText("test"),
-            Some(AccessoryImage(Refined.unsafeApply(imageUrl), "text"))
-          ),
-          ActionBlock(
-            Seq(
-              ActionSelect(
-                "channels_select",
-                SelectPlaceHolder("Select a channel", false),
-                "actionId-0"
-              ),
-              ActionSelect(
-                "users_select",
-                SelectPlaceHolder("Select a user", true),
-                "testId-0"
-              )
-            )
-          )
-        )
+        Seq()
       ) // どこでblocks(投稿される内容)を定義するかは決めてないのでとりあえず空配列で
       .ifFailThenToUseCaseError(
         "error while messageRepository.add in post onboarding message use case"

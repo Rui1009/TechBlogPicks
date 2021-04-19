@@ -13,7 +13,6 @@ import adapters.controllers.event.AppUninstalledEventBody._
 import adapters.controllers.event.AppHomeOpenedEventBody._
 import adapters.controllers.event.EventBody._
 import domains.message.Message.MessageChannelId
-import play.api.Logger
 
 import scala.concurrent.ExecutionContext
 
@@ -90,21 +89,19 @@ final case class AppHomeOpenedEventCommand(
   workSpaceId: WorkSpaceId
 ) extends EventCommand
 object AppHomeOpenedEventCommand {
-  private lazy val logger                  = Logger(this.getClass)
   def validate(
     body: AppHomeOpenedEventBody
   ): Either[BadRequestError, EventCommand] = (
     MessageChannelId.create(body.channel).toValidatedNec,
     BotId.create(body.appId).toValidatedNec,
     WorkSpaceId.create(body.teamId).toValidatedNec
-  ).mapN(AppHomeOpenedEventCommand.apply).toEither.leftMap { errors =>
-    logger.warn(
-      errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
+  ).mapN(AppHomeOpenedEventCommand.apply)
+    .toEither
+    .leftMap(errors =>
+      BadRequestError(
+        errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
+      )
     )
-    BadRequestError(
-      errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-    )
-  }
 }
 
 final case class UrlVerificationEventBody(challenge: String) extends EventBody
@@ -112,20 +109,15 @@ final case class UrlVerificationEventCommand(challenge: String)
     extends EventCommand
 
 trait EventBodyMapper extends JsonRequestMapper { this: BaseController =>
-  private lazy val logger                           = Logger(this.getClass)
   def mapToEventCommand(implicit
     ec: ExecutionContext
   ): BodyParser[Either[AdapterError, EventCommand]] =
     mapToValueObject[EventBody, EventCommand] {
-      case body: AppUninstalledEventBody =>
-        logger.warn("failed case match")
+      case body: AppUninstalledEventBody  =>
         AppUninstalledEventCommand.validate(body)
-
       case body: UrlVerificationEventBody =>
         Right(UrlVerificationEventCommand(body.challenge))
       case body: AppHomeOpenedEventBody   =>
-        logger.warn("success case match")
-        logger.warn(body.toString)
         AppHomeOpenedEventCommand.validate(body)
     }(decodeEvent, ec)
 }
