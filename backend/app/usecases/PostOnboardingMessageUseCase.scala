@@ -2,21 +2,10 @@ package usecases
 
 import com.google.inject.Inject
 import domains.bot.Bot.BotId
-import domains.message.Message.{
-  AccessoryImage,
-  ActionBlock,
-  ActionSelect,
-  BlockText,
-  MessageChannelId,
-  SectionBlock,
-  SelectPlaceHolder
-}
 import domains.message.MessageRepository
 import domains.workspace.WorkSpace.WorkSpaceId
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
-import eu.timepit.refined.api.Refined
 import usecases.PostOnboardingMessageUseCase.Params
-import eu.timepit.refined.auto._
 
 import scala.concurrent.{ExecutionContext, Future}
 
