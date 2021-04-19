@@ -24,10 +24,11 @@ class AppHomeOpenedSpec extends ControllerSpec {
             when(uc.exec(*)).thenReturn(Future.unit)
 
             val body = Json.obj(
-              "channel" -> Json.fromString(str),
-              "view"    -> Json.obj(
-                "app_id"                -> Json.fromString(str),
-                "app_installed_team_id" -> Json.fromString(str)
+              "team_id"    -> Json.fromString(str),
+              "api_app_id" -> Json.fromString(str),
+              "event"      -> Json.obj(
+                "channel" -> Json.fromString(str),
+                "type"    -> Json.fromString("app_home_opened")
               )
             )
 
@@ -45,10 +46,11 @@ class AppHomeOpenedSpec extends ControllerSpec {
             when(uc.exec(*)).thenReturn(Future.failed(SystemError("error")))
 
             val body = Json.obj(
-              "channel" -> Json.fromString(str),
-              "view"    -> Json.obj(
-                "app_id"                -> Json.fromString(str),
-                "app_installed_team_id" -> Json.fromString(str)
+              "team_id"    -> Json.fromString(str),
+              "api_app_id" -> Json.fromString(str),
+              "event"      -> Json.obj(
+                "channel" -> Json.fromString(str),
+                "type"    -> Json.fromString("app_home_opened")
               )
             )
             val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -68,10 +70,11 @@ class AppHomeOpenedSpec extends ControllerSpec {
           when(uc.exec(*)).thenReturn(Future.unit)
 
           val body = Json.obj(
-            "channel" -> Json.fromString(""),
-            "view"    -> Json.obj(
-              "app_id"                -> Json.fromString("appId"),
-              "app_installed_team_id" -> Json.fromString("teamId")
+            "team_id"    -> Json.fromString("teamId"),
+            "api_app_id" -> Json.fromString("appID"),
+            "event"      -> Json.obj(
+              "channel" -> Json.fromString(""),
+              "type"    -> Json.fromString("app_home_opened")
             )
           )
           val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -91,10 +94,11 @@ class AppHomeOpenedSpec extends ControllerSpec {
           when(uc.exec(*)).thenReturn(Future.unit)
 
           val body = Json.obj(
-            "channel" -> Json.fromString("channelId"),
-            "view"    -> Json.obj(
-              "app_id"                -> Json.fromString(""),
-              "app_installed_team_id" -> Json.fromString("teamId")
+            "team_id"    -> Json.fromString("teamId"),
+            "api_app_id" -> Json.fromString(""),
+            "event"      -> Json.obj(
+              "channel" -> Json.fromString("channelId"),
+              "type"    -> Json.fromString("app_home_opened")
             )
           )
           val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -114,10 +118,11 @@ class AppHomeOpenedSpec extends ControllerSpec {
           when(uc.exec(*)).thenReturn(Future.unit)
 
           val body = Json.obj(
-            "channel" -> Json.fromString("channelId"),
-            "view"    -> Json.obj(
-              "app_id"                -> Json.fromString("botId"),
-              "app_installed_team_id" -> Json.fromString("")
+            "team_id"    -> Json.fromString(""),
+            "api_app_id" -> Json.fromString("appId"),
+            "event"      -> Json.obj(
+              "channel" -> Json.fromString("channel"),
+              "type"    -> Json.fromString("app_home_opened")
             )
           )
           val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -137,10 +142,11 @@ class AppHomeOpenedSpec extends ControllerSpec {
           when(uc.exec(*)).thenReturn(Future.unit)
 
           val body = Json.obj(
-            "channel" -> Json.fromString(""),
-            "view"    -> Json.obj(
-              "app_id"                -> Json.fromString(""),
-              "app_installed_team_id" -> Json.fromString("")
+            "team_id"    -> Json.fromString(""),
+            "api_app_id" -> Json.fromString(""),
+            "event"      -> Json.obj(
+              "channel" -> Json.fromString(""),
+              "type"    -> Json.fromString("app_home_opened")
             )
           )
           val resp = Request.post(path).withJsonBody(body).unsafeExec
