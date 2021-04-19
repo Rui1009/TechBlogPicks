@@ -125,6 +125,7 @@ trait EventBodyMapper extends JsonRequestMapper { this: BaseController =>
         Right(UrlVerificationEventCommand(body.challenge))
       case body: AppHomeOpenedEventBody   =>
         logger.warn("success case match")
+        logger.warn(body.toString)
         AppHomeOpenedEventCommand.validate(body)
     }(decodeEvent, ec)
 }

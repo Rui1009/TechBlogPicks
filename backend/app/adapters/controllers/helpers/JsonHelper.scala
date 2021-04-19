@@ -5,21 +5,16 @@ import play.mvc.Http.MimeTypes.JSON
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import io.circe.generic.auto._
-import play.api.Logger
 import play.api.mvc.{Result, Results}
 import play.mvc.Http.Status
 
 object JsonHelper extends JsonHelper
 
 trait JsonHelper {
-  private lazy val logger = Logger(this.getClass)
   def responseError(e: AdapterError): Result = {
     val res = ErrorResponse(e.getMessage.trim).asJson.noSpaces
     e match {
-      case _: BadRequestError     =>
-        logger.warn(res)
-        logger.warn("json helper error")
-        Results.Status(Status.BAD_REQUEST)(res)
+      case _: BadRequestError     => Results.Status(Status.BAD_REQUEST)(res)
       case _: NotFoundError       => Results.Status(Status.BAD_REQUEST)(res)
       case _: InternalServerError =>
         Results.Status(Status.INTERNAL_SERVER_ERROR)(res)
