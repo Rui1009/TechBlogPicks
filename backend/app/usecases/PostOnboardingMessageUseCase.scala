@@ -37,8 +37,6 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
   messageRepository: MessageRepository
 )(implicit val ec: ExecutionContext)
     extends PostOnboardingMessageUseCase {
-  val imageUrl                                    =
-    "https://img-mdpr.freetls.fastly.net/article/GEdz/wm/GEdzUf8cy7lGyXuQkG1UVx9LfKGYrBU76_uXSqbj86s.jpg?width=700&disable=upscale&auto=webp"
   override def exec(params: Params): Future[Unit] = (for {
     targetWorkSpace <-
       workSpaceRepository
