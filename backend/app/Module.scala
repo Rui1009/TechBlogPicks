@@ -26,9 +26,9 @@ class Module extends AbstractModule {
     bind(classOf[UpdateBotClientInfoUseCase])
       .to(classOf[UpdateBotClientInfoUseCaseImpl])
     bind(classOf[UninstallBotUseCase]).to(classOf[UninstallBotUseCaseImpl])
-    bind(classOf[PostOnboardingMessageUseCase]) to (classOf[
-      PostOnboardingMessageUseCaseImpl
-    ])
+    bind(classOf[PostOnboardingMessageUseCase])
+      .to(classOf[PostOnboardingMessageUseCaseImpl])
+    bind(classOf[JoinChannelUseCase]).to(classOf[JoinChannelUseCaseImpl])
 
     // query processor impl
     bind(classOf[PublishPostsQueryProcessor])

@@ -77,6 +77,24 @@ class BotDomainSpec extends ModelSpec {
     }
   }
 
+  "BotChannelId.create" when {
+    "given non-empty string" should {
+      "return Right value which equals given arg value" in {
+        forAll(stringRefinedNonEmptyGen) { str =>
+          val result = BotChannelId.create(str.value)
+          assert(result.map(_.value) === Right(str))
+        }
+      }
+    }
+
+    "given empty string" should {
+      "return Left value which values equals DomainError" in {
+        val result = BotChannelId.create("")
+        assert(result.leftSide === Left(EmptyStringError("BotChannelId")))
+      }
+    }
+  }
+
   "Bot.updateClientInfo" should {
     "return Bot model which client info updated" in {
       forAll(

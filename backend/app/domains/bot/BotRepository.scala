@@ -9,4 +9,5 @@ trait BotRepository {
   def find(botId: BotId): Future[Option[Bot]]
   def update(bot: Bot): Future[Unit]
   def update(accessToken: WorkSpaceToken): Future[Unit]
+  def join(joinedBot: Bot): Future[Unit]
 }

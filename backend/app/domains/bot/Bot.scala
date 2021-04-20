@@ -2,7 +2,13 @@ package domains.bot
 
 import domains.EmptyStringError
 import domains.workspace.WorkSpace.WorkSpaceToken
-import domains.bot.Bot.{BotClientId, BotClientSecret, BotId, BotName}
+import domains.bot.Bot.{
+  BotChannelId,
+  BotClientId,
+  BotClientSecret,
+  BotId,
+  BotName
+}
 import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
@@ -14,6 +20,7 @@ final case class Bot(
   name: BotName,
   accessTokens: Seq[WorkSpaceToken],
   posts: Seq[PostId],
+  channels: Seq[BotChannelId],
   clientId: Option[BotClientId],
   clientSecret: Option[BotClientSecret]
 ) {
@@ -21,6 +28,9 @@ final case class Bot(
     clientId: Option[BotClientId],
     clientSecret: Option[BotClientSecret]
   ): Bot = this.copy(clientId = clientId, clientSecret = clientSecret)
+
+  def joinTo(channelId: BotChannelId): Bot =
+    this.copy(channels = channels :+ channelId)
 }
 
 object Bot {
@@ -57,6 +67,15 @@ object Bot {
       refineV[NonEmpty](value) match {
         case Left(_)  => Left(EmptyStringError("BotClientSecret"))
         case Right(v) => Right(BotClientSecret(v))
+      }
+  }
+
+  @newtype case class BotChannelId(value: String Refined NonEmpty)
+  object BotChannelId {
+    def create(value: String): Either[EmptyStringError, BotChannelId] =
+      refineV[NonEmpty](value) match {
+        case Left(_)  => Left(EmptyStringError("BotChannelId"))
+        case Right(v) => Right(BotChannelId(v))
       }
   }
 }
