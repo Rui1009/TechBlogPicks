@@ -132,6 +132,7 @@ class BotRepositoryImplSuccessSpec
               BotName("back_end"),
               Seq(WorkSpaceToken("token1"), WorkSpaceToken("token2")),
               Seq(PostId(1L), PostId(2L), PostId(3L)),
+              Seq(),
               BotClientId("clientId").some,
               BotClientSecret("clientSecret").some
             )
