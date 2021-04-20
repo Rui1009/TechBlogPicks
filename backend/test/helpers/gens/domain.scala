@@ -79,6 +79,9 @@ trait BotGen {
   val accessTokensGen: Gen[Seq[WorkSpaceToken]] =
     Gen.listOf(domain.accessTokenGen)
 
+  val channelIdGen: Gen[BotChannelId] =
+    stringRefinedNonEmptyGen.map(BotChannelId(_))
+
   val botClientIdGen: Gen[BotClientId] =
     stringRefinedNonEmptyGen.map(BotClientId(_))
 
@@ -90,9 +93,10 @@ trait BotGen {
     botName      <- botNameGen
     accessTokens <- accessTokensGen
     posts        <- Gen.listOf(postIdGen)
+    channels     <- Gen.listOf(channelIdGen)
     clientId     <- Gen.option(botClientIdGen)
     clientSecret <- Gen.option(botClientSecretGen)
-  } yield Bot(botId, botName, accessTokens, posts, clientId, clientSecret)
+  } yield Bot(botId, botName, accessTokens, posts, channels, clientId, clientSecret)
 
   val nonOptionBotGen: Gen[Bot] =
     botGen.suchThat(bot => bot.clientId.isDefined && bot.clientSecret.isDefined)
