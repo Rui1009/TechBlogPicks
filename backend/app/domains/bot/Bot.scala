@@ -29,7 +29,7 @@ final case class Bot(
     clientSecret: Option[BotClientSecret]
   ): Bot = this.copy(clientId = clientId, clientSecret = clientSecret)
 
-  def joinedBot(channelId: BotChannelId): Bot =
+  def joinBot(channelId: BotChannelId): Bot =
     this.copy(channels = channels :+ channelId)
 }
 
