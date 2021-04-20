@@ -27,6 +27,35 @@ final case class Message(
 )
 
 object Message {
+  def onboardingMessage(
+    userId: MessageUserId,
+    channelId: MessageChannelId
+  ): Message = Message(
+    None,
+    None,
+    userId,
+    channelId,
+    Seq(
+      SectionBlock(
+        BlockText(
+          Refined.unsafeApply(
+            s"${userId.value.value}インストールありがとうございます🤗\nWinkieはあなたの関心のある分野に関する最新の技術記事を自動でslack上に定期配信するアプリです。\nご利用いただくために、初めにアプリを追加するチャンネルを選択してください。"
+          )
+        ),
+        None
+      ),
+      ActionBlock(
+        Seq(
+          ActionSelect(
+            "Select a channel",
+            SelectPlaceHolder("Select a channel", false),
+            "actionId-0"
+          )
+        )
+      )
+    )
+  )
+
   @newtype case class MessageId(value: String Refined NonEmpty)
   object MessageId {
     def create(value: String): Either[EmptyStringError, MessageId] =
