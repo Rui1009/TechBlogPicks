@@ -12,7 +12,7 @@ import play.api.mvc.{BaseController, BodyParser}
 import adapters.controllers.event.AppUninstalledEventBody._
 import adapters.controllers.event.AppHomeOpenedEventBody._
 import adapters.controllers.event.EventBody._
-import domains.message.Message.MessageChannelId
+import domains.message.Message.{MessageChannelId, MessageUserId}
 
 import scala.concurrent.ExecutionContext
 
@@ -68,6 +68,7 @@ final case class AppHomeOpenedEventBody(
   channel: String,
   appId: String,
   teamId: String,
+  userId: String,
   eventType: "app_home_opened"
 ) extends EventBody
 object AppHomeOpenedEventBody {
@@ -77,16 +78,18 @@ object AppHomeOpenedEventBody {
         channel   <- cursor.downField("event").downField("channel").as[String]
         appId     <- cursor.downField("api_app_id").as[String]
         teamId    <- cursor.downField("team_id").as[String]
+        userId    <- cursor.downField("event").downField("user").as[String]
         eventType <-
           cursor.downField("event").downField("type").as["app_home_opened"]
-      } yield AppHomeOpenedEventBody(channel, appId, teamId, eventType)
+      } yield AppHomeOpenedEventBody(channel, appId, teamId, userId, eventType)
     }
 }
 
 final case class AppHomeOpenedEventCommand(
   channelId: MessageChannelId,
   botId: BotId,
-  workSpaceId: WorkSpaceId
+  workSpaceId: WorkSpaceId,
+  userId: MessageUserId
 ) extends EventCommand
 object AppHomeOpenedEventCommand {
   def validate(
@@ -94,7 +97,8 @@ object AppHomeOpenedEventCommand {
   ): Either[BadRequestError, EventCommand] = (
     MessageChannelId.create(body.channel).toValidatedNec,
     BotId.create(body.appId).toValidatedNec,
-    WorkSpaceId.create(body.teamId).toValidatedNec
+    WorkSpaceId.create(body.teamId).toValidatedNec,
+    MessageUserId.create(body.userId).toValidatedNec
   ).mapN(AppHomeOpenedEventCommand.apply)
     .toEither
     .leftMap(errors =>

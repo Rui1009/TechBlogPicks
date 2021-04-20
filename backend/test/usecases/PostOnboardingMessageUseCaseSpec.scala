@@ -1,6 +1,6 @@
 package usecases
 
-import domains.message.MessageRepository
+import domains.message.{Message, MessageRepository}
 import domains.workspace.WorkSpace.WorkSpaceToken
 import domains.workspace.WorkSpaceRepository
 import helpers.traits.UseCaseSpec
@@ -19,7 +19,8 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
     "succeed" should {
       "invoke workSpaceRepository.find & messageRepository.isEmpty & messageRepository.add once" in {
         forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params = Params(bot.id, workSpace.id, message.channelId)
+          val params =
+            Params(bot.id, workSpace.id, message.channelId, message.userId)
 
           val targetToken = WorkSpaceToken("mockToken")
           when(workSpaceRepo.find(params.workSpaceId, params.botId)).thenReturn(
@@ -27,8 +28,13 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
           )
           when(messageRepo.isEmpty(targetToken, params.channelId))
             .thenReturn(Future.successful(true))
-          when(messageRepo.add(targetToken, params.channelId, Seq()))
-            .thenReturn(Future.successful(()))
+          when(
+            messageRepo.add(
+              targetToken,
+              params.channelId,
+              Message.onboardingMessage(params.userId, params.channelId).blocks
+            )
+          ).thenReturn(Future.successful(()))
 
           new PostOnboardingMessageUseCaseImpl(workSpaceRepo, messageRepo)
             .exec(params)
@@ -36,7 +42,11 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
 
           verify(workSpaceRepo).find(params.workSpaceId, params.botId)
           verify(messageRepo).isEmpty(targetToken, params.channelId)
-          verify(messageRepo).add(targetToken, params.channelId, Seq())
+          verify(messageRepo).add(
+            targetToken,
+            params.channelId,
+            Message.onboardingMessage(params.userId, params.channelId).blocks
+          )
           reset(workSpaceRepo)
           reset(messageRepo)
         }
@@ -46,7 +56,8 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
     "return None in workSpaceRepository.find" should {
       "throw use case error" in {
         forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params = Params(bot.id, workSpace.id, message.channelId)
+          val params =
+            Params(bot.id, workSpace.id, message.channelId, message.userId)
 
           when(workSpaceRepo.find(params.workSpaceId, params.botId))
             .thenReturn(Future.successful(None))
@@ -71,7 +82,8 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
     "failed in messageRepository.isEmpty" should {
       "throw use case error" in {
         forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params = Params(bot.id, workSpace.id, message.channelId)
+          val params =
+            Params(bot.id, workSpace.id, message.channelId, message.userId)
 
           val targetToken = WorkSpaceToken("mockToken")
           when(workSpaceRepo.find(params.workSpaceId, params.botId)).thenReturn(
@@ -102,7 +114,8 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
     "failed in messageRepository.add" should {
       "throw use case error" in {
         forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params = Params(bot.id, workSpace.id, message.channelId)
+          val params =
+            Params(bot.id, workSpace.id, message.channelId, message.userId)
 
           val targetToken = WorkSpaceToken("mockToken")
           when(workSpaceRepo.find(params.workSpaceId, params.botId)).thenReturn(
@@ -110,8 +123,13 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
           )
           when(messageRepo.isEmpty(targetToken, params.channelId))
             .thenReturn(Future.successful(true))
-          when(messageRepo.add(targetToken, params.channelId, Seq()))
-            .thenReturn(Future.failed(DBError("error")))
+          when(
+            messageRepo.add(
+              targetToken,
+              params.channelId,
+              Message.onboardingMessage(params.userId, params.channelId).blocks
+            )
+          ).thenReturn(Future.failed(DBError("error")))
 
           val result =
             new PostOnboardingMessageUseCaseImpl(workSpaceRepo, messageRepo)
@@ -133,7 +151,8 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
     "return false in messageRepository.isEmpty" should {
       "return future unit without exec messageRepository.add" in {
         forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params = Params(bot.id, workSpace.id, message.channelId)
+          val params =
+            Params(bot.id, workSpace.id, message.channelId, message.userId)
 
           val targetToken = WorkSpaceToken("mockToken")
           when(workSpaceRepo.find(params.workSpaceId, params.botId)).thenReturn(
@@ -149,8 +168,11 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
 
           verify(workSpaceRepo).find(params.workSpaceId, params.botId)
           verify(messageRepo).isEmpty(targetToken, params.channelId)
-          verify(messageRepo, times(0))
-            .add(targetToken, params.channelId, Seq())
+          verify(messageRepo, times(0)).add(
+            targetToken,
+            params.channelId,
+            Message.onboardingMessage(params.userId, params.channelId).blocks
+          )
           assert(result === ())
           reset(workSpaceRepo)
           reset(messageRepo)

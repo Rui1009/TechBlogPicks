@@ -2,8 +2,8 @@ package usecases
 
 import com.google.inject.Inject
 import domains.bot.Bot.BotId
-import domains.message.Message.MessageChannelId
-import domains.message.MessageRepository
+import domains.message.Message.{MessageChannelId, MessageUserId}
+import domains.message.{Message, MessageRepository}
 import domains.workspace.WorkSpace.WorkSpaceId
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import usecases.PostOnboardingMessageUseCase.Params
@@ -18,7 +18,8 @@ object PostOnboardingMessageUseCase {
   final case class Params(
     botId: BotId,
     workSpaceId: WorkSpaceId,
-    channelId: MessageChannelId
+    channelId: MessageChannelId,
+    userId: MessageUserId
   )
 }
 
@@ -46,8 +47,8 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
       .add(
         targetToken,
         params.channelId,
-        Seq()
-      ) // どこでblocks(投稿される内容)を定義するかは決めてないのでとりあえず空配列で
+        Message.onboardingMessage(params.userId, params.channelId).blocks
+      )
       .ifFailThenToUseCaseError(
         "error while messageRepository.add in post onboarding message use case"
       )
