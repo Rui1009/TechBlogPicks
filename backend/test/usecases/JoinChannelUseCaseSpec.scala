@@ -18,13 +18,13 @@ class JoinChannelUseCaseSpec extends UseCaseSpec {
 
           when(botRepo.find(params.botId))
             .thenReturn(Future.successful(Some(bot)))
-          when(botRepo.join(bot.joinBot(params.channelId)))
+          when(botRepo.join(bot.joinTo(params.channelId)))
             .thenReturn(Future.unit)
 
           new JoinChannelUseCaseImpl(botRepo).exec(params).futureValue
 
           verify(botRepo).find(params.botId)
-          verify(botRepo).join(bot.joinBot(params.channelId))
+          verify(botRepo).join(bot.joinTo(params.channelId))
           reset(botRepo)
         }
       }
@@ -46,7 +46,7 @@ class JoinChannelUseCaseSpec extends UseCaseSpec {
               )
             )
           )
-          verify(botRepo, times(0)).join(bot.joinBot(params.channelId))
+          verify(botRepo, times(0)).join(bot.joinTo(params.channelId))
           reset(botRepo)
         }
       }

@@ -26,7 +26,7 @@ final class JoinChannelUseCaseImpl @Inject() (botRepository: BotRepository)(
                      "error while botRepository.find in join channel use case"
                    )
     _         <- botRepository
-                   .join(targetBot.joinBot(params.channelId))
+                   .join(targetBot.joinTo(params.channelId))
                    .ifFailThenToUseCaseError(
                      "error while botRepository.join in join channel use case"
                    )
