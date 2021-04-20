@@ -13,7 +13,11 @@ trait JoinChannelUseCase {
 }
 
 object JoinChannelUseCase {
-  final case class Params(channelId: BotChannelId, botId: BotId)
+  final case class Params(
+    channelId: BotChannelId,
+    botId: BotId,
+    workSpaceId: WorkSpaceId
+  )
 }
 
 final class JoinChannelUseCaseImpl @Inject() (botRepository: BotRepository)(
@@ -21,7 +25,7 @@ final class JoinChannelUseCaseImpl @Inject() (botRepository: BotRepository)(
 ) extends JoinChannelUseCase {
   override def exec(params: Params): Future[Unit] = for {
     targetBot <- botRepository
-                   .find(params.botId)
+                   .find(params.botId, params.workSpaceId)
                    .ifNotExistsToUseCaseError(
                      "error while botRepository.find in join channel use case"
                    )
