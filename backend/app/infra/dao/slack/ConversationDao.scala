@@ -24,6 +24,7 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
     (for {
       resp <- ws.url(url)
                 .withHttpHeaders("Authorization" -> s"Bearer $token")
+                .withQueryStringParameters("channel" -> channelId)
                 .get()
                 .ifFailedThenToInfraError(s"error while getting $url")
                 .map(res => res.json.toString)

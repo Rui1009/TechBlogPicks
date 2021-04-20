@@ -27,14 +27,22 @@ object EventBody {
 
 sealed trait EventCommand
 
-final case class AppUninstalledEventBody(teamId: String, apiAppId: String)
-    extends EventBody
+final case class AppUninstalledEventBody(
+  teamId: String,
+  apiAppId: String,
+  eventType: "app_uninstalled"
+) extends EventBody
 
 object AppUninstalledEventBody {
   implicit val decodeAppUninstalledEventBody: Decoder[AppUninstalledEventBody] =
-    Decoder.forProduct2("team_id", "api_app_id")((teamId, apiAppId) =>
-      AppUninstalledEventBody(teamId, apiAppId)
-    )
+    Decoder.instance { cursor =>
+      for {
+        teamId    <- cursor.downField("team_id").as[String]
+        appId     <- cursor.downField("api_app_id").as[String]
+        eventType <-
+          cursor.downField("event").downField("type").as["app_uninstalled"]
+      } yield AppUninstalledEventBody(teamId, appId, eventType)
+    }
 }
 
 final case class AppUninstalledEventCommand(
@@ -59,17 +67,19 @@ object AppUninstalledEventCommand {
 final case class AppHomeOpenedEventBody(
   channel: String,
   appId: String,
-  teamId: String
+  teamId: String,
+  eventType: "app_home_opened"
 ) extends EventBody
 object AppHomeOpenedEventBody {
   implicit val decodeAppHomeOpenedEventBody: Decoder[AppHomeOpenedEventBody] =
     Decoder.instance { cursor =>
       for {
-        channel <- cursor.downField("channel").as[String]
-        appId   <- cursor.downField("view").downField("app_id").as[String]
-        teamId  <-
-          cursor.downField("view").downField("app_installed_team_id").as[String]
-      } yield AppHomeOpenedEventBody(channel, appId, teamId)
+        channel   <- cursor.downField("event").downField("channel").as[String]
+        appId     <- cursor.downField("api_app_id").as[String]
+        teamId    <- cursor.downField("team_id").as[String]
+        eventType <-
+          cursor.downField("event").downField("type").as["app_home_opened"]
+      } yield AppHomeOpenedEventBody(channel, appId, teamId, eventType)
     }
 }
 
