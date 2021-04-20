@@ -53,6 +53,7 @@ class BotRepositoryImpl @Inject() (
           BotName(Refined.unsafeApply(bot.name)),
           workSpaces.map(at => WorkSpaceToken(Refined.unsafeApply(at))),
           postId.map(pid => PostId(Refined.unsafeApply(pid))),
+          Seq(),
           maybeClientInfo.flatMap(info =>
             info.clientId.map(id => BotClientId(Refined.unsafeApply(id)))
           ),
@@ -89,4 +90,6 @@ class BotRepositoryImpl @Inject() (
            "error while BotRepository.update(accessToken)"
          )
   } yield ()
+
+  override def join(joinedBot: Bot): Future[Unit] = ???
 }
