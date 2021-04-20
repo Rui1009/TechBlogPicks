@@ -1,6 +1,6 @@
 package infra.repositories
 
-import domains.workspace.WorkSpace.WorkSpaceToken
+import domains.workspace.WorkSpace.{WorkSpaceId, WorkSpaceToken}
 import play.api.mvc.Results.Ok
 import domains.bot.{Bot, BotRepository}
 import domains.bot.Bot.{BotClientId, BotClientSecret, BotId, BotName}
@@ -57,7 +57,8 @@ trait BotRepositoryImplSpecContext { this: HasDB =>
   val deleteAction =
     BotsPosts.delete >> Posts.delete >> WorkSpaces.delete >> BotClientInfo.delete
 
-  val paramBotId = BotId("bot1")
+  val paramBotId       = BotId("bot1")
+  val paramWorkSpaceId = WorkSpaceId("team1")
 
 }
 
@@ -109,6 +110,17 @@ class BotRepositoryImplSuccessSpec
         )
       )
       Action(Ok(res.noSpaces))
+
+    case ("POST", str: String)
+        if str.matches("https://slack.com/api/conversations.join") =>
+      val res = Json.fromJsonObject(
+        JsonObject(
+          "ok"      -> Json.fromBoolean(true),
+          "channel" -> Json
+            .fromJsonObject(JsonObject("id" -> Json.fromString("channnelID")))
+        )
+      )
+      Action(Ok(res.noSpaces))
   }
 
   override val app: Application =
@@ -151,6 +163,36 @@ class BotRepositoryImplSuccessSpec
 
   }
 
+  "find(botId, workSpaceId)" when {
+    "success" should {
+      "return right bot" in {
+        val result = repository.find(paramBotId, paramWorkSpaceId).futureValue
+
+        assert(
+          result === Some(
+            Bot(
+              paramBotId,
+              BotName("back_end"),
+              Seq(WorkSpaceToken("token1")),
+              Seq(),
+              Seq(),
+              None,
+              None
+            )
+          )
+        )
+      }
+    }
+
+    "target bot does not exist in returned value" should {
+      "return future successful none" in {
+        val result = repository.find(BotId("non exists bot id")).futureValue
+
+        assert(result === None)
+      }
+    }
+  }
+
   "update" when {
     "client info does not exist" should {
       "insert new record" in {
@@ -191,6 +233,17 @@ class BotRepositoryImplSuccessSpec
     }
   }
 
+  "join" when {
+    "success" should {
+      "return future unit" in {
+        forAll(joinedBotGen) { bot =>
+          val result: Unit = repository.join(bot).futureValue
+          assert(result === ())
+        }
+      }
+    }
+  }
+
 //  "update" when {
 //    "success" should {
 //      "delete target data".which {
@@ -225,6 +278,20 @@ class BotRepositoryImplFailSpec
         if str.matches("https://slack.com/api/users.info") =>
       Action(
         Ok(Json.obj("error" -> Json.fromString("user_not_found")).noSpaces)
+      )
+    case ("POST", str: String)
+        if str.matches("https://slack.com/api/conversations.join") =>
+      Action(
+        Ok(
+          Json
+            .fromJsonObject(
+              JsonObject(
+                "ok"    -> Json.fromBoolean(false),
+                "error" -> Json.fromString("channel_not_found")
+              )
+            )
+            .noSpaces
+        )
       )
   }
 
@@ -292,6 +359,26 @@ class BotRepositoryImplFailSpec
                       |ERROR: 重複したキー値は一意性制約"bot_client_info_client_secret_key"違反となります
                       |  詳細: キー (client_secret)=(clientSecret) はすでに存在します。
                       |""".stripMargin.trim
+
+          whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+        }
+      }
+    }
+  }
+
+  "join" when {
+    "fail in conversation dao" should {
+      "return fail & error msg" in {
+        forAll(joinedBotGen) { bot =>
+          val result = repository.join(bot)
+
+          val msg = """
+              |DBError
+              |error while BotRepository.join
+              |APIError
+              |error while converting conversation join api response
+              |Attempt to decode value on failed cursor: DownField(channel)
+              |""".stripMargin.trim
 
           whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
         }
