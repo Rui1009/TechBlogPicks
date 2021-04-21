@@ -1,8 +1,11 @@
 package domains.workspace
 
 import domains.EmptyStringError
+import domains.application.Application
 import domains.bot.Bot
-import domains.bot.Bot.BotId
+import domains.bot.Bot.{BotId, BotName}
+import domains.channel.Channel
+import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace._
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
@@ -11,17 +14,26 @@ import io.estatico.newtype.macros.newtype
 
 final case class WorkSpace(
   id: WorkSpaceId,
-  tokens: Seq[WorkSpaceToken],
   temporaryOauthCode: Option[WorkSpaceTemporaryOauthCode],
-  botIds: Seq[BotId]
+  bots: Seq[Bot],
+  channels: Seq[Channel]
 ) {
-  def installBot(bot: Bot): WorkSpace = this.copy(botIds = botIds :+ bot.id)
-
-  def uninstallBot(bot: Bot): WorkSpace = {
-    val nonTargetIds             = botIds.filter(id => id != bot.id)
-    val nonTargetWorkSpaceTokens = tokens.diff(bot.accessTokens)
-    this.copy(tokens = nonTargetWorkSpaceTokens, botIds = nonTargetIds)
+  def installApplication(application: Application): WorkSpace = {
+    val installedBot =
+      Bot(None, BotName(application.name.value), application.id, None, Seq())
+    this.copy(bots = bots :+ installedBot)
   }
+
+  def uninstallApplication(application: Application): WorkSpace =
+    this.copy(bots = bots.filter(_.applicationId != application.id))
+
+  def isChannelExists(channelId: ChannelId): Boolean =
+    this.channels.exists(_.id == channelId)
+
+  def addBot(bot: Bot): WorkSpace = this.copy(bots = bots :+ bot)
+
+  def addChannel(channel: Channel): WorkSpace =
+    this.copy(channels = channels :+ channel)
 }
 
 object WorkSpace {
@@ -31,15 +43,6 @@ object WorkSpace {
       refineV[NonEmpty](value) match {
         case Right(v) => Right(WorkSpaceId(v))
         case Left(_)  => Left(EmptyStringError("WorkSpaceId"))
-      }
-  }
-
-  @newtype case class WorkSpaceToken(value: String Refined NonEmpty)
-  object WorkSpaceToken {
-    def create(value: String): Either[EmptyStringError, WorkSpaceToken] =
-      refineV[NonEmpty](value) match {
-        case Right(v) => Right(WorkSpaceToken(v))
-        case Left(_)  => Left(EmptyStringError("Token"))
       }
   }
 

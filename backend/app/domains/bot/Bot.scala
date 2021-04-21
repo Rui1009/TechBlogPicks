@@ -1,36 +1,27 @@
 package domains.bot
 
 import domains.EmptyStringError
-import domains.workspace.WorkSpace.WorkSpaceToken
-import domains.bot.Bot.{
-  BotChannelId,
-  BotClientId,
-  BotClientSecret,
-  BotId,
-  BotName
-}
-import domains.post.Post.PostId
+import domains.application.Application.ApplicationId
+import domains.bot.Bot.{BotAccessToken, BotChannelId, BotId, BotName}
+import domains.channel.{Channel, Message}
+import domains.channel.Channel.ChannelId
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.refineV
 import io.estatico.newtype.macros.newtype
 
 final case class Bot(
-  id: BotId,
+  id: Option[BotId],
   name: BotName,
-  accessTokens: Seq[WorkSpaceToken],
-  posts: Seq[PostId],
-  channels: Seq[BotChannelId],
-  clientId: Option[BotClientId],
-  clientSecret: Option[BotClientSecret]
+  applicationId: ApplicationId,
+  accessToken: Option[BotAccessToken],
+  channelIds: Seq[ChannelId]
 ) {
-  def updateClientInfo(
-    clientId: Option[BotClientId],
-    clientSecret: Option[BotClientSecret]
-  ): Bot = this.copy(clientId = clientId, clientSecret = clientSecret)
+  def joinTo(channelId: ChannelId): Bot =
+    this.copy(channelIds = channelIds :+ channelId)
 
-  def joinTo(channelId: BotChannelId): Bot =
-    this.copy(channels = channels :+ channelId)
+  def postMessage(channel: Channel, message: Message): Channel =
+    channel.addMessage(message)
 }
 
 object Bot {
@@ -52,21 +43,12 @@ object Bot {
       }
   }
 
-  @newtype case class BotClientId(value: String Refined NonEmpty)
-  object BotClientId {
-    def create(value: String): Either[EmptyStringError, BotClientId] =
+  @newtype case class BotAccessToken(value: String Refined NonEmpty)
+  object BotAccessToken {
+    def create(value: String): Either[EmptyStringError, BotAccessToken] =
       refineV[NonEmpty](value) match {
-        case Left(_)  => Left(EmptyStringError("BotClientId"))
-        case Right(v) => Right(BotClientId(v))
-      }
-  }
-
-  @newtype case class BotClientSecret(value: String Refined NonEmpty)
-  object BotClientSecret {
-    def create(value: String): Either[EmptyStringError, BotClientSecret] =
-      refineV[NonEmpty](value) match {
-        case Left(_)  => Left(EmptyStringError("BotClientSecret"))
-        case Right(v) => Right(BotClientSecret(v))
+        case Right(v) => Right(BotAccessToken(v))
+        case Left(_)  => Left(EmptyStringError("BotAccessToken"))
       }
   }
 

@@ -1,8 +1,8 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.workspace.WorkSpace.{WorkSpaceId, WorkSpaceToken}
-import domains.bot.Bot.{BotClientId, BotClientSecret, BotId, BotName}
+import domains.workspace.WorkSpace.WorkSpaceId
+import domains.bot.Bot.{BotId, BotName}
 import domains.bot.{Bot, BotRepository}
 import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
