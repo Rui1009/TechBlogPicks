@@ -131,11 +131,13 @@ class BotRepositoryImpl @Inject() (
          )
   } yield ()
 
-  override def join(joinedBot: Bot): Future[Unit] = conversationDao
-    .join(
-      joinedBot.accessTokens.head.value.value,
-      joinedBot.channels.head.value.value
+  override def join(joinedBot: Bot): Future[Unit] = Future
+    .sequence(
+      joinedBot.channels.map(channel =>
+        conversationDao
+          .join(joinedBot.accessTokens.head.value.value, channel.value.value)
+      )
     )
     .ifFailedThenToInfraError("error while BotRepository.join")
-    .map(_ => ())
+    .map(_.map(_ => ()))
 }
