@@ -98,6 +98,13 @@ trait BotGen {
     clientSecret <- Gen.option(botClientSecretGen)
   } yield Bot(botId, botName, accessTokens, posts, channels, clientId, clientSecret)
 
+  val joinedBotGen: Gen[Bot] = for {
+    botId        <- botIdGen
+    botName      <- botNameGen
+    accessTokens <- Gen.nonEmptyListOf(domain.accessTokenGen)
+    channels     <- Gen.nonEmptyListOf(channelIdGen)
+  } yield Bot(botId, botName, accessTokens, Seq(), channels, None, None)
+
   val nonOptionBotGen: Gen[Bot] =
     botGen.suchThat(bot => bot.clientId.isDefined && bot.clientSecret.isDefined)
 }
