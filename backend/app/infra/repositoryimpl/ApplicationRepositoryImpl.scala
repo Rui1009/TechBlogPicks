@@ -7,14 +7,12 @@ import domains.application.Application.{
   ApplicationId,
   ApplicationName
 }
-import domains.application.{Application, ApplicationRepository}
-import domains.bot.Bot.BotName
-import domains.bot.{Bot, BotRepository}
-import domains.post.Post.PostId
+import domains.application.Post.{PostAuthor, PostPostedAt, PostTitle, PostUrl}
+import domains.application.{Application, ApplicationRepository, Post}
 import eu.timepit.refined.api.Refined
 import infra.dao.slack.{ConversationDao, UsersDao}
-import infra.dto.Tables
-import infra.dto.Tables.{BotClientInfo, BotsPosts, WorkSpaces}
+import infra.dto.Tables._
+import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.ws.WSClient
 import slick.jdbc.PostgresProfile.API
@@ -39,7 +37,10 @@ class ApplicationRepositoryImpl @Inject() (
       .map(_.token)
       .result
 
-    val postQ = BotsPosts.filter(_.botId === applicationId.value.value).result
+    val postQ = BotsPosts
+      .filter(_.botId === applicationId.value.value)
+      .flatMap(botpost => Posts.filter(_.id === botpost.id))
+      .result
 
     val clientInfoQ = BotClientInfo
       .findBy(_.botId)
@@ -73,8 +74,41 @@ class ApplicationRepositoryImpl @Inject() (
             info.clientSecret.map(secret =>
               ApplicationClientSecret(Refined.unsafeApply(secret))
             )
+          ),
+          post.map(pos =>
+            Post(
+              PostUrl(Refined.unsafeApply(pos.url)),
+              PostTitle(Refined.unsafeApply(pos.title)),
+              PostAuthor(Refined.unsafeApply(pos.author)),
+              PostPostedAt(Refined.unsafeApply(pos.postedAt))
+            )
           )
         )
+      )
+    }.ifFailedThenToInfraError(
+      "error while ApplicationRepository.find"
+    )).flatten
+  }
+
+  override def update(application: Application): Future[Unit] = {
+    val findQ   = BotClientInfo
+      .findBy(_.botId)
+      .apply(application.id.value.value)
+      .result
+      .headOption
+    val insertQ = BotClientInfo += application.toClientInfoRow
+    val updateQ = BotClientInfo.update(application.toClientInfoRow)
+
+    (for {
+      clientInfo <- db.run(findQ)
+    } yield clientInfo match {
+      case Some(_) => db.run(updateQ)
+      case None    => db.run(insertQ)
+    }).flatten
+      .map(_ => ())
+      .ifFailedThenToInfraError("error while ApplicationRepository.update")
+  }
+}
 //        Bot(
 //          botId,
 //          BotName(Refined.unsafeApply(bot.name)),
@@ -90,7 +124,3 @@ class ApplicationRepositoryImpl @Inject() (
 //            )
 //          )
 //        )
-      )
-    }.ifFailedThenToInfraError("error while BotRepository.find")).flatten
-  }
-}
