@@ -18,8 +18,13 @@ final case class Post(
   author: PostAuthor,
   postedAt: PostPostedAt
 ) {
-  def assign(application: Application): Application =
-    application.copy(posts = application.posts :+ this.url)
+  def assign(applications: Seq[Application]): Seq[Application] =
+    applications.map(app => app.copy(posts = app.posts :+ this.id))
+
+  def unassign(applications: Seq[Application]): Seq[Application] =
+    applications.map(app =>
+      app.copy(posts = app.posts.filter(id => id == this.id))
+    ) // syuusei
 }
 
 object Post {

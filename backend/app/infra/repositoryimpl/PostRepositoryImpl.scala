@@ -1,9 +1,9 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.bot.Bot.BotId
-import domains.post.Post.PostId
+import domains.post.Post.{PostAuthor, PostId, PostPostedAt, PostTitle, PostUrl}
 import domains.post.{Post, PostRepository}
+import eu.timepit.refined.api.Refined
 import infra.dto.Tables._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.PostgresProfile
@@ -17,19 +17,25 @@ class PostRepositoryImpl @Inject() (
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with PostRepository
     with API {
-  override def add(model: Post, botIds: Seq[BotId]): Future[Unit] = {
-    val nowUnix      = System.currentTimeMillis / 1000
-    val newPost      = model.toRow(nowUnix)
-    val postsInsertQ =
-      Posts.returning(Posts.map(_.id)).into((_, id) => id) += newPost
-    val query        = for {
-      postId <- postsInsertQ
-      news    = botIds.map(id => BotsPostsRow(0, id.value.value, postId))
-      _      <- BotsPosts ++= news
-    } yield ()
-
-    db.run(query.transactionally)
-  }.ifFailedThenToInfraError("error while PostRepository.add")
+  override def save(model: Post): Future[Post] = {
+    val nowUnix = System.currentTimeMillis / 1000
+    val newPost = model.toRow(nowUnix)
+    db.run {
+      Posts
+        .returning(
+          Posts.map(post => (post.id, post.url, post.title, post.author, post))
+        )
+        .into((_, id) => id) += newPost
+    }.map(post =>
+      Post(
+        Some(PostId(Refined.unsafeApply(post._1))),
+        PostUrl(Refined.unsafeApply(post._2)),
+        PostTitle(Refined.unsafeApply(post._3)),
+        PostAuthor(Refined.unsafeApply(post._4)),
+        PostPostedAt(Refined.unsafeApply(post._5))
+      )
+    ).ifFailedThenToInfraError("error while PostRepository.save")
+  }
 
   override def delete(ids: Seq[PostId]): Future[Unit] = db.run {
     DBIO

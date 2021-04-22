@@ -9,8 +9,12 @@ import domains.application.Application.{
 }
 import domains.application.Post.{PostAuthor, PostPostedAt, PostTitle, PostUrl}
 import domains.application.{Application, ApplicationRepository, Post}
+import domains.post.Post
+import domains.post.Post.{PostAuthor, PostId, PostPostedAt, PostTitle, PostUrl}
 import eu.timepit.refined.api.Refined
 import infra.dao.slack.{ConversationDao, UsersDao, UsersDaoImpl}
+import infra.dto
+import infra.dto.Tables
 import infra.dto.Tables._
 import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -31,15 +35,10 @@ class ApplicationRepositoryImpl @Inject() (
   override def find(
     applicationId: ApplicationId
   ): Future[Option[Application]] = {
-
-    val workSpaceQ = WorkSpaces
-      .filter(_.botId === applicationId.value.value)
-      .map(_.token)
-      .result
-
     val postQ = BotsPosts
       .filter(_.botId === applicationId.value.value)
       .flatMap(botpost => Posts.filter(_.id === botpost.id))
+      .map(_.id)
       .result
 
     val clientInfoQ = BotClientInfo
@@ -59,8 +58,7 @@ class ApplicationRepositoryImpl @Inject() (
         }
     } yield db.run {
       for {
-        workSpaces      <- workSpaceQ
-        post            <- postQ
+        postIds         <- postQ
         maybeClientInfo <- clientInfoQ
       } yield targetMember.map(app =>
         Application(
@@ -76,14 +74,7 @@ class ApplicationRepositoryImpl @Inject() (
               ApplicationClientSecret(Refined.unsafeApply(secret))
             )
           ),
-          post.map(pos =>
-            Post(
-              PostUrl(Refined.unsafeApply(pos.url)),
-              PostTitle(Refined.unsafeApply(pos.title)),
-              PostAuthor(Refined.unsafeApply(pos.author)),
-              PostPostedAt(Refined.unsafeApply(pos.postedAt))
-            )
-          )
+          postIds.map(id => PostId(Refined.unsafeApply(id)))
         )
       )
     }.ifFailedThenToInfraError(
@@ -94,35 +85,53 @@ class ApplicationRepositoryImpl @Inject() (
   override def filter(
     applicationIds: Seq[ApplicationId]
   ): Future[Seq[Application]] = {
-    
-    val workSpaceQ = WorkSpaces.filter(_.)
-    
-    
+
     val postQ = BotsPosts
       .filter(_.botId.inSet(applicationIds.map(_.value.value)))
       .flatMap(botpost => Posts.filter(_.id === botpost.id))
+      .map(_.id)
       .result
 
     val clientInfoQ = BotClientInfo
       .filter(_.botId.inSet(applicationIds.map(_.value.value)))
       .result
-      .headOption
 
-    for {
-      members                                <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-      targetMembers: Seq[UsersDaoImpl.Member] =
+    (for {
+      members      <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+      targetMembers =
         members.members.filter(member =>
           applicationIds.map(id => Some(id.value.value)).contains(member.botId)
         )
     } yield db.run {
       for {
-        post            <- postQ
+        postIds         <- postQ
         maybeClientInfo <- clientInfoQ
-      } yield targetMembers.map(member =>
+      } yield targetMembers.map(targetMember =>
         Application(
+          ApplicationId(Refined.unsafeApply(targetMember.botId)),
+          ApplicationName(
+            Refined.unsafeApply(
+              targetMembers
+                .find(member =>
+                  member.botId == Some(targetMember.botId.value.value)
+                )
+                .map(v => ApplicationName(Refined.unsafeApply(v.name)))
+            )
+          ),
+          maybeClientInfo
+            .find(info => targetMember.botId.value.value.contains(info.botId))
+            .map(v => ApplicationClientId(Refined.unsafeApply(v.clientId))),
+          maybeClientInfo
+            .find(info => targetMember.botId.value.value.contains(info.botId))
+            .map(v =>
+              ApplicationClientSecret(Refined.unsafeApply(v.clientSecret))
+            ),
+          postIds.map(id => PostId(Refined.unsafeApply(id)))
         )
       )
-    }
+    }.ifFailedThenToInfraError(
+      "error while ApplicationRepository.filter"
+    )).flatten
   }
 
   override def update(application: Application): Future[Unit] = {
