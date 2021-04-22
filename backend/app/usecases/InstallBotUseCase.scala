@@ -1,6 +1,8 @@
 package usecases
 
 import com.google.inject.Inject
+import domains.application.Application.ApplicationId
+import domains.application.ApplicationRepository
 import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
 import domains.workspace.WorkSpaceRepository
 import domains.bot.{Bot, BotRepository}
@@ -16,43 +18,45 @@ trait InstallBotUseCase {
 object InstallBotUseCase {
   final case class Params(
     temporaryOauthCode: WorkSpaceTemporaryOauthCode,
-    botId: BotId
+    applicationId: ApplicationId
   )
 }
 
 final class InstallBotUseCaseImpl @Inject() (
   workSpaceRepository: WorkSpaceRepository,
-  botRepository: BotRepository
+  applicationRepository: ApplicationRepository
 )(implicit val ec: ExecutionContext)
     extends InstallBotUseCase {
   override def exec(params: Params): Future[Unit] = for {
-    targetBot <- botRepository
-                   .find(params.botId)
-                   .ifNotExistsToUseCaseError(
-                     "error while botRepository.find in install bot use case"
-                   )
+    targetApplication <-
+      applicationRepository
+        .find(params.applicationId)
+        .ifNotExistsToUseCaseError(
+          "error while applicationRepository.find in install bot use case"
+        )
 
-    targetBotClientId     <-
-      targetBot.clientId.ifNotExistsToUseCaseError(
-        "error while get bot client id in install bot use case"
+    targetApplicationClientId <-
+      targetApplication.clientId.ifNotExistsToUseCaseError(
+        "error while get application client id in install bot use case"
       )
-    targetBotClientSecret <-
-      targetBot.clientSecret.ifNotExistsToUseCaseError(
-        "error while get bot client secret in install bot use case"
+
+    targetApplicationClientSecret <-
+      targetApplication.clientSecret.ifNotExistsToUseCaseError(
+        "error while get application client secret in install bot use case"
       )
 
     workSpace <-
       workSpaceRepository
         .find(
           params.temporaryOauthCode,
-          targetBotClientId,
-          targetBotClientSecret
+          targetApplicationClientId,
+          targetApplicationClientSecret
         )
         .ifNotExistsToUseCaseError(
           "error while workSpaceRepository.find in install bot use case"
         )
 
-    updatedWorkSpace = workSpace.installBot(targetBot)
+    updatedWorkSpace = workSpace.installApplication(targetApplication)
 
     _ <- workSpaceRepository
            .add(updatedWorkSpace)
