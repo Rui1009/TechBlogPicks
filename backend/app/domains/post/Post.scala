@@ -1,5 +1,7 @@
 package domains.post
 
+import domains.application.Application
+import domains.application.Application.ApplicationId
 import domains.{EmptyStringError, NegativeNumberError, RegexError}
 import domains.post.Post._
 import eu.timepit.refined.api.Refined
@@ -15,7 +17,10 @@ final case class Post(
   title: PostTitle,
   author: PostAuthor,
   postedAt: PostPostedAt
-)
+) {
+  def assign(application: Application): Application =
+    application.copy(posts = application.posts :+ this.url)
+}
 
 object Post {
   @newtype case class PostId(value: Long Refined Positive)
