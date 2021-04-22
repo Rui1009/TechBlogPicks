@@ -1,8 +1,7 @@
 package infra.syntax
 
-import domains.application.Application
+import domains.application.{Application, Post}
 import domains.bot.Bot
-import domains.post.Post
 import infra.dto.Tables._
 
 object domain extends DomainSyntax
@@ -15,7 +14,7 @@ trait DomainSyntax {
 
 final private[syntax] class PostOps(private val model: Post) extends AnyVal {
   def toRow(unixSec: Long): PostsRow = PostsRow(
-    model.id.map(_.value.value).getOrElse(0),
+    0,
     model.url.value.value,
     model.title.value.value,
     model.author.value.value,

@@ -10,7 +10,7 @@ import domains.application.Application.{
 import domains.application.Post.{PostAuthor, PostPostedAt, PostTitle, PostUrl}
 import domains.application.{Application, ApplicationRepository, Post}
 import eu.timepit.refined.api.Refined
-import infra.dao.slack.{ConversationDao, UsersDao}
+import infra.dao.slack.{ConversationDao, UsersDao, UsersDaoImpl}
 import infra.dto.Tables._
 import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -49,13 +49,14 @@ class ApplicationRepositoryImpl @Inject() (
       .headOption
 
     (for {
-      members      <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-      targetMember <- members.members.find(member =>
-                        member.botId == Some(applicationId.value.value)
-                      ) match {
-                        case Some(v) => Future.successful(Some(v))
-                        case None    => Future.successful(None)
-                      }
+      members                                   <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+      targetMember: Option[UsersDaoImpl.Member] <-
+        members.members.find(member =>
+          member.botId == Some(applicationId.value.value)
+        ) match {
+          case Some(v) => Future.successful(Some(v))
+          case None    => Future.successful(None)
+        }
     } yield db.run {
       for {
         workSpaces      <- workSpaceQ
@@ -90,6 +91,40 @@ class ApplicationRepositoryImpl @Inject() (
     )).flatten
   }
 
+  override def filter(
+    applicationIds: Seq[ApplicationId]
+  ): Future[Seq[Application]] = {
+    
+    val workSpaceQ = WorkSpaces.filter(_.)
+    
+    
+    val postQ = BotsPosts
+      .filter(_.botId.inSet(applicationIds.map(_.value.value)))
+      .flatMap(botpost => Posts.filter(_.id === botpost.id))
+      .result
+
+    val clientInfoQ = BotClientInfo
+      .filter(_.botId.inSet(applicationIds.map(_.value.value)))
+      .result
+      .headOption
+
+    for {
+      members                                <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+      targetMembers: Seq[UsersDaoImpl.Member] =
+        members.members.filter(member =>
+          applicationIds.map(id => Some(id.value.value)).contains(member.botId)
+        )
+    } yield db.run {
+      for {
+        post            <- postQ
+        maybeClientInfo <- clientInfoQ
+      } yield targetMembers.map(member =>
+        Application(
+        )
+      )
+    }
+  }
+
   override def update(application: Application): Future[Unit] = {
     val findQ   = BotClientInfo
       .findBy(_.botId)
@@ -108,6 +143,23 @@ class ApplicationRepositoryImpl @Inject() (
       .map(_ => ())
       .ifFailedThenToInfraError("error while ApplicationRepository.update")
   }
+
+  override def add(
+    post: Post,
+    applicationIds: Seq[ApplicationId]
+  ): Future[Unit] = {
+    val nowUnix      = System.currentTimeMillis / 1000
+    val newPost      = post.toRow(nowUnix)
+    val postsInsertQ =
+      Posts.returning(Posts.map(_.id)).into((_, id) => id) += newPost
+    val query        = for {
+      postId <- postsInsertQ
+      news    = applicationIds.map(id => BotsPostsRow(0, id.value.value, postId))
+      _      <- BotsPosts ++= news
+    } yield ()
+
+    db.run(query.transactionally)
+  }.ifFailedThenToInfraError("error while ApplicationRepository.add")
 }
 //        Bot(
 //          botId,
