@@ -21,10 +21,8 @@ final case class Post(
   def assign(applications: Seq[Application]): Seq[Application] =
     applications.map(app => app.copy(posts = app.posts :+ this.id))
 
-  def unassign(applications: Seq[Application]): Seq[Application] =
-    applications.map(app =>
-      app.copy(posts = app.posts.filter(id => id == this.id))
-    ) // syuusei
+  def unassign(applications: Seq[Application]): Seq[Application] = applications
+    .map(app => app.copy(posts = app.posts.filter(id => this.id.contains(id))))
 }
 
 object Post {
