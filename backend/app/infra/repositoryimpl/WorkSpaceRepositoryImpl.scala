@@ -1,6 +1,10 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
+import domains.application.Application.{
+  ApplicationClientId,
+  ApplicationClientSecret
+}
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import domains.bot.Bot._
@@ -29,8 +33,8 @@ class WorkSpaceRepositoryImpl @Inject() (
     with API with AccessTokenPublisherTokenDecoder {
   override def find(
     code: WorkSpaceTemporaryOauthCode,
-    clientId: BotClientId,
-    clientSecret: BotClientSecret
+    clientId: ApplicationClientId,
+    clientSecret: ApplicationClientSecret
   ): Future[Option[WorkSpace]] = {
     val oauthURL = "https://slack.com/api/oauth.v2.access"
 
@@ -45,13 +49,13 @@ class WorkSpaceRepositoryImpl @Inject() (
                 .ifFailedThenToInfraError(s"error while posting $oauthURL")
     } yield for {
       accessToken <-
-        decode[WorkSpaceToken](resp.json.toString()).ifLeftThenReturnNone
+        decode[BotAccessToken](resp.json.toString()).ifLeftThenReturnNone
     } yield for {
       info <- teamDao.info(accessToken.value.value)
     } yield WorkSpace(
       WorkSpaceId(Refined.unsafeApply(info.team.id)),
-      Seq(accessToken),
       Some(code),
+      Seq(),
       Seq()
     )).flatMap {
       case Some(v) => v.map(workSpace => Some(workSpace))
