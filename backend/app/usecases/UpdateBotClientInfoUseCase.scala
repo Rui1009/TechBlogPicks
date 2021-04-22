@@ -1,8 +1,12 @@
 package usecases
 
 import com.google.inject.Inject
-import domains.bot.Bot._
-import domains.bot.BotRepository
+import domains.application.Application.{
+  ApplicationClientId,
+  ApplicationClientSecret,
+  ApplicationId
+}
+import domains.application.ApplicationRepository
 import usecases.UpdateBotClientInfoUseCase._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,32 +17,33 @@ trait UpdateBotClientInfoUseCase {
 
 object UpdateBotClientInfoUseCase {
   final case class Params(
-    botId: BotId,
-    botClientId: Option[BotClientId],
-    botClientSecret: Option[BotClientSecret]
+    applicationId: ApplicationId,
+    applicationClientId: Option[ApplicationClientId],
+    applicationClientSecret: Option[ApplicationClientSecret]
   )
 }
 
 final class UpdateBotClientInfoUseCaseImpl @Inject() (
-  botRepository: BotRepository
+  applicationRepository: ApplicationRepository
 )(implicit val ec: ExecutionContext)
     extends UpdateBotClientInfoUseCase {
   override def exec(params: Params): Future[Unit] = for {
-    bot <-
-      botRepository
-        .find(params.botId)
+    application <-
+      applicationRepository
+        .find(params.applicationId)
         .ifNotExistsToUseCaseError(
-          "error while botRepository.find in update bot client info use case"
+          "error while applicationRepository.find in update bot client info use case"
         )
 
-    updatedBot =
-      bot.updateClientInfo(params.botClientId, params.botClientSecret)
+    updatedApplication = application.updateClientInfo(
+                           params.applicationClientId,
+                           params.applicationClientSecret
+                         )
 
-    _ <-
-      botRepository
-        .update(updatedBot)
-        .ifFailThenToUseCaseError(
-          "error while botRepository.update in update bot client info use case"
-        )
+    _ <- applicationRepository
+           .update(updatedApplication)
+           .ifFailThenToUseCaseError(
+             "error while applicationRepository.update in update bot client info use case"
+           )
   } yield ()
 }
