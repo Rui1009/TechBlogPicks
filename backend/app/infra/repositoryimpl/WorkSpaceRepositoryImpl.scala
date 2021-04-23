@@ -1,7 +1,12 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.application.Application.{ApplicationClientId, ApplicationClientSecret, ApplicationId}
+import domains.application.Application.{
+  ApplicationClientId,
+  ApplicationClientSecret,
+  ApplicationId
+}
+import cats.implicits._
 import domains.bot.Bot
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
@@ -27,7 +32,7 @@ class WorkSpaceRepositoryImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
   protected val ws: WSClient,
   protected val teamDao: TeamDao,
-  protected val usersDao: UsersDao,
+  protected val usersDao: UsersDao
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with WorkSpaceRepository
     with API with AccessTokenPublisherTokenDecoder {
@@ -63,30 +68,52 @@ class WorkSpaceRepositoryImpl @Inject() (
     }
   }
 
-  override def find(id: WorkSpaceId): Future[Option[WorkSpace]] =
-    for {
-      responses <- usersDao
-                     .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-                     .map(_.members.filter(_.isBot))
-      rows      <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
-      conversationRes <- Future.sequence(rows.map(a =>usersDao.conversations(a.token)))
-      channelIds = conversationRes.flatMap(_.channels.map(channel => ChannelId(Refined.unsafeApply(channel.id))))
-      bots       = responses.flatMap { res =>
-                     val token = rows
-                       .find(_.botId == res.id)
-                       .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
-                      res.apiAppId.map(appId =>Bot(
-                        Some(BotId(Refined.unsafeApply(res.id))),
-                        BotName(Refined.unsafeApply(res.name)),
-                        ApplicationId(Refined.unsafeApply(appId)),
-                        token,
-                        channelIds
-                      )).toSeq
-                   }
-      channels = channelIds.map(id => Channel(id, Seq.empty))
-    } yield
-      if (rows.isEmpty) None
-      else Some(WorkSpace(id, None, bots, channels))
+  override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = for {
+    rows       <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
+    responses  <- findBotUser(rows.map(_.botId))
+    channelIds <- findChannelIds(rows)
+
+    channels = channelIds.flatMap { case (ids, _) =>
+                 ids.map(i => Channel(i, Seq.empty))
+               }
+
+    bots = responses.flatMap { res =>
+             val token             = rows
+               .find(_.botId == res.id)
+               .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
+             val joinedChannelsIds =
+               channelIds.filter(_._2 === res.id).flatMap(_._1)
+             res.apiAppId
+               .map(appId =>
+                 Bot(
+                   Some(BotId(Refined.unsafeApply(res.id))),
+                   BotName(Refined.unsafeApply(res.name)),
+                   ApplicationId(Refined.unsafeApply(appId)),
+                   token,
+                   joinedChannelsIds
+                 )
+               )
+               .toSeq
+           }
+  } yield if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels))
+
+  private type ChannelIdsAndBotId = Seq[(Seq[ChannelId], String)]
+
+  private def findBotUser(botIds: Seq[String]) = usersDao
+    .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+    .map(_.members.filter(m => m.isBot && Set(m.id).subsetOf(botIds.toSet)))
+
+  private def findChannelIds(
+    rows: Seq[WorkSpacesRow]
+  ): Future[ChannelIdsAndBotId] = Future.sequence(
+    rows.map(a =>
+      usersDao
+        .conversations(a.token)
+        .map(r =>
+          (r.channels.map(c => ChannelId(Refined.unsafeApply(c))), a.botId)
+        )
+    )
+  )
 
 //  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
 //    for {
@@ -134,5 +161,6 @@ class WorkSpaceRepositoryImpl @Inject() (
 
   override def update(model: WorkSpace): Future[Unit] = ???
 
-  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] = ???
+  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
+    ???
 }

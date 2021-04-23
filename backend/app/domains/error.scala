@@ -1,6 +1,6 @@
 package domains
 
-sealed trait DomainError {
+sealed trait DomainError extends Throwable {
   val content: String
   val errorMessage: String = s"""${this.getClass.getName}: $content
        |""".stripMargin

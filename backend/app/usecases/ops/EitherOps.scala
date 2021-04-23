@@ -1,18 +1,18 @@
 package usecases.ops
 
+import domains.DomainError
+import usecases.NotFoundError
+
 import scala.concurrent.Future
 
-trait EitherSyntax {
-  implicit final def infraSyntaxEither[S <: Throwable, T](
-    either: Either[S, T]
-  ): EitherOps[S, T] = new EitherOps[S, T](either)
-}
-
-final private[ops] class EitherOps[S <: Throwable, T](
-  private val either: Either[S, T]
-) extends AnyVal {
-  def ifLeftThenToUseCaseError: Future[T] = either match {
-    case Left(e)  => Future.failed(e)
-    case Right(v) => Future.successful(v)
+trait EitherOps {
+  implicit final class EitherOps[S <: DomainError, T](
+    private val either: Either[S, T]
+  ) {
+    def ifLeftThenToUseCaseError(message: String): Future[T] = either match {
+      case Left(e)  =>
+        Future.failed(NotFoundError(message + "\n" + e.errorMessage))
+      case Right(v) => Future.successful(v)
+    }
   }
 }
