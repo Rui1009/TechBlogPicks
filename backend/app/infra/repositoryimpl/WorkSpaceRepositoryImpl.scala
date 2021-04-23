@@ -147,19 +147,17 @@ class WorkSpaceRepositoryImpl @Inject() (
 //      .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
 //  }
 //
-//  override def update(model: WorkSpace): Future[Unit] = db
-//    .run(
-//      WorkSpaces
-//        .filter(_.teamId === model.id.value.value)
-//        .filter(!_.botId.inSet(model.botIds.map(_.value.value)))
-//        .delete
-//    )
-//    .map(_ => ())
-//    .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
+  override def update(model: WorkSpace): Future[Unit] = db
+    .run(
+      WorkSpaces
+        .filter(_.teamId === model.id.value.value)
+        .filter(!_.botId.inSet(model.bots.map(_.applicationId.value.value)))
+        .delete
+    )
+    .map(_ => ())
+    .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
 
   override def add(model: WorkSpace): Future[Unit] = ???
-
-  override def update(model: WorkSpace): Future[Unit] = ???
 
   override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
     ???
