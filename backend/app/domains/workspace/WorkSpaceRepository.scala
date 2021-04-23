@@ -19,5 +19,4 @@ trait WorkSpaceRepository {
   def add(model: WorkSpace): Future[Unit]
   def update(model: WorkSpace): Future[Unit]
   def find(id: WorkSpaceId): Future[Option[WorkSpace]]
-  def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]]
 }

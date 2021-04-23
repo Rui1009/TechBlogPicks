@@ -1,7 +1,5 @@
 package infra.syntax
 
-import scala.concurrent.Future
-
 object either extends InfraSyntax
 
 trait InfraSyntax {

@@ -50,21 +50,26 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
 }
 
 object UsersDaoImpl {
-  case class ConversationResponse(channels: Seq[Channels])
+  final case class ConversationResponse(channels: Seq[Channels])
   object ConversationResponse {
     def empty: ConversationResponse = ConversationResponse(Seq.empty)
   }
-  case class Channels(id: String)
 
-  case class ListResponse(members: Seq[Member])
+  final case class Channels(id: String)
 
-  case class Member(
+  final case class ListResponse(members: Seq[Member])
+
+  final case class Member(
     id: String,
     name: String,
     isBot: Boolean,
     deleted: Boolean,
-    botId: Option[String]
+    apiAppId: Option[String],
+    profile: Profile
   )
+
+  final case class Profile(apiAppId: String)
+
   implicit val membersEncoder: Decoder[Member] = Decoder.instance { cursor =>
     for {
       id      <- cursor.downField("id").as[String]

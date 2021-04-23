@@ -99,7 +99,7 @@ class BotRepositoryImplSuccessSpec
                   "name"    -> Json.fromString(m.name),
                   "deleted" -> Json.fromBoolean(m.deleted),
                   "is_bot"  -> Json.fromBoolean(m.isBot),
-                  m.botId match {
+                  m.apiAppId match {
                     case Some(v) =>
                       "profile" -> Json.obj("api_app_id" -> Json.fromString(v))
                     case None    => "profile" -> Json.obj()

@@ -1,5 +1,6 @@
 package usecases.ops
 
+import domains.DomainError
 import usecases.{NotFoundError, SystemError}
 
 import scala.concurrent.{ExecutionContext, Future}

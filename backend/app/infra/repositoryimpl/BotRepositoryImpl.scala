@@ -40,7 +40,7 @@ class BotRepositoryImpl @Inject() (
     (for {
       members      <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
       targetMember <- members.members.find(member =>
-                        member.botId == Some(botId.value.value)
+                        member.apiAppId == Some(botId.value.value)
                       ) match {
                         case Some(v) => Future.successful(Some(v))
                         case None    => Future.successful(None)
@@ -85,7 +85,7 @@ class BotRepositoryImpl @Inject() (
     (for {
       members      <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
       targetMember <- members.members.find(member =>
-                        member.botId == Some(botId.value.value)
+                        member.apiAppId == Some(botId.value.value)
                       ) match {
                         case Some(v) => Future.successful(Some(v))
                         case None    => Future.successful(None)

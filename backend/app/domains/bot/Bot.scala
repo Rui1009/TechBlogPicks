@@ -2,7 +2,7 @@ package domains.bot
 
 import domains.EmptyStringError
 import domains.application.Application.ApplicationId
-import domains.bot.Bot.{BotAccessToken, BotChannelId, BotId, BotName}
+import domains.bot.Bot.{BotAccessToken, BotId, BotName}
 import domains.channel.{Channel, Message}
 import domains.channel.Channel.ChannelId
 import eu.timepit.refined.api.Refined
@@ -49,15 +49,6 @@ object Bot {
       refineV[NonEmpty](value) match {
         case Right(v) => Right(BotAccessToken(v))
         case Left(_)  => Left(EmptyStringError("BotAccessToken"))
-      }
-  }
-
-  @newtype case class BotChannelId(value: String Refined NonEmpty)
-  object BotChannelId {
-    def create(value: String): Either[EmptyStringError, BotChannelId] =
-      refineV[NonEmpty](value) match {
-        case Left(_)  => Left(EmptyStringError("BotChannelId"))
-        case Right(v) => Right(BotChannelId(v))
       }
   }
 }
