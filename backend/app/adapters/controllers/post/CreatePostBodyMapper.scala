@@ -4,10 +4,9 @@ import adapters.controllers.helpers.JsonRequestMapper
 import adapters.{AdapterError, BadRequestError}
 import cats.implicits._
 import domains.DomainError
-import domains.bot.Bot.BotId
+import domains.application.Application.ApplicationId
 import domains.post.Post._
 import play.api.mvc.{BaseController, BodyParser}
-import io.circe.generic.auto._
 
 import scala.concurrent.ExecutionContext
 
@@ -16,7 +15,7 @@ final case class CreatePostBody(
   title: String,
   author: String,
   postedAt: Long,
-  botIds: Seq[String]
+  applicationIds: Seq[String]
 )
 
 final case class CreatePostCommand(
@@ -24,7 +23,7 @@ final case class CreatePostCommand(
   title: PostTitle,
   author: PostAuthor,
   postedAt: PostPostedAt,
-  botIds: Seq[BotId]
+  applicationIds: Seq[ApplicationId]
 )
 
 trait PostCreateBodyMapper extends JsonRequestMapper {
@@ -38,7 +37,7 @@ trait PostCreateBodyMapper extends JsonRequestMapper {
         PostTitle.create(body.title).toValidatedNec,
         PostAuthor.create(body.author).toValidatedNec,
         PostPostedAt.create(body.postedAt).toValidatedNec,
-        body.botIds.map(BotId.create(_).toValidatedNec).sequence
+        body.applicationIds.map(ApplicationId.create(_).toValidatedNec).sequence
       ).mapN(CreatePostCommand.apply)
         .toEither
         .leftMap(errors =>

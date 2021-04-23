@@ -7,15 +7,15 @@ import domains.application.Application.{
   ApplicationId
 }
 import domains.application.ApplicationRepository
-import usecases.UpdateBotClientInfoUseCase._
+import usecases.UpdateApplicationClientInfoUseCase._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait UpdateBotClientInfoUseCase {
+trait UpdateApplicationClientInfoUseCase {
   def exec(params: Params): Future[Unit]
 }
 
-object UpdateBotClientInfoUseCase {
+object UpdateApplicationClientInfoUseCase {
   final case class Params(
     applicationId: ApplicationId,
     applicationClientId: Option[ApplicationClientId],
@@ -23,10 +23,10 @@ object UpdateBotClientInfoUseCase {
   )
 }
 
-final class UpdateBotClientInfoUseCaseImpl @Inject() (
+final class UpdateApplicationClientInfoUseCaseImpl @Inject() (
   applicationRepository: ApplicationRepository
 )(implicit val ec: ExecutionContext)
-    extends UpdateBotClientInfoUseCase {
+    extends UpdateApplicationClientInfoUseCase {
   override def exec(params: Params): Future[Unit] = for {
     application <-
       applicationRepository

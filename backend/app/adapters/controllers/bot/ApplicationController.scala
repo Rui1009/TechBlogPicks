@@ -7,6 +7,7 @@ import cats.data.ValidatedNel
 import cats.implicits.catsSyntaxEither
 import cats.syntax.apply._
 import com.google.inject.Inject
+import domains.application.Application.ApplicationId
 import domains.bot.Bot.BotId
 import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
 import domains.{DomainError, EmptyStringError}
@@ -20,31 +21,31 @@ import play.api.mvc.{
   Result
 }
 import query.bots.BotsQueryProcessor
-import usecases.InstallBotUseCase.Params
-import usecases.{InstallBotUseCase, UpdateBotClientInfoUseCase}
+import usecases.InstallApplicationUseCase.Params
+import usecases.{InstallApplicationUseCase, UpdateApplicationClientInfoUseCase}
 
 import scala.util.{Failure, Success}
 import scala.concurrent.{ExecutionContext, Future}
 
-class BotController @Inject() (
+class ApplicationController @Inject() (
   val controllerComponents: ControllerComponents,
-  installBotUseCase: InstallBotUseCase,
+  installBotUseCase: InstallApplicationUseCase,
   botsQueryProcessor: BotsQueryProcessor,
-  updateBotClientInfoUseCase: UpdateBotClientInfoUseCase
+  updateBotClientInfoUseCase: UpdateApplicationClientInfoUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with FutureSyntax
-    with UpdateClientInfoBodyMapper with UninstallBotBodyMapper {
+    with UpdateClientInfoBodyMapper with UninstallApplicationBodyMapper {
 
   private lazy val logger = Logger(this.getClass)
 
-  def install(code: String, bot_id: String): Action[AnyContent] =
+  def install(code: String, application_id: String): Action[AnyContent] =
     Action.async { implicit request =>
       val tempOauthCode
-        : ValidatedNel[EmptyStringError, WorkSpaceTemporaryOauthCode] =
+        : ValidatedNel[EmptyStringError, WorkSpaceTemporaryOauthCode]  =
         WorkSpaceTemporaryOauthCode.create(code).toValidatedNel
-      val botId: ValidatedNel[EmptyStringError, BotId]                =
-        BotId.create(bot_id).toValidatedNel
-      (tempOauthCode, botId)
+      val applicationId: ValidatedNel[EmptyStringError, ApplicationId] =
+        ApplicationId.create(application_id).toValidatedNel
+      (tempOauthCode, applicationId)
         .mapN((_, _))
         .toEither
         .leftMap(errors =>
@@ -80,19 +81,19 @@ class BotController @Inject() (
     id: String
   ): Action[Either[AdapterError, UpdateClientInfoCommand]] =
     Action.async(mapToUpdateClientInfoCommand) { implicit request =>
-      BotId
+      ApplicationId
         .create(id)
         .fold(
           e =>
             Future.successful(responseError(BadRequestError(e.errorMessage))),
-          botId =>
+          applicationId =>
             request.body.fold(
               e => Future.successful(responseError(e)),
               body =>
                 updateBotClientInfoUseCase
                   .exec(
-                    UpdateBotClientInfoUseCase
-                      .Params(botId, body.clientId, body.clientSecret)
+                    UpdateApplicationClientInfoUseCase
+                      .Params(applicationId, body.clientId, body.clientSecret)
                   )
                   .ifFailedThenToAdapterError("error in BotController.update")
                   .toSuccessPostResponse

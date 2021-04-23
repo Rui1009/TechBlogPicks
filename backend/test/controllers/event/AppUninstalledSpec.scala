@@ -3,18 +3,18 @@ package controllers.event
 import helpers.traits.ControllerSpec
 import io.circe.{Json, JsonObject}
 import play.api.inject.bind
-import usecases.{SystemError, UninstallBotUseCase}
+import usecases.{SystemError, UninstallApplicationUseCase}
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
 trait AppUninstalledSpecContext { this: ControllerSpec =>
-  val uc = mock[UninstallBotUseCase]
+  val uc = mock[UninstallApplicationUseCase]
 
   val path = "/events"
 
   override val app =
-    builder.overrides(bind[UninstallBotUseCase].toInstance(uc)).build()
+    builder.overrides(bind[UninstallApplicationUseCase].toInstance(uc)).build()
 }
 
 class AppUninstalledSpec extends ControllerSpec with AppUninstalledSpecContext {

@@ -6,11 +6,11 @@ import domains.workspace.WorkSpaceRepository
 import eu.timepit.refined.auto._
 import helpers.traits.UseCaseSpec
 import infra.DBError
-import usecases.InstallBotUseCase._
+import usecases.InstallApplicationUseCase._
 
 import scala.concurrent.Future
 
-class InstallBotUseCaseSpec extends UseCaseSpec {
+class InstallApplicationUseCaseSpec extends UseCaseSpec {
   "exec" when {
     val workSpaceRepo = mock[WorkSpaceRepository]
     val botRepo       = mock[BotRepository]
@@ -37,7 +37,7 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           when(workSpaceRepo.add(workSpace.installBot(bot)))
             .thenReturn(Future.unit)
 
-          new InstallBotUseCaseImpl(workSpaceRepo, botRepo)
+          new InstallApplicationUseCaseImpl(workSpaceRepo, botRepo)
             .exec(params)
             .futureValue
 
@@ -67,8 +67,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
 
           when(botRepo.find(params.botId)).thenReturn(Future.successful(None))
 
-          val result =
-            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
+          val result = new InstallApplicationUseCaseImpl(workSpaceRepo, botRepo)
+            .exec(params)
 
           whenReady(result.failed) { e =>
             assert(
@@ -98,8 +98,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
             )
           )
 
-          val result =
-            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
+          val result = new InstallApplicationUseCaseImpl(workSpaceRepo, botRepo)
+            .exec(params)
 
           whenReady(result.failed) { e =>
             assert(
@@ -123,8 +123,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
             )
           )
 
-          val result =
-            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
+          val result = new InstallApplicationUseCaseImpl(workSpaceRepo, botRepo)
+            .exec(params)
 
           whenReady(result.failed) { e =>
             assert(
@@ -158,8 +158,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
             )
           ).thenReturn(Future.successful(None))
 
-          val result =
-            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
+          val result = new InstallApplicationUseCaseImpl(workSpaceRepo, botRepo)
+            .exec(params)
 
           whenReady(result.failed) { e =>
             assert(
@@ -196,8 +196,8 @@ class InstallBotUseCaseSpec extends UseCaseSpec {
           when(workSpaceRepo.add(workSpace.installBot(bot)))
             .thenReturn(Future.failed(DBError("error")))
 
-          val result =
-            new InstallBotUseCaseImpl(workSpaceRepo, botRepo).exec(params)
+          val result = new InstallApplicationUseCaseImpl(workSpaceRepo, botRepo)
+            .exec(params)
 
           whenReady(result.failed) { e =>
             assert(

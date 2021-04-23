@@ -4,11 +4,11 @@ import domains.bot.BotRepository
 import domains.workspace.WorkSpaceRepository
 import helpers.traits.UseCaseSpec
 import infra.DBError
-import usecases.UninstallBotUseCase.Params
+import usecases.UninstallApplicationUseCase.Params
 
 import scala.concurrent.Future
 
-class UninstallBotUseCaseSpec extends UseCaseSpec {
+class UninstallApplicationUseCaseSpec extends UseCaseSpec {
   "exec" when {
     val botRepo       = mock[BotRepository]
     val workSpaceRepo = mock[WorkSpaceRepository]
@@ -24,7 +24,7 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
             .thenReturn(Future.successful(Some(workSpace)))
           when(workSpaceRepo.update(workSpace)).thenReturn(Future.unit)
 
-          new UninstallBotUseCaseImpl(botRepo, workSpaceRepo)
+          new UninstallApplicationUseCaseImpl(botRepo, workSpaceRepo)
             .exec(params)
             .futureValue
 
@@ -44,7 +44,8 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
           when(botRepo.find(params.botId)).thenReturn(Future.successful(None))
 
           val result =
-            new UninstallBotUseCaseImpl(botRepo, workSpaceRepo).exec(params)
+            new UninstallApplicationUseCaseImpl(botRepo, workSpaceRepo)
+              .exec(params)
 
           whenReady(result.failed) { e =>
             assert(
@@ -69,9 +70,10 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(None))
 
-          val result: Unit = new UninstallBotUseCaseImpl(botRepo, workSpaceRepo)
-            .exec(params)
-            .futureValue
+          val result: Unit = new UninstallApplicationUseCaseImpl(
+            botRepo,
+            workSpaceRepo
+          ).exec(params).futureValue
 
           assert(result === ())
 
@@ -92,7 +94,8 @@ class UninstallBotUseCaseSpec extends UseCaseSpec {
             .thenReturn(Future.failed(DBError("error")))
 
           val result =
-            new UninstallBotUseCaseImpl(botRepo, workSpaceRepo).exec(params)
+            new UninstallApplicationUseCaseImpl(botRepo, workSpaceRepo)
+              .exec(params)
 
           whenReady(result.failed) { e =>
             e === SystemError(

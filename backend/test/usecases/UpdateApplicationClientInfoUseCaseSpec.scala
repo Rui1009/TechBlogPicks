@@ -4,11 +4,11 @@ import domains.bot.BotRepository
 import helpers.traits.UseCaseSpec
 import infra.DBError
 import org.scalacheck.Gen
-import usecases.UpdateBotClientInfoUseCase._
+import usecases.UpdateApplicationClientInfoUseCase._
 
 import scala.concurrent.Future
 
-class UpdateBotClientInfoUseCaseSpec extends UseCaseSpec {
+class UpdateApplicationClientInfoUseCaseSpec extends UseCaseSpec {
   val repo = mock[BotRepository]
 
   "exec" when {
@@ -25,7 +25,9 @@ class UpdateBotClientInfoUseCaseSpec extends UseCaseSpec {
           when(repo.find(model.id)).thenReturn(Future.successful(Some(model)))
           when(repo.update(updated)).thenReturn(Future.unit)
 
-          new UpdateBotClientInfoUseCaseImpl(repo).exec(params).futureValue
+          new UpdateApplicationClientInfoUseCaseImpl(repo)
+            .exec(params)
+            .futureValue
 
           verify(repo).find(model.id)
           verify(repo).update(updated)
@@ -47,7 +49,8 @@ class UpdateBotClientInfoUseCaseSpec extends UseCaseSpec {
 
           when(repo.find(model.id)).thenReturn(Future.successful(None))
 
-          val result = new UpdateBotClientInfoUseCaseImpl(repo).exec(params)
+          val result =
+            new UpdateApplicationClientInfoUseCaseImpl(repo).exec(params)
 
           val msg = """
               |SystemError
@@ -84,7 +87,8 @@ class UpdateBotClientInfoUseCaseSpec extends UseCaseSpec {
           when(repo.find(model.id)).thenReturn(Future.successful(Some(model)))
           when(repo.update(updated)).thenReturn(Future.failed(DBError("error")))
 
-          val result = new UpdateBotClientInfoUseCaseImpl(repo).exec(params)
+          val result =
+            new UpdateApplicationClientInfoUseCaseImpl(repo).exec(params)
 
           val msg = """
               |SystemError

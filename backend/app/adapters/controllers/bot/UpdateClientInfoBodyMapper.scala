@@ -2,11 +2,14 @@ package adapters.controllers.bot
 
 import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonRequestMapper
-import domains.bot.Bot._
 import play.api.mvc.{BaseController, BodyParser}
 import io.circe.generic.auto._
 import cats.implicits._
 import domains.DomainError
+import domains.application.Application.{
+  ApplicationClientId,
+  ApplicationClientSecret
+}
 
 import scala.concurrent.ExecutionContext
 
@@ -16,8 +19,8 @@ final case class UpdateClientInfoBody(
 )
 
 final case class UpdateClientInfoCommand(
-  clientId: Option[BotClientId],
-  clientSecret: Option[BotClientSecret]
+  clientId: Option[ApplicationClientId],
+  clientSecret: Option[ApplicationClientSecret]
 )
 
 trait UpdateClientInfoBodyMapper extends JsonRequestMapper {
@@ -27,9 +30,11 @@ trait UpdateClientInfoBodyMapper extends JsonRequestMapper {
   ): BodyParser[Either[AdapterError, UpdateClientInfoCommand]] =
     mapToValueObject[UpdateClientInfoBody, UpdateClientInfoCommand] { body =>
       (
-        body.clientId.traverse(id => BotClientId.create(id).toValidatedNec),
+        body.clientId.traverse(id =>
+          ApplicationClientId.create(id).toValidatedNec
+        ),
         body.clientSecret.traverse(secret =>
-          BotClientSecret.create(secret).toValidatedNec
+          ApplicationClientSecret.create(secret).toValidatedNec
         )
       ).mapN(UpdateClientInfoCommand.apply)
         .toEither

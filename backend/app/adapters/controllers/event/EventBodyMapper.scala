@@ -12,6 +12,7 @@ import play.api.mvc.{BaseController, BodyParser}
 import adapters.controllers.event.AppUninstalledEventBody._
 import adapters.controllers.event.AppHomeOpenedEventBody._
 import adapters.controllers.event.EventBody._
+import domains.application.Application.ApplicationId
 import domains.message.Message.{MessageChannelId, MessageUserId}
 
 import scala.concurrent.ExecutionContext
@@ -47,14 +48,14 @@ object AppUninstalledEventBody {
 
 final case class AppUninstalledEventCommand(
   workSpaceId: WorkSpaceId,
-  botId: BotId
+  applicationId: ApplicationId
 ) extends EventCommand
 object AppUninstalledEventCommand {
   def validate(
     body: AppUninstalledEventBody
   ): Either[BadRequestError, EventCommand] = (
     WorkSpaceId.create(body.teamId).toValidatedNec,
-    BotId.create(body.apiAppId).toValidatedNec
+    ApplicationId.create(body.apiAppId).toValidatedNec
   ).mapN(AppUninstalledEventCommand.apply)
     .toEither
     .leftMap(errors =>

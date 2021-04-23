@@ -4,23 +4,23 @@ import helpers.traits.ControllerSpec
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.inject._
 import play.api.test.Helpers._
-import usecases.{InstallBotUseCase, SystemError}
+import usecases.{InstallApplicationUseCase, SystemError}
 
 import scala.concurrent.Future
 
 trait BotControllerInstallSpecContent {
   this: ControllerSpec =>
 
-  val uc = mock[InstallBotUseCase]
+  val uc = mock[InstallApplicationUseCase]
 
   override val app =
-    builder.overrides(bind[InstallBotUseCase].toInstance(uc)).build()
+    builder.overrides(bind[InstallApplicationUseCase].toInstance(uc)).build()
 
   val failedError =
     internalServerError + "error in BotController.install\nSystemError\nerror"
 }
 
-class BotControllerInstallSpec
+class ApplicationControllerInstallSpec
     extends ControllerSpec with BotControllerInstallSpecContent {
   "install" when {
     "given body which is valid, ".which {

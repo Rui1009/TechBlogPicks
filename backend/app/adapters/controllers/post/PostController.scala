@@ -37,7 +37,7 @@ class PostController @Inject() (
                 body.title,
                 body.author,
                 body.postedAt,
-                body.botIds
+                body.applicationIds
               )
             )
             .ifFailedThenToAdapterError("error in PostController.create")
