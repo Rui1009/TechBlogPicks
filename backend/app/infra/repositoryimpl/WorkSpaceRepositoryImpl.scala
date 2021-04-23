@@ -1,33 +1,33 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.application.Application.{
-  ApplicationClientId,
-  ApplicationClientSecret
-}
+import domains.application.Application.{ApplicationClientId, ApplicationClientSecret, ApplicationId}
+import domains.bot.Bot
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import domains.bot.Bot._
+import domains.channel.Channel
+import domains.channel.Channel.ChannelId
 import eu.timepit.refined.api.Refined
-import infra.dao.slack.TeamDao
+import infra.dao.slack.{TeamDao, UsersDao}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.ws._
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
 import infra.format.AccessTokenPublisherTokenDecoder
 import io.circe.parser._
+import io.circe.generic.auto._
 import infra.syntax.all._
 import infra.dto.Tables._
 import io.circe.Json
-import eu.timepit.refined.auto._
-import infra.dto.Tables
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class WorkSpaceRepositoryImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
   protected val ws: WSClient,
-  protected val teamDao: TeamDao
+  protected val teamDao: TeamDao,
+  protected val usersDao: UsersDao,
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with WorkSpaceRepository
     with API with AccessTokenPublisherTokenDecoder {
@@ -65,57 +65,74 @@ class WorkSpaceRepositoryImpl @Inject() (
 
   override def find(id: WorkSpaceId): Future[Option[WorkSpace]] =
     for {
-      rows <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
+      responses <- usersDao
+                     .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+                     .map(_.members.filter(_.isBot))
+      rows      <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
+      conversationRes <- Future.sequence(rows.map(a =>usersDao.conversations(a.token)))
+      channelIds = conversationRes.flatMap(_.channels.map(channel => ChannelId(Refined.unsafeApply(channel.id))))
+      bots       = responses.flatMap { res =>
+                     val token = rows
+                       .find(_.botId == res.id)
+                       .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
+                      res.apiAppId.map(appId =>Bot(
+                        Some(BotId(Refined.unsafeApply(res.id))),
+                        BotName(Refined.unsafeApply(res.name)),
+                        ApplicationId(Refined.unsafeApply(appId)),
+                        token,
+                        channelIds
+                      )).toSeq
+                   }
+      channels = channelIds.map(id => Channel(id, Seq.empty))
     } yield
       if (rows.isEmpty) None
-      else Some(
-        WorkSpace(
-          id,
-          rows.map(row => WorkSpaceToken(Refined.unsafeApply(row.token))),
-          None,
-          rows.map(row => BotId(Refined.unsafeApply(row.botId)))
-        )
-      )
+      else Some(WorkSpace(id, None, bots, channels))
 
-  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
-    for {
-      rows <-
-        db.run(
-          WorkSpaces
-            .filter(workSpaces =>
-              workSpaces.teamId === id.value.value && workSpaces.botId === botId.value.value
-            )
-            .result
-        ).ifFailedThenToInfraError("error while WorkSpaceRepository.find")
-    } yield
-      if (rows.isEmpty) None
-      else Some(
-        WorkSpace(
-          id,
-          rows.map(row => WorkSpaceToken(Refined.unsafeApply(row.token))),
-          None,
-          rows.map(row => BotId(Refined.unsafeApply(row.botId)))
-        )
-      )
+//  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
+//    for {
+//      rows <-
+//        db.run(
+//          WorkSpaces
+//            .filter(workSpaces =>
+//              workSpaces.teamId === id.value.value && workSpaces.botId === botId.value.value
+//            )
+//            .result
+//        ).ifFailedThenToInfraError("error while WorkSpaceRepository.find")
+//    } yield
+//      if (rows.isEmpty) None
+//      else Some(
+//        WorkSpace(
+//          id,
+//          rows.map(row => WorkSpaceToken(Refined.unsafeApply(row.token))),
+//          None,
+//          rows.map(row => BotId(Refined.unsafeApply(row.botId)))
+//        )
+//      )
 
-  override def add(model: WorkSpace): Future[Unit] = {
-    val rows = for {
-      token <- model.tokens
-      botId <- model.botIds
-    } yield WorkSpacesRow(token.value.value, botId.value.value, model.id.value.value)
+//  override def add(model: WorkSpace): Future[Unit] = {
+//    val rows = for {
+//      token <- model.tokens
+//      botId <- model.botIds
+//    } yield WorkSpacesRow(token.value.value, botId.value.value, model.id.value.value)
+//
+//    db.run(WorkSpaces ++= rows)
+//      .map(_ => ())
+//      .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
+//  }
+//
+//  override def update(model: WorkSpace): Future[Unit] = db
+//    .run(
+//      WorkSpaces
+//        .filter(_.teamId === model.id.value.value)
+//        .filter(!_.botId.inSet(model.botIds.map(_.value.value)))
+//        .delete
+//    )
+//    .map(_ => ())
+//    .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
 
-    db.run(WorkSpaces ++= rows)
-      .map(_ => ())
-      .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
-  }
+  override def add(model: WorkSpace): Future[Unit] = ???
 
-  override def update(model: WorkSpace): Future[Unit] = db
-    .run(
-      WorkSpaces
-        .filter(_.teamId === model.id.value.value)
-        .filter(!_.botId.inSet(model.botIds.map(_.value.value)))
-        .delete
-    )
-    .map(_ => ())
-    .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
+  override def update(model: WorkSpace): Future[Unit] = ???
+
+  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] = ???
 }

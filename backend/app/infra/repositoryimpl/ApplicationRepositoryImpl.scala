@@ -52,7 +52,7 @@ class ApplicationRepositoryImpl @Inject() (
       members                                   <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
       targetMember: Option[UsersDaoImpl.Member] <-
         members.members.find(member =>
-          member.botId == Some(applicationId.value.value)
+          member.apiAppId == Some(applicationId.value.value)
         ) match {
           case Some(v) => Future.successful(Some(v))
           case None    => Future.successful(None)
@@ -112,7 +112,7 @@ class ApplicationRepositoryImpl @Inject() (
       members                                <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
       targetMembers: Seq[UsersDaoImpl.Member] =
         members.members.filter(member =>
-          applicationIds.map(id => Some(id.value.value)).contains(member.botId)
+          applicationIds.map(id => Some(id.value.value)).contains(member.apiAppId)
         )
     } yield db.run {
       for {

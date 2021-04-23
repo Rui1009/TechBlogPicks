@@ -38,8 +38,9 @@ trait BotsQueryProcessorSuccessSpecContext {
                   "name"    -> Json.fromString(m.name),
                   "deleted" -> Json.fromBoolean(m.deleted),
                   "is_bot"  -> Json.fromBoolean(m.isBot),
-                  "profile" -> Json
-                    .fromJsonObject(JsonObject("api_app_id" -> m.botId.asJson))
+                  "profile" -> Json.fromJsonObject(
+                    JsonObject("api_app_id" -> m.apiAppId.asJson)
+                  )
                 )
               )
             )

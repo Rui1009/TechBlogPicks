@@ -17,3 +17,7 @@ final case class NegativeNumberError(className: String) extends DomainError {
 final case class RegexError(className: String) extends DomainError {
   override lazy val content: String = s"$className don't match pattern"
 }
+
+final case class NotExistError(className: String) extends DomainError {
+  override lazy val content: String = s"$className don't exist"
+}
