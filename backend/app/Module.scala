@@ -21,11 +21,13 @@ class Module extends AbstractModule {
 
     // use case impl
     bind(classOf[RegisterPostUseCase]).to(classOf[RegisterPostUseCaseImpl])
-    bind(classOf[InstallBotUseCase]).to(classOf[InstallBotUseCaseImpl])
+    bind(classOf[InstallApplicationUseCase])
+      .to(classOf[InstallApplicationUseCaseImpl])
     bind(classOf[DeletePostsUseCase]).to(classOf[DeletePostsUseCaseImpl])
-    bind(classOf[UpdateBotClientInfoUseCase])
-      .to(classOf[UpdateBotClientInfoUseCaseImpl])
-    bind(classOf[UninstallBotUseCase]).to(classOf[UninstallBotUseCaseImpl])
+    bind(classOf[UpdateApplicationClientInfoUseCase])
+      .to(classOf[UpdateApplicationClientInfoUseCaseImpl])
+    bind(classOf[UninstallApplicationUseCase])
+      .to(classOf[UninstallApplicationUseCaseImpl])
     bind(classOf[PostOnboardingMessageUseCase])
       .to(classOf[PostOnboardingMessageUseCaseImpl])
     bind(classOf[JoinChannelUseCase]).to(classOf[JoinChannelUseCaseImpl])
