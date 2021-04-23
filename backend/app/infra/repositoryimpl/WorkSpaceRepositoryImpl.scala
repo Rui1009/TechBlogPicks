@@ -158,7 +158,4 @@ class WorkSpaceRepositoryImpl @Inject() (
     .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
 
   override def add(model: WorkSpace): Future[Unit] = ???
-
-  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
-    ???
 }
