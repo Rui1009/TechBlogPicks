@@ -26,7 +26,7 @@ trait BotControllerIndexSpecContext { this: ControllerSpec =>
       |""".stripMargin.trim
 }
 
-class BotControllerIndexSpec
+class ApplicationControllerIndexSpec
     extends ControllerSpec with BotControllerIndexSpecContext {
   "index" when {
     "succeed" should {

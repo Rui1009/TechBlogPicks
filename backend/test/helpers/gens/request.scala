@@ -1,6 +1,6 @@
 package helpers.gens
 
-import adapters.controllers.bot.{UninstallBotBody, UpdateClientInfoBody}
+import adapters.controllers.bot.{UninstallApplicationBody, UpdateClientInfoBody}
 import adapters.controllers.post.{CreatePostBody, DeletePostsBody}
 import org.scalacheck.Gen
 import helpers.gens.string._
@@ -26,8 +26,8 @@ trait RequestGen {
     clientSecret <- Gen.option(nonEmptyStringGen)
   } yield UpdateClientInfoBody(clientId, clientSecret)
 
-  val uninstallBotBodyGen: Gen[UninstallBotBody] = for {
+  val uninstallBotBodyGen: Gen[UninstallApplicationBody] = for {
     teamId <- nonEmptyStringGen
     appId  <- nonEmptyStringGen
-  } yield UninstallBotBody(teamId, appId)
+  } yield UninstallApplicationBody(teamId, appId)
 }

@@ -3,14 +3,14 @@ package controllers.bot
 import adapters.controllers.bot.UpdateClientInfoBody
 import helpers.traits.ControllerSpec
 import play.api.inject.bind
-import usecases.{SystemError, UpdateBotClientInfoUseCase}
+import usecases.{SystemError, UpdateApplicationClientInfoUseCase}
 import io.circe.generic.auto._
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
 trait BotControllerUpdateSpecContext { this: ControllerSpec =>
-  val uc = mock[UpdateBotClientInfoUseCase]
+  val uc = mock[UpdateApplicationClientInfoUseCase]
 
   val path = (id: String) => "/bots/" + id
 
@@ -21,11 +21,12 @@ trait BotControllerUpdateSpecContext { this: ControllerSpec =>
       |error
       |""".stripMargin.trim
 
-  override val app =
-    builder.overrides(bind[UpdateBotClientInfoUseCase].toInstance(uc)).build()
+  override val app = builder
+    .overrides(bind[UpdateApplicationClientInfoUseCase].toInstance(uc))
+    .build()
 }
 
-class BotControllerUpdateSpec
+class ApplicationControllerUpdateSpec
     extends ControllerSpec with BotControllerUpdateSpecContext {
   "update" when {
     "given body which is valid".which {
