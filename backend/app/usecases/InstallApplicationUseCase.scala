@@ -5,28 +5,26 @@ import domains.application.Application.ApplicationId
 import domains.application.ApplicationRepository
 import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
 import domains.workspace.WorkSpaceRepository
-import domains.bot.{Bot, BotRepository}
-import domains.bot.Bot.BotId
-import usecases.InstallBotUseCase.Params
+import usecases.InstallApplicationUseCase.Params
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait InstallBotUseCase {
+trait InstallApplicationUseCase {
   def exec(params: Params): Future[Unit]
 }
 
-object InstallBotUseCase {
+object InstallApplicationUseCase {
   final case class Params(
     temporaryOauthCode: WorkSpaceTemporaryOauthCode,
     applicationId: ApplicationId
   )
 }
 
-final class InstallBotUseCaseImpl @Inject() (
+final class InstallApplicationUseCaseImpl @Inject() (
   workSpaceRepository: WorkSpaceRepository,
   applicationRepository: ApplicationRepository
 )(implicit val ec: ExecutionContext)
-    extends InstallBotUseCase {
+    extends InstallApplicationUseCase {
   override def exec(params: Params): Future[Unit] = for {
     targetApplication <-
       applicationRepository

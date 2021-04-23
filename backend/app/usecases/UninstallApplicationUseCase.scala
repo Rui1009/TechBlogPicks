@@ -7,26 +7,26 @@ import domains.bot.Bot.BotId
 import domains.workspace.WorkSpace.WorkSpaceId
 import domains.bot.BotRepository
 import domains.workspace.WorkSpaceRepository
-import usecases.UninstallBotUseCase.Params
+import usecases.UninstallApplicationUseCase.Params
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait UninstallBotUseCase {
+trait UninstallApplicationUseCase {
   def exec(params: Params): Future[Unit]
 }
 
-object UninstallBotUseCase {
+object UninstallApplicationUseCase {
   final case class Params(
     workSpaceId: WorkSpaceId,
     applicationId: ApplicationId
   )
 }
 
-final class UninstallBotUseCaseImpl @Inject() (
+final class UninstallApplicationUseCaseImpl @Inject() (
   workSpaceRepository: WorkSpaceRepository,
   applicationRepository: ApplicationRepository
 )(implicit val ec: ExecutionContext)
-    extends UninstallBotUseCase {
+    extends UninstallApplicationUseCase {
   object WorkSpaceNotFound extends Exception
 
   override def exec(params: Params): Future[Unit] = (for {
