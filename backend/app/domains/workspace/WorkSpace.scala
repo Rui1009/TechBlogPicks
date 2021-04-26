@@ -1,10 +1,10 @@
 package domains.workspace
 
-import domains.{DomainError, EmptyStringError, NotExistError}
+import domains._
 import domains.application.Application
 import domains.application.Application.ApplicationId
 import domains.bot.Bot
-import domains.bot.Bot.{BotId, BotName}
+import domains.bot.Bot._
 import domains.channel.Channel
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace._
