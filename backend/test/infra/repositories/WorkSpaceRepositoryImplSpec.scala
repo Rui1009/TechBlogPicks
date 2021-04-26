@@ -91,7 +91,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
     "succeed" should {
       "add new data" in {
         forAll(newWorkSpaceGen) { newModel =>
-          repository.add(newModel).futureValue
+          repository.update(newModel).futureValue
 
           val result = db.run(WorkSpaces.result).futureValue
 

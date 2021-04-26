@@ -57,9 +57,10 @@ final class InstallApplicationUseCaseImpl @Inject() (
     updatedWorkSpace = workSpace.installApplication(targetApplication)
 
     _ <- workSpaceRepository
-           .add(updatedWorkSpace)
-           .ifFailThenToUseCaseError(
-             "error while workSpaceRepository.update in install bot use case"
-           )
+           .update(updatedWorkSpace, targetApplication.id)
+           .ifNotExistsToUseCaseError("")
+//           .ifFailThenToUseCaseError(
+//             "error while workSpaceRepository.update in install bot use case"
+//           )
   } yield ()
 }

@@ -131,21 +131,23 @@ class WorkSpaceRepositoryImpl @Inject() (
 //        )
 //      )
 
-  override def add(
+  override def update(
     model: WorkSpace,
     applicationId: ApplicationId
-  ): Future[Unit] = {
-
-    val targetBotToken: Option[Option[String]] = model.bots
-      .find(_.applicationId == applicationId)
-      .map(_.accessToken.map(_.value.value))
-    val rows                                   = for {
-      targetBotToken <- m
-    } yield WorkSpacesRow(targetBotToken, applicationId.value.value, model.id.value.value)
-
-    db.run(WorkSpaces ++= rows)
-      .map(_ => ())
-      .ifFailedThenToInfraError("error while WorkSpaceRepository.add")
+  ): Future[Option[Unit]] = model.bots
+    .find(_.applicationId == applicationId)
+    .flatMap(_.accessToken.map(_.value.value)) match {
+    case Some(v) => db
+        .run(
+          WorkSpaces += WorkSpacesRow(
+            v,
+            applicationId.value.value,
+            model.id.value.value
+          )
+        )
+        .map(_ => Some())
+        .ifFailedThenToInfraError("error while WorkSpaceRepository.add")
+    case None    => Future.successful(None)
   }
 
   override def update(model: WorkSpace): Future[Unit] = db
