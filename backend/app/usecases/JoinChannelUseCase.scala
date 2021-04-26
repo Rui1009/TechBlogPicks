@@ -27,7 +27,11 @@ final class JoinChannelUseCaseImpl @Inject() (
     extends JoinChannelUseCase {
   override def exec(params: Params) = for {
     workSpace <-
-      workSpaceRepository.find(params.workSpaceId).ifNotExistsToUseCaseError("")
+      workSpaceRepository
+        .find(params.workSpaceId)
+        .ifNotExistsToUseCaseError(
+          "error while workSpaceRepository.find in join channel use case"
+        )
 
     updatedWorkSpace <-
       workSpace
