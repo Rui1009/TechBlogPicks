@@ -2,7 +2,8 @@ package domains.workspace
 
 import domains.application.Application.{
   ApplicationClientId,
-  ApplicationClientSecret
+  ApplicationClientSecret,
+  ApplicationId
 }
 import domains.workspace.WorkSpace.{WorkSpaceId, WorkSpaceTemporaryOauthCode}
 import domains.bot.Bot.BotId
@@ -16,7 +17,7 @@ trait WorkSpaceRepository {
     clientSecret: ApplicationClientSecret
   ): Future[Option[WorkSpace]]
 
-  def add(model: WorkSpace): Future[Unit]
+  def add(model: WorkSpace, applicationId: ApplicationId): Future[Unit]
   def update(model: WorkSpace): Future[Unit]
   def find(id: WorkSpaceId): Future[Option[WorkSpace]]
 }

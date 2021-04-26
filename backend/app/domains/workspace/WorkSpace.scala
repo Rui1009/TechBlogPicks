@@ -4,7 +4,7 @@ import domains.{DomainError, EmptyStringError, NotExistError}
 import domains.application.Application
 import domains.application.Application.ApplicationId
 import domains.bot.Bot
-import domains.bot.Bot.{BotId, BotName}
+import domains.bot.Bot.{BotAccessToken, BotId, BotName}
 import domains.channel.Channel
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace._
@@ -17,12 +17,18 @@ final case class WorkSpace(
   id: WorkSpaceId,
   temporaryOauthCode: Option[WorkSpaceTemporaryOauthCode],
   bots: Seq[Bot],
-  channels: Seq[Channel]
+  channels: Seq[Channel],
+  unallocatedToken: Option[BotAccessToken]
 ) {
   def installApplication(application: Application): WorkSpace = {
-    val installedBot =
-      Bot(None, BotName(application.name.value), application.id, None, Seq())
-    this.copy(bots = bots :+ installedBot)
+    val bot = Bot(
+      None,
+      BotName(application.name.value),
+      application.id,
+      this.unallocatedToken,
+      Seq()
+    )
+    this.copy(bots = bots :+ bot)
   }
 
   def uninstallApplication(application: Application): WorkSpace =
