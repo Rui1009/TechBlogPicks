@@ -68,7 +68,7 @@ class WorkSpaceRepositoryImpl @Inject() (
     }
   }
 
-  override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = for {
+  override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = (for {
     rows       <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
     responses  <- findBotUser(rows.map(_.botId))
     channelIds <- findChannelIds(rows)
@@ -95,7 +95,8 @@ class WorkSpaceRepositoryImpl @Inject() (
                )
                .toSeq
            }
-  } yield if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels))
+  } yield if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels)))
+    .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
 
   private type ChannelIdsAndBotId = Seq[(Seq[ChannelId], String)]
 
@@ -114,27 +115,6 @@ class WorkSpaceRepositoryImpl @Inject() (
         )
     )
   )
-
-//  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
-//    for {
-//      rows <-
-//        db.run(
-//          WorkSpaces
-//            .filter(workSpaces =>
-//              workSpaces.teamId === id.value.value && workSpaces.botId === botId.value.value
-//            )
-//            .result
-//        ).ifFailedThenToInfraError("error while WorkSpaceRepository.find")
-//    } yield
-//      if (rows.isEmpty) None
-//      else Some(
-//        WorkSpace(
-//          id,
-//          rows.map(row => WorkSpaceToken(Refined.unsafeApply(row.token))),
-//          None,
-//          rows.map(row => BotId(Refined.unsafeApply(row.botId)))
-//        )
-//      )
 
 //  override def add(model: WorkSpace): Future[Unit] = {
 //    val rows = for {
