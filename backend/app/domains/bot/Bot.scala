@@ -5,9 +5,17 @@ import domains.application.Application.ApplicationId
 import domains.bot.Bot.{BotAccessToken, BotId, BotName}
 import domains.channel.{Channel, DraftMessage, Message}
 import domains.channel.Channel.ChannelId
+import domains.channel.DraftMessage.{
+  ActionBlock,
+  ActionSelect,
+  BlockText,
+  SectionBlock,
+  SelectPlaceHolder
+}
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.refineV
+import eu.timepit.refined.auto._
 import io.estatico.newtype.macros.newtype
 
 final case class Bot(
@@ -21,8 +29,30 @@ final case class Bot(
   def joinTo(channelId: ChannelId): Bot =
     this.copy(channelIds = channelIds :+ channelId)
 
+  def createOnboardingMessage: DraftMessage = DraftMessage(
+    Seq(
+      SectionBlock(
+        BlockText(
+          Refined.unsafeApply(
+            "インストールありがとうございます🤗\nWinkieはあなたの関心のある分野に関する最新の技術記事を自動でslack上に定期配信するアプリです。\nご利用いただくために、初めにアプリを追加するチャンネルを選択してください。"
+          )
+        ),
+        None
+      ),
+      ActionBlock(
+        Seq(
+          ActionSelect(
+            "Select a channel",
+            SelectPlaceHolder("Select a channel", false),
+            "actionId-0"
+          )
+        )
+      )
+    )
+  )
+
   def postMessage(channel: Channel, message: DraftMessage): Channel =
-    channel.addMessage(message)
+    channel.receiveMessage(message)
 }
 
 object Bot {
