@@ -3,7 +3,7 @@ package domains.bot
 import domains.EmptyStringError
 import domains.application.Application.ApplicationId
 import domains.bot.Bot.{BotAccessToken, BotId, BotName}
-import domains.channel.{Channel, Message}
+import domains.channel.{Channel, DraftMessage, Message}
 import domains.channel.Channel.ChannelId
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
@@ -15,12 +15,13 @@ final case class Bot(
   name: BotName,
   applicationId: ApplicationId,
   accessToken: Option[BotAccessToken],
-  channelIds: Seq[ChannelId]
+  channelIds: Seq[ChannelId],
+  draftMessage: Option[DraftMessage]
 ) {
   def joinTo(channelId: ChannelId): Bot =
     this.copy(channelIds = channelIds :+ channelId)
 
-  def postMessage(channel: Channel, message: Message): Channel =
+  def postMessage(channel: Channel, message: DraftMessage): Channel =
     channel.addMessage(message)
 }
 
