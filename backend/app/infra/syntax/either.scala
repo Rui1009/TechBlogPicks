@@ -1,5 +1,7 @@
 package infra.syntax
 
+import scala.concurrent.Future
+
 object either extends InfraSyntax
 
 trait InfraSyntax {
@@ -8,10 +10,16 @@ trait InfraSyntax {
   ): EitherOps[S, T] = new EitherOps[S, T](either)
 }
 
-final private[syntax] class EitherOps[S, T](private val either: Either[S, T])
-    extends AnyVal {
+final private[syntax] class EitherOps[S <: Throwable, T](
+  private val either: Either[S, T]
+) extends AnyVal {
   def ifLeftThenReturnNone: Option[T] = either match {
     case Left(_)  => None
     case Right(v) => Some(v)
+  }
+
+  def ifLeftThenToInfraError: Future[T] = either match {
+    case Left(e)  => Future.failed(e)
+    case Right(v) => Future.successful(v)
   }
 }

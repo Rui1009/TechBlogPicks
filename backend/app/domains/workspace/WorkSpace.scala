@@ -17,12 +17,18 @@ final case class WorkSpace(
   id: WorkSpaceId,
   temporaryOauthCode: Option[WorkSpaceTemporaryOauthCode],
   bots: Seq[Bot],
-  channels: Seq[Channel]
+  channels: Seq[Channel],
+  unallocatedToken: Option[BotAccessToken]
 ) {
   def installApplication(application: Application): WorkSpace = {
-    val installedBot =
-      Bot(None, BotName(application.name.value), application.id, None, Seq())
-    this.copy(bots = bots :+ installedBot)
+    val bot = Bot(
+      None,
+      BotName(application.name.value),
+      application.id,
+      this.unallocatedToken,
+      Seq()
+    )
+    this.copy(bots = bots :+ bot)
   }
 
   def uninstallApplication(application: Application): WorkSpace =

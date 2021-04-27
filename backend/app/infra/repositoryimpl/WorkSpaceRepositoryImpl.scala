@@ -14,7 +14,7 @@ import domains.bot.Bot._
 import domains.channel.Channel
 import domains.channel.Channel.ChannelId
 import eu.timepit.refined.api.Refined
-import infra.dao.slack.{TeamDao, UsersDao}
+import infra.dao.slack.{TeamDao, TeamDaoImpl, UsersDao}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.ws._
 import slick.jdbc.PostgresProfile
@@ -43,29 +43,24 @@ class WorkSpaceRepositoryImpl @Inject() (
   ): Future[Option[WorkSpace]] = {
     val oauthURL = "https://slack.com/api/oauth.v2.access"
 
-    (for {
-      resp <- ws.url(oauthURL)
-                .withQueryStringParameters(
-                  "code"          -> code.value.value,
-                  "client_id"     -> clientId.value.value,
-                  "client_secret" -> clientSecret.value.value
-                )
-                .post(Json.Null.noSpaces)
-                .ifFailedThenToInfraError(s"error while posting $oauthURL")
-    } yield for {
+    for {
+      resp        <- ws.url(oauthURL)
+                       .withQueryStringParameters(
+                         "code"          -> code.value.value,
+                         "client_id"     -> clientId.value.value,
+                         "client_secret" -> clientSecret.value.value
+                       )
+                       .post(Json.Null.noSpaces)
+                       .ifFailedThenToInfraError(s"error while posting $oauthURL")
       accessToken <-
-        decode[BotAccessToken](resp.json.toString()).ifLeftThenReturnNone
-    } yield for {
-      info <- teamDao.info(accessToken.value.value)
-    } yield WorkSpace(
-      WorkSpaceId(Refined.unsafeApply(info.team.id)),
-      Some(code),
-      Seq(),
-      Seq()
-    )).flatMap {
-      case Some(v) => v.map(workSpace => Some(workSpace))
-      case None    => Future.successful(None)
-    }
+        decode[BotAccessToken](resp.json.toString()).ifLeftThenToInfraError
+      info        <- teamDao.info(accessToken.value.value)
+      workSpace   <-
+        find(WorkSpaceId(Refined.unsafeApply(info.team.id)))
+          .ifFailedThenToInfraError(
+            "error while workSpaceRepository.find in workSpaceRepository.find"
+          )
+    } yield workSpace.map(_.copy(unallocatedToken = Some(accessToken)))
   }
 
   override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = (for {
@@ -116,26 +111,22 @@ class WorkSpaceRepositoryImpl @Inject() (
     )
   )
 
-//  override def add(model: WorkSpace): Future[Unit] = {
-//    val rows = for {
-//      token <- model.tokens
-//      botId <- model.botIds
-//    } yield WorkSpacesRow(token.value.value, botId.value.value, model.id.value.value)
-//
-//    db.run(WorkSpaces ++= rows)
-//      .map(_ => ())
-//      .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
-//  }
-//
-  override def update(model: WorkSpace): Future[Unit] = db
-    .run(
-      WorkSpaces
-        .filter(_.teamId === model.id.value.value)
-        .filter(!_.botId.inSet(model.bots.map(_.applicationId.value.value)))
-        .delete
-    )
-    .map(_ => ())
-    .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
-
-  override def add(model: WorkSpace): Future[Unit] = ???
+  override def update(
+    model: WorkSpace,
+    applicationId: ApplicationId
+  ): Future[Option[Unit]] = model.bots
+    .find(_.applicationId == applicationId)
+    .flatMap(_.accessToken.map(_.value.value)) match {
+    case Some(v) => db
+        .run(
+          WorkSpaces += WorkSpacesRow(
+            v,
+            applicationId.value.value,
+            model.id.value.value
+          )
+        )
+        .map(_ => Some())
+        .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
+    case None    => Future.successful(None)
+  }
 }
