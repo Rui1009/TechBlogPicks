@@ -5,7 +5,7 @@ import domains.application.Application
 import domains.application.Application.ApplicationId
 import domains.bot.Bot
 import domains.bot.Bot._
-import domains.channel.Channel
+import domains.channel.{Channel, DraftMessage}
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace._
 import eu.timepit.refined.api.Refined
@@ -26,7 +26,8 @@ final case class WorkSpace(
       BotName(application.name.value),
       application.id,
       this.unallocatedToken,
-      Seq()
+      Seq(),
+      None
     )
     this.copy(bots = bots :+ bot)
   }
@@ -58,11 +59,35 @@ final case class WorkSpace(
     case None    => Left(NotExistError("ApplicationId"))
   }
 
-  private def findChannel(channelId: ChannelId): Either[DomainError, Channel] =
+  def findChannel(channelId: ChannelId): Either[DomainError, Channel] =
     this.channels.find(_.id != channelId) match {
       case Some(v) => Right(v)
       case None    => Left(NotExistError("ChannelId"))
     }
+
+  def botCreateOnboardingMessage(
+    botId: BotId
+  ): Either[DomainError, DraftMessage] =
+    this.bots.find(bot => bot.id.contains(botId)) match {
+      case Some(v) => Right(v.createOnboardingMessage)
+      case None    => Left(NotExistError("BotId"))
+    }
+
+  def botPostMessage(
+    botId: BotId,
+    channelId: ChannelId,
+    message: DraftMessage
+  ): Either[DomainError, Channel] = for {
+    targetBot     <- this.bots.find(bot => bot.id.contains(botId)) match {
+                       case Some(v) => Right(v)
+                       case None    => Left(NotExistError("BotId"))
+                     }
+    targetChannel <-
+      this.channels.find(channel => channel.id == channelId) match {
+        case Some(v) => Right(v)
+        case None    => Left(NotExistError("ChannelId"))
+      }
+  } yield targetBot.postMessage(targetChannel, message)
 }
 
 object WorkSpace {
