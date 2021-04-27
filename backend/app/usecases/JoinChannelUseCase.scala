@@ -41,7 +41,11 @@ final class JoinChannelUseCaseImpl @Inject() (
         )
 
     _ <- workSpaceRepository
-           .update(updatedWorkSpace)
+           .joinChannels(
+             updatedWorkSpace,
+             params.applicationId,
+             Seq(params.channelId)
+           )
            .ifFailThenToUseCaseError(
              "error while WorkSpaceRepository.join in join channel use case"
            )
