@@ -90,7 +90,8 @@ class WorkSpaceRepositoryImpl @Inject() (
                )
                .toSeq
            }
-  } yield if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels)))
+  } yield
+    if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels, None)))
     .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
 
   private type ChannelIdsAndBotId = Seq[(Seq[ChannelId], String)]
