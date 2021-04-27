@@ -21,12 +21,15 @@ class JoinChannelUseCaseSpec extends UseCaseSpec {
 
             when(workSpaceRepo.find(params.workSpaceId))
               .thenReturn(Future.successful(Some(workSpace)))
-            when(workSpaceRepo.update(updatedWorkSpace)).thenReturn(Future.unit)
+            when(
+              workSpaceRepo
+                .joinChannels(updatedWorkSpace, appId, Seq(channelId))
+            ).thenReturn(Future.unit)
 
             new JoinChannelUseCaseImpl(workSpaceRepo).exec(params).futureValue
 
             verify(workSpaceRepo).find(workspaceId)
-            verify(workSpaceRepo).update(updatedWorkSpace)
+            verify(workSpaceRepo).update(updatedWorkSpace, appId)
             reset(workSpaceRepo)
         }
       }
@@ -50,7 +53,7 @@ class JoinChannelUseCaseSpec extends UseCaseSpec {
                 )
               )
             )
-            verify(workSpaceRepo, never).update(*)
+            verify(workSpaceRepo, never).update(*, *)
             reset(workSpaceRepo)
         }
       }

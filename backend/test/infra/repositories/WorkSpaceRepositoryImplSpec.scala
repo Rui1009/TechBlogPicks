@@ -91,7 +91,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
     "succeed" should {
       "add new data" in {
         forAll(newWorkSpaceGen) { newModel =>
-          repository.update(newModel).futureValue
+          repository.joinChannels(newModel).futureValue
 
           val result = db.run(WorkSpaces.result).futureValue
 
@@ -131,7 +131,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
           None,
           Seq(BotId("bot2"), BotId("bot3"))
         )
-        repository.update(params)
+        repository.joinChannels(params)
         val workSpaces = db.run(WorkSpaces.result).futureValue
 
         assert(workSpaces.length === 2)

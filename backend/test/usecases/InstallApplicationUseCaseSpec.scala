@@ -34,7 +34,7 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
               bot.clientSecret.get
             )
           ).thenReturn(Future.successful(Some(workSpace)))
-          when(workSpaceRepo.update(workSpace.installBot(bot)))
+          when(workSpaceRepo.joinChannels(workSpace.installBot(bot)))
             .thenReturn(Future.unit)
 
           new InstallApplicationUseCaseImpl(workSpaceRepo, botRepo)
@@ -47,7 +47,7 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
             bot.clientId.get,
             bot.clientSecret.get
           )
-          verify(workSpaceRepo).update(workSpace.installBot(bot))
+          verify(workSpaceRepo).joinChannels(workSpace.installBot(bot))
           reset(workSpaceRepo)
           reset(botRepo)
         }
@@ -81,7 +81,7 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
               bot.clientId.get,
               bot.clientSecret.get
             )
-            verify(workSpaceRepo, never).update(workSpace.installBot(bot))
+            verify(workSpaceRepo, never).joinChannels(workSpace.installBot(bot))
           }
         }
       }
@@ -167,7 +167,7 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
                 "error while workSpaceRepository.find in install bot use case"
               )
             )
-            verify(workSpaceRepo, never).update(workSpace.installBot(bot))
+            verify(workSpaceRepo, never).joinChannels(workSpace.installBot(bot))
           }
         }
       }
@@ -193,7 +193,7 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
               bot.clientSecret.get
             )
           ).thenReturn(Future.successful(Some(workSpace)))
-          when(workSpaceRepo.update(workSpace.installBot(bot)))
+          when(workSpaceRepo.joinChannels(workSpace.installBot(bot)))
             .thenReturn(Future.failed(DBError("error")))
 
           val result = new InstallApplicationUseCaseImpl(workSpaceRepo, botRepo)

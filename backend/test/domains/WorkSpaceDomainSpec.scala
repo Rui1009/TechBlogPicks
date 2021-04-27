@@ -41,34 +41,9 @@ class WorkSpaceDomainSpec extends ModelSpec {
     }
   }
 
-  "WorkSpace.installBot" should {
-    "return its token" in {
-      forAll(workSpaceGen, botGen) { (workSpace, bot) =>
-        val expected = workSpace.copy(botIds = workSpace.botIds :+ bot.id)
-
-        assert(workSpace.install(bot) === expected)
-      }
-    }
-  }
-
-  "WorkSpace.uninstallBot" should {
-    "return self with updated tokens & botIds" in {
-      forAll(workSpaceGen, botGen, accessTokenGen) {
-        (_workSpace, _bot, targetToken) =>
-          val workSpace = _workSpace.copy(
-            botIds = _workSpace.botIds :+ _bot.id,
-            tokens = _workSpace.tokens :+ targetToken
-          )
-          val bot       = _bot.copy(accessTokens = _bot.accessTokens :+ targetToken)
-          val result    = workSpace.uninstallBot(bot)
-
-          assert(
-            result === workSpace.copy(
-              tokens = workSpace.tokens.diff(bot.accessTokens),
-              botIds = workSpace.botIds.filter(id => id != bot.id)
-            )
-          )
-      }
+  "WorkSpace.installApplication" should {
+    "return WorkSpace which bots are updated" in {
+      forAll(workSpaceGen, botGen)((workSpace, bot) => pending)
     }
   }
 }

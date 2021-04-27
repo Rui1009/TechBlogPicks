@@ -22,7 +22,7 @@ class UninstallApplicationUseCaseSpec extends UseCaseSpec {
             .thenReturn(Future.successful(Some(bot)))
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
-          when(workSpaceRepo.update(workSpace)).thenReturn(Future.unit)
+          when(workSpaceRepo.removeBot(workSpace)).thenReturn(Future.unit)
 
           new UninstallApplicationUseCaseImpl(botRepo, workSpaceRepo)
             .exec(params)
@@ -30,7 +30,7 @@ class UninstallApplicationUseCaseSpec extends UseCaseSpec {
 
           verify(botRepo).find(params.botId)
           verify(workSpaceRepo).find(params.workSpaceId)
-          verify(workSpaceRepo).update(workSpace)
+          verify(workSpaceRepo).removeBot(workSpace)
           reset(botRepo)
         }
       }
@@ -54,7 +54,7 @@ class UninstallApplicationUseCaseSpec extends UseCaseSpec {
               )
             )
             verify(workSpaceRepo, never).find(params.workSpaceId)
-            verify(workSpaceRepo, never).update(workSpace)
+            verify(workSpaceRepo, never).removeBot(workSpace)
           }
         }
       }
@@ -90,7 +90,7 @@ class UninstallApplicationUseCaseSpec extends UseCaseSpec {
             .thenReturn(Future.successful(Some(bot)))
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
-          when(workSpaceRepo.update(workSpace))
+          when(workSpaceRepo.removeBot(workSpace))
             .thenReturn(Future.failed(DBError("error")))
 
           val result =
