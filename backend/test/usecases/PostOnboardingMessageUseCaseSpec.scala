@@ -1,6 +1,6 @@
 package usecases
 
-import domains.message.{Message, MessageRepository}
+import domains.message.Message
 import domains.workspace.WorkSpace.WorkSpaceToken
 import domains.workspace.WorkSpaceRepository
 import helpers.traits.UseCaseSpec
