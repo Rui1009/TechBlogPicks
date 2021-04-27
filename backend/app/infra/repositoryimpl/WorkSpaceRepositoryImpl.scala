@@ -63,7 +63,7 @@ class WorkSpaceRepositoryImpl @Inject() (
     } yield workSpace.map(_.copy(unallocatedToken = Some(accessToken)))
   }
 
-  override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = for {
+  override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = (for {
     rows       <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
     responses  <- findBotUser(rows.map(_.botId))
     channelIds <- findChannelIds(rows)
@@ -90,7 +90,9 @@ class WorkSpaceRepositoryImpl @Inject() (
                )
                .toSeq
            }
-  } yield if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels))
+  } yield
+    if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels, None)))
+    .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
 
   private type ChannelIdsAndBotId = Seq[(Seq[ChannelId], String)]
 
@@ -110,27 +112,6 @@ class WorkSpaceRepositoryImpl @Inject() (
     )
   )
 
-//  override def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]] =
-//    for {
-//      rows <-
-//        db.run(
-//          WorkSpaces
-//            .filter(workSpaces =>
-//              workSpaces.teamId === id.value.value && workSpaces.botId === botId.value.value
-//            )
-//            .result
-//        ).ifFailedThenToInfraError("error while WorkSpaceRepository.find")
-//    } yield
-//      if (rows.isEmpty) None
-//      else Some(
-//        WorkSpace(
-//          id,
-//          rows.map(row => WorkSpaceToken(Refined.unsafeApply(row.token))),
-//          None,
-//          rows.map(row => BotId(Refined.unsafeApply(row.botId)))
-//        )
-//      )
-
   override def update(
     model: WorkSpace,
     applicationId: ApplicationId
@@ -149,14 +130,4 @@ class WorkSpaceRepositoryImpl @Inject() (
         .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
     case None    => Future.successful(None)
   }
-
-  override def update(model: WorkSpace): Future[Unit] = db
-    .run(
-      WorkSpaces
-        .filter(_.teamId === model.id.value.value)
-        .filter(!_.botId.inSet(model.bots.map(_.applicationId.value.value)))
-        .delete
-    )
-    .map(_ => ())
-    .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
 }

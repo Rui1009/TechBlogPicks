@@ -41,11 +41,11 @@ class BotDomainSpec extends ModelSpec {
     }
   }
 
-  "BotClientId.create" when {
+  "BotAccessToken.create" when {
     "given non-empty string" should {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
-          val result = BotClientId.create(str.value)
+          val result = BotAccessToken.create(str.value)
           assert(result.map(_.value) === Right(str))
         }
       }
@@ -53,60 +53,94 @@ class BotDomainSpec extends ModelSpec {
 
     "given empty string" should {
       "return Left value which values equals DomainError" in {
-        val result = BotClientId.create("")
-        assert(result.leftSide === Left(EmptyStringError("BotClientId")))
+        val result = BotAccessToken.create("")
+        assert(result.leftSide === Left(EmptyStringError("BotAccessToken")))
       }
     }
   }
 
-  "BotClientSecret.create" when {
-    "given non-empty string" should {
-      "return Right value which equals given arg value" in {
-        forAll(stringRefinedNonEmptyGen) { str =>
-          val result = BotClientSecret.create(str.value)
-          assert(result.map(_.value) === Right(str))
-        }
-      }
-    }
-
-    "given empty string" should {
-      "return Left value which values equals DomainError" in {
-        val result = BotClientSecret.create("")
-        assert(result.leftSide === Left(EmptyStringError("BotClientSecret")))
+  "Bot.joinTo" should {
+    "return Bot which channelIds is updated" in {
+      forAll(botGen, channelIdGen) { (bot, channelId) =>
+        val result = bot.joinTo(channelId)
+        assert(result.channelIds.contains(channelId))
+        assert(result.channelIds.length === bot.channelIds.length + 1)
       }
     }
   }
 
-  "BotChannelId.create" when {
-    "given non-empty string" should {
-      "return Right value which equals given arg value" in {
-        forAll(stringRefinedNonEmptyGen) { str =>
-          val result = BotChannelId.create(str.value)
-          assert(result.map(_.value) === Right(str))
-        }
-      }
-    }
-
-    "given empty string" should {
-      "return Left value which values equals DomainError" in {
-        val result = BotChannelId.create("")
-        assert(result.leftSide === Left(EmptyStringError("BotChannelId")))
-      }
+  "Bot.postMessage" should {
+    "return channel which messages is updated" in {
+//      forAll(botGen, channelGen, messageGen) { (bot, channel, message) => }
+      pending
     }
   }
-
-  "Bot.updateClientInfo" should {
-    "return Bot model which client info updated" in {
-      forAll(
-        botGen,
-        Gen.option(botClientIdGen),
-        Gen.option(botClientSecretGen)
-      ) { (model, id, secret) =>
-        val result = model.updateClientInfo(id, secret)
-
-        assert(result.clientId === id)
-        assert(result.clientSecret === secret)
-      }
-    }
-  }
+//  "BotClientId.create" when {
+//    "given non-empty string" should {
+//      "return Right value which equals given arg value" in {
+//        forAll(stringRefinedNonEmptyGen) { str =>
+//          val result = BotClientId.create(str.value)
+//          assert(result.map(_.value) === Right(str))
+//        }
+//      }
+//    }
+//
+//    "given empty string" should {
+//      "return Left value which values equals DomainError" in {
+//        val result = BotClientId.create("")
+//        assert(result.leftSide === Left(EmptyStringError("BotClientId")))
+//      }
+//    }
+//  }
+//
+//  "BotClientSecret.create" when {
+//    "given non-empty string" should {
+//      "return Right value which equals given arg value" in {
+//        forAll(stringRefinedNonEmptyGen) { str =>
+//          val result = BotClientSecret.create(str.value)
+//          assert(result.map(_.value) === Right(str))
+//        }
+//      }
+//    }
+//
+//    "given empty string" should {
+//      "return Left value which values equals DomainError" in {
+//        val result = BotClientSecret.create("")
+//        assert(result.leftSide === Left(EmptyStringError("BotClientSecret")))
+//      }
+//    }
+//  }
+//
+//  "BotChannelId.create" when {
+//    "given non-empty string" should {
+//      "return Right value which equals given arg value" in {
+//        forAll(stringRefinedNonEmptyGen) { str =>
+//          val result = BotChannelId.create(str.value)
+//          assert(result.map(_.value) === Right(str))
+//        }
+//      }
+//    }
+//
+//    "given empty string" should {
+//      "return Left value which values equals DomainError" in {
+//        val result = BotChannelId.create("")
+//        assert(result.leftSide === Left(EmptyStringError("BotChannelId")))
+//      }
+//    }
+//  }
+//
+//  "Bot.updateClientInfo" should {
+//    "return Bot model which client info updated" in {
+//      forAll(
+//        botGen,
+//        Gen.option(botClientIdGen),
+//        Gen.option(botClientSecretGen)
+//      ) { (model, id, secret) =>
+//        val result = model.updateClientInfo(id, secret)
+//
+//        assert(result.clientId === id)
+//        assert(result.clientSecret === secret)
+//      }
+//    }
+//  }
 }

@@ -23,24 +23,6 @@ class WorkSpaceDomainSpec extends ModelSpec {
     }
   }
 
-  "WorkSpaceToken.create" when {
-    "given non empty string" should {
-      "return Right value which equals given arg value" in {
-        forAll(stringRefinedNonEmptyGen) { str =>
-          val result = WorkSpaceToken.create(str.value)
-          assert(result.map(_.value) == str.asRight)
-        }
-      }
-    }
-
-    "given empty string" should {
-      "return Left value which values equals DomainError" in {
-        val result = WorkSpaceToken.create("")
-        assert(result.leftSide == EmptyStringError("Token").asLeft)
-      }
-    }
-  }
-
   "WorkSpaceTemporaryOauthCode.create" when {
     "given non empty string" should {
       "return Right value which equals given arg value" in {
@@ -64,7 +46,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
       forAll(workSpaceGen, botGen) { (workSpace, bot) =>
         val expected = workSpace.copy(botIds = workSpace.botIds :+ bot.id)
 
-        assert(workSpace.installBot(bot) === expected)
+        assert(workSpace.install(bot) === expected)
       }
     }
   }
