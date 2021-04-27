@@ -30,17 +30,17 @@ final class InstallApplicationUseCaseImpl @Inject() (
       applicationRepository
         .find(params.applicationId)
         .ifNotExistsToUseCaseError(
-          "error while applicationRepository.find in install bot use case"
+          "error while applicationRepository.find in install application use case"
         )
 
     targetApplicationClientId <-
       targetApplication.clientId.ifNotExistsToUseCaseError(
-        "error while get application client id in install bot use case"
+        "error while get application client id in install application use case"
       )
 
     targetApplicationClientSecret <-
       targetApplication.clientSecret.ifNotExistsToUseCaseError(
-        "error while get application client secret in install bot use case"
+        "error while get application client secret in install application use case"
       )
 
     workSpace <-
@@ -51,16 +51,15 @@ final class InstallApplicationUseCaseImpl @Inject() (
           targetApplicationClientSecret
         )
         .ifNotExistsToUseCaseError(
-          "error while workSpaceRepository.find in install bot use case"
+          "error while workSpaceRepository.find in install application use case"
         )
 
     updatedWorkSpace = workSpace.installApplication(targetApplication)
 
     _ <- workSpaceRepository
            .update(updatedWorkSpace, targetApplication.id)
-           .ifNotExistsToUseCaseError("")
-//           .ifFailThenToUseCaseError(
-//             "error while workSpaceRepository.update in install bot use case"
-//           )
+           .ifNotExistsToUseCaseError(
+             "error while workSpaceRepository.update in install application use case"
+           )
   } yield ()
 }

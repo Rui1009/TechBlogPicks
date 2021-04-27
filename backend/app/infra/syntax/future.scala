@@ -16,10 +16,6 @@ trait FutureSyntax {
     futureEither: Future[Either[E, T]]
   )(implicit ec: ExecutionContext): FutureEitherOps[E, T] =
     new FutureEitherOps[E, T](futureEither)
-
-  implicit final def infraSyntaxFutureOption[T](option: Option[T])(implicit
-    ec: ExecutionContext
-  ): FutureOptionOps[T] = new FutureOptionOps[T](option)
 }
 
 final private[syntax] class FutureOps[T](private val future: Future[T])(implicit
@@ -41,15 +37,5 @@ final private[syntax] class FutureEitherOps[E <: Throwable, T](
       case Success(Left(e))  =>
         Future.failed(APIError(message + "\n" + e.getMessage))
       case Failure(e)        => Future.failed(APIError(message + "\n" + e.getMessage))
-    }
-}
-
-final private[syntax] class FutureOptionOps[T](
-  private val futureOption: Future[Option[T]]
-)(implicit val ec: ExecutionContext) {
-  def ifNoneThenToInfraError(message: String): Future[T] =
-    futureOption.transformWith {
-      case Success(Some(v)) => Future.successful(v)
-      case Success(None)    => Future.failed()
     }
 }

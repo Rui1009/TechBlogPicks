@@ -98,10 +98,11 @@ class ApplicationRepositoryImpl @Inject() (
 
     (for {
       members      <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-      targetMembers =
-        members.members.filter(member =>
-          applicationIds.map(id => Some(id.value.value)).contains(member.apiAppId)
-        )
+      targetMembers = members.members.filter(member =>
+                        applicationIds
+                          .map(id => Some(id.value.value))
+                          .contains(member.apiAppId)
+                      )
     } yield db.run {
       for {
         postIds         <- postQ
@@ -153,35 +154,20 @@ class ApplicationRepositoryImpl @Inject() (
       .ifFailedThenToInfraError("error while ApplicationRepository.update")
   }
 
-  override def add(
-    post: Post,
-    applicationIds: Seq[ApplicationId]
-  ): Future[Unit] = {
-    val nowUnix      = System.currentTimeMillis / 1000
-    val newPost      = post.toRow(nowUnix)
-    val postsInsertQ =
-      Posts.returning(Posts.map(_.id)).into((_, id) => id) += newPost
-    val query        = for {
-      postId <- postsInsertQ
-      news    = applicationIds.map(id => BotsPostsRow(0, id.value.value, postId))
-      _      <- BotsPosts ++= news
-    } yield ()
-
-    db.run(query.transactionally)
-  }.ifFailedThenToInfraError("error while ApplicationRepository.add")
+//  override def add(
+//    post: Post,
+//    applicationIds: Seq[ApplicationId]
+//  ): Future[Unit] = {
+//    val nowUnix      = System.currentTimeMillis / 1000
+//    val newPost      = post.toRow(nowUnix)
+//    val postsInsertQ =
+//      Posts.returning(Posts.map(_.id)).into((_, id) => id) += newPost
+//    val query        = for {
+//      postId <- postsInsertQ
+//      news    = applicationIds.map(id => BotsPostsRow(0, id.value.value, postId))
+//      _      <- BotsPosts ++= news
+//    } yield ()
+//
+//    db.run(query.transactionally)
+//  }.ifFailedThenToInfraError("error while ApplicationRepository.add")
 }
-//        Bot(
-//          botId,
-//          BotName(Refined.unsafeApply(bot.name)),
-//          workSpaces.map(at => WorkSpaceToken(Refined.unsafeApply(at))),
-//          postId.map(pid => PostId(Refined.unsafeApply(pid))),
-//          Seq(),
-//          maybeClientInfo.flatMap(info =>
-//            info.clientId.map(id => BotClientId(Refined.unsafeApply(id)))
-//          ),
-//          maybeClientInfo.flatMap(info =>
-//            info.clientSecret.map(secret =>
-//              BotClientSecret(Refined.unsafeApply(secret))
-//            )
-//          )
-//        )

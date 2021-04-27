@@ -146,7 +146,7 @@ class WorkSpaceRepositoryImpl @Inject() (
           )
         )
         .map(_ => Some())
-        .ifFailedThenToInfraError("error while WorkSpaceRepository.add")
+        .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
     case None    => Future.successful(None)
   }
 
