@@ -2,20 +2,22 @@ package infra.syntax
 
 import domains.application.Application
 import domains.bot.Bot
-import domains.post.Post
+import domains.post.{Post, UnsavedPost}
 import infra.dto.Tables._
 
 object domain extends DomainSyntax
 
 trait DomainSyntax {
-  implicit final def infraSyntaxPost(model: Post): PostOps              = new PostOps(model)
-  implicit final def infraSyntaxBot(model: Application): ApplicationOps =
+  implicit final def infraSyntaxPost(model: UnsavedPost): UnsavedPostOps =
+    new UnsavedPostOps(model)
+  implicit final def infraSyntaxBot(model: Application): ApplicationOps  =
     new ApplicationOps(model)
 }
 
-final private[syntax] class PostOps(private val model: Post) extends AnyVal {
+final private[syntax] class UnsavedPostOps(private val model: UnsavedPost)
+    extends AnyVal {
   def toRow(unixSec: Long): PostsRow = PostsRow(
-    model.id.map(_.value.value).getOrElse(0),
+    0,
     model.url.value.value,
     model.title.value.value,
     model.author.value.value,

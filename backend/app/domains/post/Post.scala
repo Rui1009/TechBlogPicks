@@ -12,7 +12,7 @@ import eu.timepit.refined.refineV
 import eu.timepit.refined.string.Url
 
 final case class Post(
-  id: Option[PostId],
+  id: PostId,
   url: PostUrl,
   title: PostTitle,
   author: PostAuthor,
@@ -68,3 +68,10 @@ object Post {
       }
   }
 }
+
+final case class UnsavedPost(
+  url: PostUrl,
+  title: PostTitle,
+  author: PostAuthor,
+  postedAt: PostPostedAt
+)

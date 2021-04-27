@@ -85,7 +85,8 @@ class WorkSpaceRepositoryImpl @Inject() (
                    BotName(Refined.unsafeApply(res.name)),
                    ApplicationId(Refined.unsafeApply(appId)),
                    token,
-                   joinedChannelsIds
+                   joinedChannelsIds,
+                   None
                  )
                )
                .toSeq

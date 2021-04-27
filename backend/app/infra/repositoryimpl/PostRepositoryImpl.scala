@@ -2,7 +2,7 @@ package infra.repositoryimpl
 
 import com.google.inject.Inject
 import domains.post.Post.{PostAuthor, PostId, PostPostedAt, PostTitle, PostUrl}
-import domains.post.{Post, PostRepository}
+import domains.post.{Post, PostRepository, UnsavedPost}
 import eu.timepit.refined.api.Refined
 import infra.dto.Tables._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -17,7 +17,7 @@ class PostRepositoryImpl @Inject() (
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with PostRepository
     with API {
-  override def save(model: Post): Future[Post] = {
+  override def save(model: UnsavedPost): Future[Post] = {
     val nowUnix = System.currentTimeMillis / 1000
     val newPost = model.toRow(nowUnix)
     db.run {
@@ -28,7 +28,7 @@ class PostRepositoryImpl @Inject() (
         .into((_, id) => id) += newPost
     }.map(post =>
       Post(
-        Some(PostId(Refined.unsafeApply(post._1))),
+        PostId(Refined.unsafeApply(post._1)),
         PostUrl(Refined.unsafeApply(post._2)),
         PostTitle(Refined.unsafeApply(post._3)),
         PostAuthor(Refined.unsafeApply(post._4)),
