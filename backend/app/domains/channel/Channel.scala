@@ -12,16 +12,12 @@ import domains.channel.ChannelMessage.{
   ChannelMessageSenderUserId,
   ChannelMessageSentAt
 }
-import domains.channel.DraftMessage.{
-  DraftMessageSenderUserId,
-  DraftMessageSentAt,
-  MessageBlock
-}
+import domains.channel.DraftMessage.MessageBlock
 
 final case class Channel(id: ChannelId, history: Seq[Message]) {
   def isMessageExists: Boolean = this.history.nonEmpty
 
-  def addMessage(message: Message): Channel =
+  def receiveMessage(message: Message): Channel =
     this.copy(history = history :+ message)
 }
 
@@ -65,33 +61,9 @@ object ChannelMessage {
   }
 }
 
-final case class DraftMessage(
-  sentAt: DraftMessageSentAt,
-  senderUserId: DraftMessageSenderUserId,
-  blocks: Seq[MessageBlock]
-) extends Message
+final case class DraftMessage(blocks: Seq[MessageBlock]) extends Message
 
 object DraftMessage {
-  @newtype case class DraftMessageSentAt(value: String Refined ValidFloat)
-  object DraftMessageSentAt {
-    def create(value: String): Either[RegexError, DraftMessageSentAt] =
-      refineV[ValidFloat](value) match {
-        case Right(v) => Right(DraftMessageSentAt(v))
-        case Left(_)  => Left(RegexError("DraftMessageSentAt"))
-      }
-  }
-
-  @newtype case class DraftMessageSenderUserId(value: String Refined NonEmpty)
-  object DraftMessageSenderUserId {
-    def create(
-      value: String
-    ): Either[EmptyStringError, DraftMessageSenderUserId] =
-      refineV[NonEmpty](value) match {
-        case Right(v) => Right(DraftMessageSenderUserId(v))
-        case Left(_)  => Left(EmptyStringError("DraftMessageSenderUserId"))
-      }
-  }
-
   sealed trait MessageBlock
   case class SectionBlock(
     blockText: BlockText,
