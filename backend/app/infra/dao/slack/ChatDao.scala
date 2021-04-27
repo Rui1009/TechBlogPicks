@@ -1,6 +1,7 @@
 package infra.dao.slack
 
 import com.google.inject.Inject
+import domains.channel.DraftMessage
 import domains.message.Message.{
   AccessoryImage,
   ActionBlock,
@@ -30,7 +31,7 @@ trait ChatDao {
   def postMessage(
     token: String,
     channel: String,
-    blocks: Seq[MessageBlock]
+    blocks: DraftMessage
   ): Future[PostMessageResponse]
 }
 
@@ -60,7 +61,7 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
   def postMessage(
     token: String,
     channel: String,
-    blocks: Seq[MessageBlock]
+    blocks: DraftMessage
   ): Future[PostMessageResponse] = {
     val url                                                = "https://slack.com/api/chat.postMessage"
     implicit val encodeSectionBlock: Encoder[MessageBlock] = Encoder.instance {
