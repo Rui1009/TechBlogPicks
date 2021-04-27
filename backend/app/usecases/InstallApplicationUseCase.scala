@@ -54,7 +54,12 @@ final class InstallApplicationUseCaseImpl @Inject() (
           "error while workSpaceRepository.find in install application use case"
         )
 
-    updatedWorkSpace = workSpace.installApplication(targetApplication)
+    updatedWorkSpace <-
+      workSpace
+        .installApplication(targetApplication)
+        .ifLeftThenToUseCaseError(
+          "error while workSpace.installApplication in install application use case"
+        )
 
     _ <- workSpaceRepository
            .update(updatedWorkSpace, targetApplication.id)

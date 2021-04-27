@@ -20,15 +20,14 @@ final case class WorkSpace(
   channels: Seq[Channel],
   unallocatedToken: Option[BotAccessToken]
 ) {
-  def installApplication(application: Application): WorkSpace = {
-    val bot = Bot(
-      None,
-      BotName(application.name.value),
-      application.id,
-      this.unallocatedToken,
-      Seq()
-    )
-    this.copy(bots = bots :+ bot)
+  def installApplication(
+    application: Application
+  ): Either[NotExistError, WorkSpace] = this.unallocatedToken match {
+    case Some(token) =>
+      val bot =
+        Bot(None, BotName(application.name.value), application.id, token, Seq())
+      Right(this.copy(bots = bots :+ bot))
+    case None        => Left(NotExistError("unallocatedToken"))
   }
 
   def uninstallApplication(application: Application): WorkSpace =

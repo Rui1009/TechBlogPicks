@@ -14,7 +14,7 @@ final case class Bot(
   id: Option[BotId],
   name: BotName,
   applicationId: ApplicationId,
-  accessToken: Option[BotAccessToken],
+  accessToken: BotAccessToken,
   channelIds: Seq[ChannelId]
 ) {
   def joinTo(channelId: ChannelId): Bot =
