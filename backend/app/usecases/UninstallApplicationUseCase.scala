@@ -42,7 +42,7 @@ final class UninstallApplicationUseCaseImpl @Inject() (
                          }
     updatedWorkSpace   = targetWorkSpace.uninstallApplication(targetApplication)
     _                 <- workSpaceRepository
-                           .update(updatedWorkSpace)
+                           .removeBot(updatedWorkSpace)
                            .ifFailThenToUseCaseError(
                              "error while workSpaceRepository.add in uninstall bot use case"
                            )
