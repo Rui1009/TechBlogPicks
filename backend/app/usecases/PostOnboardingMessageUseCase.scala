@@ -42,19 +42,26 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
           )
     } yield
       if (targetChannel.isMessageExists) Future.unit
-      else for {
-        onboardingMessage <-
-          targetWorkSpace
-            .botCreateOnboardingMessage(params.botId)
-            .ifLeftThenToUseCaseError(
-              "error while WorkSpace.botCreateOnboardingMessage in post onboarding message use case"
-            )
-        _                 <-
-          targetWorkSpace
-            .botPostMessage(params.botId, targetChannel.id, onboardingMessage)
-            .ifLeftThenToUseCaseError(
-              "error while WorkSpace.botPostMessage in post onboarding message use case"
-            )
-      } yield Future.unit
+      else
+        for {
+          onboardingMessage <-
+            targetWorkSpace
+              .botCreateOnboardingMessage(params.botId)
+              .ifLeftThenToUseCaseError(
+                "error while WorkSpace.botCreateOnboardingMessage in post onboarding message use case"
+              )
+          bot               <-
+            targetWorkSpace
+              .botPostMessage(params.botId, targetChannel.id, onboardingMessage)
+              .ifLeftThenToUseCaseError(
+                "error while WorkSpace.botPostMessage in post onboarding message use case"
+              )
+        } yield for {
+          _ <- workSpaceRepository
+                 .sendMessage(bot, targetChannel, onboardingMessage)
+                 .ifFailThenToUseCaseError(
+                   "error while workSpaceRepository.sendMessage in post onboarding use case"
+                 )
+        } yield Future.unit
 
 }
