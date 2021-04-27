@@ -1,12 +1,8 @@
 package domains.workspace
 
-import domains.application.Application.{
-  ApplicationClientId,
-  ApplicationClientSecret,
-  ApplicationId
-}
-import domains.workspace.WorkSpace.{WorkSpaceId, WorkSpaceTemporaryOauthCode}
-import domains.bot.Bot.BotId
+import domains.application.Application._
+import domains.workspace.WorkSpace._
+import domains.channel.Channel.ChannelId
 
 import scala.concurrent.Future
 
@@ -21,6 +17,14 @@ trait WorkSpaceRepository {
     model: WorkSpace,
     applicationId: ApplicationId
   ): Future[Option[Unit]]
-  def update(model: WorkSpace): Future[Unit]
+
+  def joinChannels(
+    model: WorkSpace,
+    applicationId: ApplicationId,
+    channelIds: Seq[ChannelId]
+  ): Future[Unit]
+
+  def removeBot(model: WorkSpace): Future[Unit]
+
   def find(id: WorkSpaceId): Future[Option[WorkSpace]]
 }

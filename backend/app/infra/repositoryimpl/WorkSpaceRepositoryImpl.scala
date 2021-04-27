@@ -141,4 +141,14 @@ final class WorkSpaceRepositoryImpl @Inject() (
     } yield ())
     .map(_ => ())
     .ifFailedThenToInfraError("error while WorkSpaceRepository.joinChannel")
+
+  override def removeBot(model: WorkSpace): Future[Unit] = db
+    .run(
+      WorkSpaces
+        .filter(_.teamId === model.id.value.value)
+        .filter(!_.botId.inSet(model.bots.map(_.applicationId.value.value)))
+        .delete
+    )
+    .map(_ => ())
+    .ifFailedThenToInfraError("error while WorkSpaceRepository.removeBot")
 }
