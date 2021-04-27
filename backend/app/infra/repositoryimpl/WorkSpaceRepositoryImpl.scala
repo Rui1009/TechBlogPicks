@@ -11,10 +11,10 @@ import domains.bot.Bot
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import domains.bot.Bot._
-import domains.channel.Channel
+import domains.channel.{Channel, DraftMessage}
 import domains.channel.Channel.ChannelId
 import eu.timepit.refined.api.Refined
-import infra.dao.slack.{TeamDao, TeamDaoImpl, UsersDao}
+import infra.dao.slack.{ChatDao, TeamDao, TeamDaoImpl, UsersDao}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.ws._
 import slick.jdbc.PostgresProfile
@@ -32,7 +32,8 @@ class WorkSpaceRepositoryImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
   protected val ws: WSClient,
   protected val teamDao: TeamDao,
-  protected val usersDao: UsersDao
+  protected val usersDao: UsersDao,
+  protected val chatDao: ChatDao
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with WorkSpaceRepository
     with API with AccessTokenPublisherTokenDecoder {
@@ -118,7 +119,7 @@ class WorkSpaceRepositoryImpl @Inject() (
     applicationId: ApplicationId
   ): Future[Option[Unit]] = model.bots
     .find(_.applicationId == applicationId)
-    .flatMap(_.accessToken.map(_.value.value)) match {
+    .map(_.accessToken.value.value) match {
     case Some(v) => db
         .run(
           WorkSpaces += WorkSpacesRow(
@@ -131,4 +132,16 @@ class WorkSpaceRepositoryImpl @Inject() (
         .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
     case None    => Future.successful(None)
   }
+
+  override def sendMessage(
+    bot: Bot,
+    channel: Channel,
+    message: DraftMessage
+  ): Future[Unit] = for {
+    _ <- chatDao.postMessage(
+           bot.accessToken.value.value,
+           channel.id.value.value,
+           message
+         )
+  } yield ()
 }

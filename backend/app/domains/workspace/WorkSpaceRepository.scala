@@ -5,8 +5,10 @@ import domains.application.Application.{
   ApplicationClientSecret,
   ApplicationId
 }
+import domains.bot.Bot
 import domains.workspace.WorkSpace.{WorkSpaceId, WorkSpaceTemporaryOauthCode}
 import domains.bot.Bot.BotId
+import domains.channel.{Channel, DraftMessage}
 
 import scala.concurrent.Future
 
@@ -23,4 +25,9 @@ trait WorkSpaceRepository {
   ): Future[Option[Unit]]
   def update(model: WorkSpace): Future[Unit]
   def find(id: WorkSpaceId): Future[Option[WorkSpace]]
+  def sendMessage(
+    bot: Bot,
+    channel: Channel,
+    message: DraftMessage
+  ): Future[Unit]
 }
