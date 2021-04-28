@@ -29,27 +29,30 @@ final case class Bot(
   def joinTo(channelId: ChannelId): Bot =
     this.copy(channelIds = channelIds :+ channelId)
 
-  def createOnboardingMessage: DraftMessage = DraftMessage(
-    Seq(
-      SectionBlock(
-        BlockText(
-          Refined.unsafeApply(
-            "インストールありがとうございます🤗\nWinkieはあなたの関心のある分野に関する最新の技術記事を自動でslack上に定期配信するアプリです。\nご利用いただくために、初めにアプリを追加するチャンネルを選択してください。"
-          )
+  def createOnboardingMessage: Bot = {
+    val draft = DraftMessage(
+      Seq(
+        SectionBlock(
+          BlockText(
+            Refined.unsafeApply(
+              "インストールありがとうございます🤗\nWinkieはあなたの関心のある分野に関する最新の技術記事を自動でslack上に定期配信するアプリです。\nご利用いただくために、初めにアプリを追加するチャンネルを選択してください。"
+            )
+          ),
+          None
         ),
-        None
-      ),
-      ActionBlock(
-        Seq(
-          ActionSelect(
-            "Select a channel",
-            SelectPlaceHolder("Select a channel", false),
-            "actionId-0"
+        ActionBlock(
+          Seq(
+            ActionSelect(
+              "Select a channel",
+              SelectPlaceHolder("Select a channel", false),
+              "actionId-0"
+            )
           )
         )
       )
     )
-  )
+    this.copy(draftMessage = Some(draft))
+  }
 
   def postMessage(channel: Channel, message: DraftMessage): Channel =
     channel.receiveMessage(message)
