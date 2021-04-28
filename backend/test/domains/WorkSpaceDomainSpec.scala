@@ -132,10 +132,9 @@ class WorkSpaceDomainSpec extends ModelSpec {
             val channels  =
               _workSpace.channels.filter(_.id !== channel.id) :+ channel
             val bot       = _bot.copy(channelIds =
-              _bot.channelIds.filter(id => id === channel.id)
+              _bot.channelIds.filter(id => id !== channel.id)
             )
-            val bots      = _workSpace.bots
-              .filter(_.applicationId !== bot.applicationId) :+ bot
+            val bots      = _workSpace.bots.filter(_.id !== bot.id) :+ bot
             val workSpace = _workSpace.copy(channels = channels, bots = bots)
 
             val result =
@@ -144,8 +143,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
             val updatedBot = bot.copy(channelIds = bot.channelIds :+ channel.id)
             val expected   = Right(
               workSpace.copy(bots =
-                workSpace.bots
-                  .filter(_.applicationId !== bot.applicationId) :+ updatedBot
+                workSpace.bots.filter(_.id != bot.id) :+ updatedBot
               )
             )
 
@@ -155,7 +153,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
     }
 
     "given not exist application id" should {
-      "return domain error" in {
+      "return domain error which message is right" in {
         forAll(workSpaceGen, channelTypedChannelMessageGen, botGen) {
           (_workSpace, channel, bot) =>
             val workSpace = _workSpace.copy(
@@ -166,7 +164,10 @@ class WorkSpaceDomainSpec extends ModelSpec {
 
             val result =
               workSpace.addBotToChannel(bot.applicationId, channel.id)
-            pending
+
+            assert(
+              result.unsafeLeftGet.errorMessage.trim === "NotExistError: ApplicationId don't exist"
+            )
         }
       }
     }
@@ -182,7 +183,10 @@ class WorkSpaceDomainSpec extends ModelSpec {
 
             val result =
               workSpace.addBotToChannel(bot.applicationId, channel.id)
-            pending
+
+            assert(
+              result.unsafeLeftGet.errorMessage.trim === "NotExistError: ChannelId don't exist"
+            )
         }
       }
     }
@@ -199,7 +203,14 @@ class WorkSpaceDomainSpec extends ModelSpec {
 
             val result =
               workSpace.addBotToChannel(bot.applicationId, channel.id)
-            pending
+
+            assert(
+              result.unsafeLeftGet.errorMessage.trim ===
+                """
+                  |NotExistError: ApplicationId don't exist
+                  |NotExistError: ChannelId don't exist
+                  |""".stripMargin.trim
+            )
         }
       }
     }
