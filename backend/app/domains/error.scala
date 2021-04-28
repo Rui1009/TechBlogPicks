@@ -5,6 +5,11 @@ sealed trait DomainError extends Throwable {
   val errorMessage: String = s"""${this.getClass.getName}: $content
        |""".stripMargin
 }
+object DomainError {
+  def combine(errors: Seq[DomainError]): DomainError = new DomainError {
+    override val content: String = errors.map(_.errorMessage).mkString(",")
+  }
+}
 
 final case class EmptyStringError(className: String) extends DomainError {
   override lazy val content: String = s"$className is empty string"
