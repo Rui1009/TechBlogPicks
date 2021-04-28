@@ -27,7 +27,7 @@ final case class Bot(
   draftMessage: Option[DraftMessage]
 ) {
   def joinTo(channelId: ChannelId): Bot =
-    this.copy(channelIds = channelIds :+ channelId)
+    this.copy(channelIds = channelIds.filter(_ != channelId) :+ channelId)
 
   def createOnboardingMessage: DraftMessage = DraftMessage(
     Seq(
