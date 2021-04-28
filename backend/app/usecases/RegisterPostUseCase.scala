@@ -4,11 +4,10 @@ import com.google.inject.Inject
 import domains.application.Application.ApplicationId
 import domains.application.ApplicationRepository
 import domains.post.Post.{PostAuthor, PostPostedAt, PostTitle, PostUrl}
-import domains.post.{Post, PostRepository, UnsavedPost}
+import domains.post.{PostRepository, UnsavedPost}
 import usecases.RegisterPostUseCase.Params
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 trait RegisterPostUseCase {
   def exec(params: Params): Future[Unit]

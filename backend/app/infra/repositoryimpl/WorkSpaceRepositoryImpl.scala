@@ -103,7 +103,7 @@ class WorkSpaceRepositoryImpl @Inject() (
       usersDao
         .conversations(a.token)
         .map(r =>
-          (r.channels.map(c => ChannelId(Refined.unsafeApply(c))), a.botId)
+          (r.channels.map(c => ChannelId(Refined.unsafeApply(c.id))), a.botId)
         )
     )
   )

@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import domains.bot.Bot.BotId
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace.WorkSpaceId
-import domains.workspace.{WorkSpace, WorkSpaceRepository}
+import domains.workspace.WorkSpaceRepository
 import usecases.PostOnboardingMessageUseCase.Params
 
 import scala.concurrent.{ExecutionContext, Future}
