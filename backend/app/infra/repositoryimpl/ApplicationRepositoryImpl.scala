@@ -7,20 +7,16 @@ import domains.application.Application.{
   ApplicationId,
   ApplicationName
 }
-import domains.application.Post.{PostAuthor, PostPostedAt, PostTitle, PostUrl}
-import domains.application.{Application, ApplicationRepository, Post}
-import domains.post.Post
-import domains.post.Post.{PostAuthor, PostId, PostPostedAt, PostTitle, PostUrl}
+import domains.application.{Application, ApplicationRepository}
+import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
 import infra.dao.slack.{ConversationDao, UsersDao, UsersDaoImpl}
-import infra.dto
-import infra.dto.Tables
 import infra.dto.Tables._
 import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.ws.WSClient
-import slick.jdbc.PostgresProfile.API
 import slick.jdbc.PostgresProfile
+import slick.jdbc.PostgresProfile.API
 
 import scala.concurrent.{ExecutionContext, Future}
 

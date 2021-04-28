@@ -94,15 +94,11 @@ class WorkSpaceRepositoryImpl @Inject() (
     if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels, None)))
     .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
 
-  private type ChannelIdsAndBotId = Seq[(Seq[ChannelId], String)]
-
   private def findBotUser(botIds: Seq[String]) = usersDao
     .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
     .map(_.members.filter(m => m.isBot && Set(m.id).subsetOf(botIds.toSet)))
 
-  private def findChannelIds(
-    rows: Seq[WorkSpacesRow]
-  ): Future[ChannelIdsAndBotId] = Future.sequence(
+  private def findChannelIds(rows: Seq[WorkSpacesRow]) = Future.sequence(
     rows.map(a =>
       usersDao
         .conversations(a.token)

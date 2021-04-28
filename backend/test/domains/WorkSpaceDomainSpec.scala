@@ -50,7 +50,8 @@ class WorkSpaceDomainSpec extends ModelSpec {
           (_workSpace, app, token) =>
             val workSpace = _workSpace.copy(unallocatedToken = Some(token))
             val result    = workSpace.installApplication(app)
-            val bot       = Bot(None, BotName(app.name.value), app.id, token, Seq())
+            val bot       =
+              Bot(None, BotName(app.name.value), app.id, token, Seq(), None)
             val expected  = Right(workSpace.copy(bots = workSpace.bots :+ bot))
 
             assert(result === expected)
@@ -88,12 +89,13 @@ class WorkSpaceDomainSpec extends ModelSpec {
   "WorkSpace.isChannelExists" when {
     "channel exists" should {
       "return true" in {
-        forAll(workSpaceGen, channelGen) { (_workSpace, channel) =>
-          val workSpace =
-            _workSpace.copy(channels = _workSpace.channels :+ channel)
-          val result    = workSpace.isChannelExists(channel.id)
+        forAll(workSpaceGen, channelTypedChannelMessageGen) {
+          (_workSpace, channel) =>
+            val workSpace =
+              _workSpace.copy(channels = _workSpace.channels :+ channel)
+            val result    = workSpace.isChannelExists(channel.id)
 
-          assert(result)
+            assert(result)
         }
       }
     }
@@ -125,7 +127,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
   "WorkSpace.addBotToChannel" when {
     "given right args" should {
       "return WorkSpace which bots is updated" in {
-        forAll(workSpaceGen, channelGen, botGen) {
+        forAll(workSpaceGen, channelTypedChannelMessageGen, botGen) {
           (_workSpace, channel, _bot) =>
             val channels  =
               _workSpace.channels.filter(_.id !== channel.id) :+ channel
@@ -154,44 +156,50 @@ class WorkSpaceDomainSpec extends ModelSpec {
 
     "given not exist application id" should {
       "return domain error" in {
-        forAll(workSpaceGen, channelGen, botGen) { (_workSpace, channel, bot) =>
-          val workSpace = _workSpace.copy(
-            bots =
-              _workSpace.bots.filter(_.applicationId !== bot.applicationId),
-            channels = _workSpace.channels :+ channel
-          )
+        forAll(workSpaceGen, channelTypedChannelMessageGen, botGen) {
+          (_workSpace, channel, bot) =>
+            val workSpace = _workSpace.copy(
+              bots =
+                _workSpace.bots.filter(_.applicationId !== bot.applicationId),
+              channels = _workSpace.channels :+ channel
+            )
 
-          val result = workSpace.addBotToChannel(bot.applicationId, channel.id)
-          pending
+            val result =
+              workSpace.addBotToChannel(bot.applicationId, channel.id)
+            pending
         }
       }
     }
 
     "given not exist channel id" should {
       "return domain error" in {
-        forAll(workSpaceGen, channelGen, botGen) { (_workSpace, channel, bot) =>
-          val workSpace = _workSpace.copy(
-            bots = _workSpace.bots :+ bot,
-            channels = _workSpace.channels.filter(_.id !== channel.id)
-          )
+        forAll(workSpaceGen, channelTypedChannelMessageGen, botGen) {
+          (_workSpace, channel, bot) =>
+            val workSpace = _workSpace.copy(
+              bots = _workSpace.bots :+ bot,
+              channels = _workSpace.channels.filter(_.id !== channel.id)
+            )
 
-          val result = workSpace.addBotToChannel(bot.applicationId, channel.id)
-          pending
+            val result =
+              workSpace.addBotToChannel(bot.applicationId, channel.id)
+            pending
         }
       }
     }
 
     "given not exist application id and channel id" should {
       "return domain error which has combined message" in {
-        forAll(workSpaceGen, channelGen, botGen) { (_workSpace, channel, bot) =>
-          val workSpace = _workSpace.copy(
-            bots =
-              _workSpace.bots.filter(_.applicationId !== bot.applicationId),
-            channels = _workSpace.channels.filter(_.id !== channel.id)
-          )
+        forAll(workSpaceGen, channelTypedChannelMessageGen, botGen) {
+          (_workSpace, channel, bot) =>
+            val workSpace = _workSpace.copy(
+              bots =
+                _workSpace.bots.filter(_.applicationId !== bot.applicationId),
+              channels = _workSpace.channels.filter(_.id !== channel.id)
+            )
 
-          val result = workSpace.addBotToChannel(bot.applicationId, channel.id)
-          pending
+            val result =
+              workSpace.addBotToChannel(bot.applicationId, channel.id)
+            pending
         }
       }
     }
