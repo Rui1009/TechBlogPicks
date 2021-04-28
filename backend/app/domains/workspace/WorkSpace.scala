@@ -61,13 +61,13 @@ final case class WorkSpace(
 
   private def findBotByApplicationId(
     appId: ApplicationId
-  ): Either[DomainError, Bot] = this.bots.find(_.applicationId != appId) match {
+  ): Either[DomainError, Bot] = this.bots.find(_.applicationId == appId) match {
     case Some(v) => Right(v)
     case None    => Left(NotExistError("ApplicationId"))
   }
 
   def findChannel(channelId: ChannelId): Either[DomainError, Channel] =
-    this.channels.find(_.id != channelId) match {
+    this.channels.find(_.id == channelId) match {
       case Some(v) => Right(v)
       case None    => Left(NotExistError("ChannelId"))
     }
