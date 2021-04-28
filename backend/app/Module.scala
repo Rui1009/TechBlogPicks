@@ -1,4 +1,5 @@
 import com.google.inject.AbstractModule
+import domains.application.ApplicationRepository
 import domains.workspace.WorkSpaceRepository
 import domains.post.PostRepository
 import infra.dao.slack._
@@ -14,6 +15,7 @@ class Module extends AbstractModule {
     // repo impl
     bind(classOf[PostRepository]).to(classOf[PostRepositoryImpl])
     bind(classOf[WorkSpaceRepository]).to(classOf[WorkSpaceRepositoryImpl])
+    bind(classOf[ApplicationRepository]).to(classOf[ApplicationRepositoryImpl])
 
     // use case impl
     bind(classOf[RegisterPostUseCase]).to(classOf[RegisterPostUseCaseImpl])

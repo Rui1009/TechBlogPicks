@@ -1,7 +1,6 @@
 package infra.dao.slack
 
 import com.google.inject.Inject
-import domains.workspace.WorkSpace.WorkSpaceToken
 import infra.dao.ApiDao
 import infra.dao.slack.ConversationDaoImpl.{InfoResponse, JoinResponse}
 import io.circe.{Decoder, Json}
