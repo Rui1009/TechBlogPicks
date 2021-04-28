@@ -12,6 +12,7 @@ import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.refineV
 import io.estatico.newtype.macros.newtype
+import cats.implicits._
 
 final case class WorkSpace(
   id: WorkSpaceId,
@@ -44,11 +45,13 @@ final case class WorkSpace(
   def addBotToChannel(
     appId: ApplicationId,
     channelId: ChannelId
-  ): Either[DomainError, WorkSpace] = for {
-    bot      <- findBotByApplicationId(appId)
-    _        <- findChannel(channelId)
-    joinedBot = bot.joinTo(channelId)
-  } yield this.copy(bots = this.bots.filter(_.id != joinedBot.id) :+ joinedBot)
+  ): Either[DomainError, WorkSpace] = (
+    findBotByApplicationId(appId).toValidatedNec,
+    findChannel(channelId).toValidatedNec
+  ).mapN { (bot, channel) =>
+    val joinedBot = bot.joinTo(channel.id)
+    this.copy(bots = this.bots.filter(_.id != joinedBot.id) :+ joinedBot)
+  }.toEither.leftMap(errors => DomainError.combine(errors.toList))
 
   private def findBotByApplicationId(
     appId: ApplicationId
@@ -83,7 +86,7 @@ object WorkSpace {
     ): Either[EmptyStringError, WorkSpaceTemporaryOauthCode] =
       refineV[NonEmpty](value) match {
         case Right(v) => Right(WorkSpaceTemporaryOauthCode(v))
-        case Left(_)  => Left(EmptyStringError("temporaryOauthCode"))
+        case Left(_)  => Left(EmptyStringError("WorkSpaceTemporaryOauthCode"))
       }
   }
 }
