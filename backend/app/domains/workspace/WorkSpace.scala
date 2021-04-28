@@ -5,7 +5,7 @@ import domains.application.Application
 import domains.application.Application.ApplicationId
 import domains.bot.Bot
 import domains.bot.Bot._
-import domains.channel.Channel
+import domains.channel.{Channel, DraftMessage}
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace._
 import eu.timepit.refined.api.Refined
@@ -25,8 +25,14 @@ final case class WorkSpace(
     application: Application
   ): Either[NotExistError, WorkSpace] = this.unallocatedToken match {
     case Some(token) =>
-      val bot =
-        Bot(None, BotName(application.name.value), application.id, token, Seq())
+      val bot = Bot(
+        None,
+        BotName(application.name.value),
+        application.id,
+        token,
+        Seq(),
+        None
+      )
       Right(this.copy(bots = bots :+ bot))
     case None        => Left(NotExistError("unallocatedToken"))
   }
@@ -60,11 +66,36 @@ final case class WorkSpace(
     case None    => Left(NotExistError("ApplicationId"))
   }
 
-  private def findChannel(channelId: ChannelId): Either[DomainError, Channel] =
+  def findChannel(channelId: ChannelId): Either[DomainError, Channel] =
     this.channels.find(_.id != channelId) match {
       case Some(v) => Right(v)
       case None    => Left(NotExistError("ChannelId"))
     }
+
+  def botCreateOnboardingMessage(
+    botId: BotId
+  ): Either[DomainError, DraftMessage] =
+    this.bots.find(bot => bot.id.contains(botId)) match {
+      case Some(v) => Right(v.createOnboardingMessage)
+      case None    => Left(NotExistError("BotId"))
+    }
+
+  def botPostMessage(
+    botId: BotId,
+    channelId: ChannelId,
+    message: DraftMessage
+  ): Either[DomainError, Bot] = for {
+    targetBot     <- this.bots.find(bot => bot.id.contains(botId)) match {
+                       case Some(v) => Right(v)
+                       case None    => Left(NotExistError("BotId"))
+                     }
+    targetChannel <-
+      this.channels.find(channel => channel.id == channelId) match {
+        case Some(v) => Right(v)
+        case None    => Left(NotExistError("ChannelId"))
+      }
+    _              = targetBot.postMessage(targetChannel, message)
+  } yield targetBot
 }
 
 object WorkSpace {

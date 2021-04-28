@@ -2,19 +2,23 @@ package domains.channel
 
 import domains.{EmptyStringError, RegexError}
 import domains.channel.Channel.ChannelId
-import domains.channel.Message.{MessageBlock, MessageSentAt, SenderUserId}
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.refineV
 import eu.timepit.refined.string.{Url, ValidFloat}
 import io.estatico.newtype.macros.newtype
 import cats.implicits._
+import domains.channel.ChannelMessage.{
+  ChannelMessageSenderUserId,
+  ChannelMessageSentAt
+}
+import domains.channel.DraftMessage.MessageBlock
 
-final case class Channel(id: ChannelId, messages: Seq[Message]) {
-  def isMessageExists: Boolean = this.messages.nonEmpty
+final case class Channel(id: ChannelId, history: Seq[Message]) {
+  def isMessageExists: Boolean = this.history.nonEmpty
 
-  def addMessage(message: Message): Channel =
-    this.copy(messages = messages :+ message)
+  def receiveMessage(message: Message): Channel =
+    this.copy(history = history :+ message)
 }
 
 object Channel {
@@ -28,31 +32,38 @@ object Channel {
   }
 }
 
-final case class Message(
-  sentAt: MessageSentAt,
-  senderUserId: SenderUserId,
-  blocks: Seq[MessageBlock]
-) {}
+sealed trait Message
+final case class ChannelMessage(
+  sentAt: ChannelMessageSentAt,
+  senderUserId: ChannelMessageSenderUserId,
+  text: String
+) extends Message
 
-object Message {
-  @newtype case class MessageSentAt(value: String Refined ValidFloat)
-  object MessageSentAt {
-    def create(value: String): Either[RegexError, MessageSentAt] =
+object ChannelMessage {
+  @newtype case class ChannelMessageSentAt(value: String Refined ValidFloat)
+  object ChannelMessageSentAt {
+    def create(value: String): Either[RegexError, ChannelMessageSentAt] =
       refineV[ValidFloat](value) match {
-        case Right(v) => Right(MessageSentAt(v))
-        case Left(_)  => Left(RegexError("MessageSentAt"))
+        case Right(v) => Right(ChannelMessageSentAt(v))
+        case Left(_)  => Left(RegexError("ChannelMessageSentAt"))
       }
   }
 
-  @newtype case class SenderUserId(value: String Refined NonEmpty)
-  object SenderUserId {
-    def create(value: String): Either[EmptyStringError, SenderUserId] =
+  @newtype case class ChannelMessageSenderUserId(value: String Refined NonEmpty)
+  object ChannelMessageSenderUserId {
+    def create(
+      value: String
+    ): Either[EmptyStringError, ChannelMessageSenderUserId] =
       refineV[NonEmpty](value) match {
-        case Right(v) => Right(SenderUserId(v))
-        case Left(_)  => Left(EmptyStringError("SenderUserId"))
+        case Right(v) => Right(ChannelMessageSenderUserId(v))
+        case Left(_)  => Left(EmptyStringError("ChannelMessageSenderUserId"))
       }
   }
+}
 
+final case class DraftMessage(blocks: Seq[MessageBlock]) extends Message
+
+object DraftMessage {
   sealed trait MessageBlock
   case class SectionBlock(
     blockText: BlockText,

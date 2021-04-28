@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import domains.application.Application.ApplicationId
 import domains.application.ApplicationRepository
 import domains.post.Post.{PostAuthor, PostPostedAt, PostTitle, PostUrl}
-import domains.post.{Post, PostRepository}
+import domains.post.{Post, PostRepository, UnsavedPost}
 import usecases.RegisterPostUseCase.Params
 
 import scala.concurrent.Future
@@ -31,7 +31,7 @@ final class RegisterPostUseCaseImpl @Inject() (
     extends RegisterPostUseCase {
   override def exec(params: Params): Future[Unit] = {
     val post =
-      Post(None, params.url, params.title, params.author, params.postedAt)
+      UnsavedPost(params.url, params.title, params.author, params.postedAt)
 
     for {
       savedPost           <-
@@ -48,7 +48,7 @@ final class RegisterPostUseCaseImpl @Inject() (
           )
       assignedApplications = savedPost.assign(targetApplications)
       _                   <- applicationRepository
-                               .add(assignedApplications)
+                               .save(assignedApplications, savedPost.id)
                                .ifFailThenToUseCaseError(
                                  "error while applicationRepository.add in register post use case"
                                )

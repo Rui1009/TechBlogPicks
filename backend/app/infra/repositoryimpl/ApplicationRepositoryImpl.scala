@@ -109,21 +109,25 @@ class ApplicationRepositoryImpl @Inject() (
         maybeClientInfo <- clientInfoQ
       } yield targetMembers.map(targetMember =>
         Application(
-          ApplicationId(Refined.unsafeApply(targetMember.botId)),
+          ApplicationId(Refined.unsafeApply(targetMember.apiAppId)),
           ApplicationName(
             Refined.unsafeApply(
               targetMembers
                 .find(member =>
-                  member.botId == Some(targetMember.botId.value.value)
+                  member.apiAppId == Some(targetMember.apiAppId.value.value)
                 )
                 .map(v => ApplicationName(Refined.unsafeApply(v.name)))
             )
           ),
           maybeClientInfo
-            .find(info => targetMember.botId.value.value.contains(info.botId))
+            .find(info =>
+              targetMember.apiAppId.value.value.contains(info.botId)
+            )
             .map(v => ApplicationClientId(Refined.unsafeApply(v.clientId))),
           maybeClientInfo
-            .find(info => targetMember.botId.value.value.contains(info.botId))
+            .find(info =>
+              targetMember.apiAppId.value.value.contains(info.botId)
+            )
             .map(v =>
               ApplicationClientSecret(Refined.unsafeApply(v.clientSecret))
             ),
@@ -152,6 +156,18 @@ class ApplicationRepositoryImpl @Inject() (
     }).flatten
       .map(_ => ())
       .ifFailedThenToInfraError("error while ApplicationRepository.update")
+  }
+
+  override def save(
+    applications: Seq[Application],
+    postId: PostId
+  ): Future[Unit] = {
+    val news = applications.map(app =>
+      BotsPostsRow(0, app.id.value.value, postId.value.value)
+    )
+    db.run(BotsPosts ++= news)
+      .map(_ => ())
+      .ifFailedThenToInfraError("error while ApplicationRepository.save")
   }
 
 //  override def add(

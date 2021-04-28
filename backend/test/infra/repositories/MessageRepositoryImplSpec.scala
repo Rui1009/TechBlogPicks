@@ -10,7 +10,6 @@ import domains.message.Message.{
   SelectPlaceHolder
 }
 import play.api.mvc.Results.Ok
-import domains.message.MessageRepository
 import domains.workspace.WorkSpace.WorkSpaceToken
 import eu.timepit.refined.api.Refined
 import helpers.traits.RepositorySpec

@@ -3,6 +3,8 @@ package domains.workspace
 import domains.application.Application._
 import domains.workspace.WorkSpace._
 import domains.channel.Channel.ChannelId
+import domains.bot.Bot
+import domains.channel.{Channel, DraftMessage}
 
 import scala.concurrent.Future
 
@@ -27,4 +29,9 @@ trait WorkSpaceRepository {
   def removeBot(model: WorkSpace): Future[Unit]
 
   def find(id: WorkSpaceId): Future[Option[WorkSpace]]
+  def sendMessage(
+    bot: Bot,
+    channel: Channel,
+    message: DraftMessage
+  ): Future[Unit]
 }

@@ -7,7 +7,7 @@ import domains.bot.Bot
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import domains.bot.Bot._
-import domains.channel.Channel
+import domains.channel.{Channel, DraftMessage}
 import domains.channel.Channel.ChannelId
 import eu.timepit.refined.api.Refined
 import infra.dao.slack._
@@ -24,12 +24,13 @@ import io.circe.Json
 
 import scala.concurrent.{ExecutionContext, Future}
 
-final class WorkSpaceRepositoryImpl @Inject() (
-  val dbConfigProvider: DatabaseConfigProvider,
-  val ws: WSClient,
-  val teamDao: TeamDao,
-  val usersDao: UsersDao,
-  val conversationDao: ConversationDao
+class WorkSpaceRepositoryImpl @Inject() (
+  protected val dbConfigProvider: DatabaseConfigProvider,
+  protected val ws: WSClient,
+  protected val teamDao: TeamDao,
+  protected val usersDao: UsersDao,
+  val conversationDao: ConversationDao,
+  protected val chatDao: ChatDao
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with WorkSpaceRepository
     with API with AccessTokenPublisherTokenDecoder {
@@ -66,7 +67,9 @@ final class WorkSpaceRepositoryImpl @Inject() (
     channelIds <- findChannelIds(rows)
 
     channels = channelIds.flatMap { case (ids, _) =>
-                 ids.map(i => Channel(i, Seq.empty))
+                 ids.map(i =>
+                   Channel(i, Seq.empty)
+                 ) // Todo: historyもきちんと取得してそれを返す
                }
 
     bots = responses.flatMap { res =>
@@ -75,16 +78,32 @@ final class WorkSpaceRepositoryImpl @Inject() (
                .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
              val joinedChannelsIds =
                channelIds.filter(_._2 === res.id).flatMap(_._1)
-             (for {
-               appId <- res.apiAppId
-               token <- maybeToken
-             } yield Bot(
-               Some(BotId(Refined.unsafeApply(res.id))),
-               BotName(Refined.unsafeApply(res.name)),
-               ApplicationId(Refined.unsafeApply(appId)),
-               token,
-               joinedChannelsIds
-             )).toSeq
+             <<<<<<<.HEAD(
+               (for {
+                 appId <- res.apiAppId
+                 token <- maybeToken
+               } yield Bot(
+                 Some(BotId(Refined.unsafeApply(res.id))),
+                 BotName(Refined.unsafeApply(res.name)),
+                 ApplicationId(Refined.unsafeApply(appId)),
+                 token,
+                 joinedChannelsIds
+               )).toSeq
+             )
+             =======
+             res.apiAppId
+               .map(appId =>
+                 Bot(
+                   Some(BotId(Refined.unsafeApply(res.id))),
+                   BotName(Refined.unsafeApply(res.name)),
+                   ApplicationId(Refined.unsafeApply(appId)),
+                   token,
+                   joinedChannelsIds,
+                   None
+                 )
+               )
+               .toSeq
+             >>>>>>>.feature(/) fix_domain_model
            }
   } yield
     if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels, None)))
@@ -127,6 +146,7 @@ final class WorkSpaceRepositoryImpl @Inject() (
     case None    => Future.successful(None)
   }
 
+  <<<<<<< HEAD
   override def joinChannels(
     model: WorkSpace,
     applicationId: ApplicationId,
@@ -151,4 +171,17 @@ final class WorkSpaceRepositoryImpl @Inject() (
     )
     .map(_ => ())
     .ifFailedThenToInfraError("error while WorkSpaceRepository.removeBot")
+  =======
+  override def sendMessage(
+    bot: Bot,
+    channel: Channel,
+    message: DraftMessage
+  ): Future[Unit]                                        = for {
+    _ <- chatDao.postMessage(
+           bot.accessToken.value.value,
+           channel.id.value.value,
+           message
+         )
+  } yield ()
+  >>>>>>>.feature(/) fix_domain_model
 }
