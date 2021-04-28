@@ -5,7 +5,7 @@ import scala.concurrent.Future
 object either extends InfraSyntax
 
 trait InfraSyntax {
-  implicit final def infraSyntaxEither[S, T](
+  implicit final def infraSyntaxEither[S <: Throwable, T](
     either: Either[S, T]
   ): EitherOps[S, T] = new EitherOps[S, T](either)
 }
