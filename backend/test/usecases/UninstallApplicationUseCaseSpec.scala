@@ -1,6 +1,5 @@
 package usecases
 
-import domains.bot.BotRepository
 import domains.workspace.WorkSpaceRepository
 import helpers.traits.UseCaseSpec
 import infra.DBError

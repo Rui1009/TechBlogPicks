@@ -64,11 +64,8 @@ object UsersDaoImpl {
     name: String,
     isBot: Boolean,
     deleted: Boolean,
-    apiAppId: Option[String],
-    profile: Profile
+    apiAppId: Option[String]
   )
-
-  final case class Profile(apiAppId: String)
 
   implicit val membersEncoder: Decoder[Member] = Decoder.instance { cursor =>
     for {

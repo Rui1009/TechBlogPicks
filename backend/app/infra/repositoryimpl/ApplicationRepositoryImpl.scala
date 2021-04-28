@@ -103,7 +103,7 @@ class ApplicationRepositoryImpl @Inject() (
       for {
         postIds         <- postQ
         maybeClientInfo <- clientInfoQ
-      } yield targetMembers.map(targetMember =>
+      } yield targetMembers.map((targetMember: UsersDaoImpl.Member) =>
         Application(
           ApplicationId(Refined.unsafeApply(targetMember.apiAppId)),
           ApplicationName(

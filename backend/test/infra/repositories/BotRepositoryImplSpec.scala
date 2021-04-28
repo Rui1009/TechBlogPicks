@@ -2,7 +2,7 @@ package infra.repositories
 
 import domains.workspace.WorkSpace.{WorkSpaceId, WorkSpaceToken}
 import play.api.mvc.Results.Ok
-import domains.bot.{Bot, BotRepository}
+import domains.bot.Bot
 import domains.bot.Bot.{BotClientId, BotClientSecret, BotId, BotName}
 import domains.post.Post.PostId
 import helpers.traits.{HasDB, RepositorySpec}

@@ -23,7 +23,9 @@ class PostRepositoryImpl @Inject() (
     db.run {
       Posts
         .returning(
-          Posts.map(post => (post.id, post.url, post.title, post.author, post))
+          Posts.map(post =>
+            (post.id, post.url, post.title, post.author, post.postedAt)
+          )
         )
         .into((_, id) => id) += newPost
     }.map(post =>

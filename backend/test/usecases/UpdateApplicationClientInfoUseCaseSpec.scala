@@ -1,6 +1,5 @@
 package usecases
 
-import domains.bot.BotRepository
 import helpers.traits.UseCaseSpec
 import infra.DBError
 import org.scalacheck.Gen
