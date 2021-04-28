@@ -49,12 +49,8 @@ class EventController @Inject() (
   private def appHomeOpened(command: AppHomeOpenedEventCommand) =
     postOnboardingMessageUseCase
       .exec(
-        PostOnboardingMessageUseCase.Params(
-          command.botId,
-          command.workSpaceId,
-          command.channelId,
-          command.userId
-        )
+        PostOnboardingMessageUseCase
+          .Params(command.botId, command.workSpaceId, command.channelId)
       )
       .ifFailedThenToAdapterError("error in EventController.appHomeOpened")
       .toSuccessPostResponse

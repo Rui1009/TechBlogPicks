@@ -13,7 +13,7 @@ import adapters.controllers.event.AppUninstalledEventBody._
 import adapters.controllers.event.AppHomeOpenedEventBody._
 import adapters.controllers.event.EventBody._
 import domains.application.Application.ApplicationId
-import domains.message.Message.{MessageChannelId, MessageUserId}
+import domains.channel.Channel.ChannelId
 
 import scala.concurrent.ExecutionContext
 
@@ -87,19 +87,17 @@ object AppHomeOpenedEventBody {
 }
 
 final case class AppHomeOpenedEventCommand(
-  channelId: MessageChannelId,
+  channelId: ChannelId,
   botId: BotId,
-  workSpaceId: WorkSpaceId,
-  userId: MessageUserId
+  workSpaceId: WorkSpaceId
 ) extends EventCommand
 object AppHomeOpenedEventCommand {
   def validate(
     body: AppHomeOpenedEventBody
   ): Either[BadRequestError, EventCommand] = (
-    MessageChannelId.create(body.channel).toValidatedNec,
+    ChannelId.create(body.channel).toValidatedNec,
     BotId.create(body.appId).toValidatedNec,
-    WorkSpaceId.create(body.teamId).toValidatedNec,
-    MessageUserId.create(body.userId).toValidatedNec
+    WorkSpaceId.create(body.teamId).toValidatedNec
   ).mapN(AppHomeOpenedEventCommand.apply)
     .toEither
     .leftMap(errors =>
