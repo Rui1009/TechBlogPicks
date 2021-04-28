@@ -162,21 +162,4 @@ class ApplicationRepositoryImpl @Inject() (
       .map(_ => ())
       .ifFailedThenToInfraError("error while ApplicationRepository.save")
   }
-
-//  override def add(
-//    post: Post,
-//    applicationIds: Seq[ApplicationId]
-//  ): Future[Unit] = {
-//    val nowUnix      = System.currentTimeMillis / 1000
-//    val newPost      = post.toRow(nowUnix)
-//    val postsInsertQ =
-//      Posts.returning(Posts.map(_.id)).into((_, id) => id) += newPost
-//    val query        = for {
-//      postId <- postsInsertQ
-//      news    = applicationIds.map(id => BotsPostsRow(0, id.value.value, postId))
-//      _      <- BotsPosts ++= news
-//    } yield ()
-//
-//    db.run(query.transactionally)
-//  }.ifFailedThenToInfraError("error while ApplicationRepository.add")
 }
