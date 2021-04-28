@@ -2,13 +2,7 @@ package infra.dao.slack
 
 import com.google.inject.Inject
 import domains.channel.DraftMessage
-import domains.message.Message.{
-  AccessoryImage,
-  ActionBlock,
-  ActionSelect,
-  MessageBlock,
-  SectionBlock
-}
+import domains.channel.DraftMessage._
 import infra.APIError
 import infra.dao.ApiDao
 import infra.dao.slack.ChatDaoImpl.PostMessageResponse
