@@ -11,6 +11,7 @@ import domains.application.{Application, ApplicationRepository}
 import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
 import infra.dao.slack.{ConversationDao, UsersDao, UsersDaoImpl}
+import infra.dto.Tables
 import infra.dto.Tables._
 import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -93,46 +94,42 @@ class ApplicationRepositoryImpl @Inject() (
       .result
 
     (for {
-      members      <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-      targetMembers = members.members.filter(member =>
-                        applicationIds
-                          .map(id => Some(id.value.value))
-                          .contains(member.apiAppId)
-                      )
-    } yield db.run {
-      for {
-        postIds         <- postQ
-        maybeClientInfo <- clientInfoQ
-      } yield targetMembers.map((targetMember: UsersDaoImpl.Member) =>
-        Application(
-          ApplicationId(Refined.unsafeApply(targetMember.apiAppId)),
-          ApplicationName(
-            Refined.unsafeApply(
-              targetMembers
-                .find(member =>
-                  member.apiAppId == Some(targetMember.apiAppId.value.value)
-                )
-                .map(v => ApplicationName(Refined.unsafeApply(v.name)))
-            )
-          ),
-          maybeClientInfo
-            .find(info =>
-              targetMember.apiAppId.value.value.contains(info.botId)
-            )
-            .map(v => ApplicationClientId(Refined.unsafeApply(v.clientId))),
-          maybeClientInfo
-            .find(info =>
-              targetMember.apiAppId.value.value.contains(info.botId)
-            )
-            .map(v =>
-              ApplicationClientSecret(Refined.unsafeApply(v.clientSecret))
-            ),
-          postIds.map(id => PostId(Refined.unsafeApply(id)))
-        )
-      )
-    }.ifFailedThenToInfraError(
-      "error while ApplicationRepository.filter"
-    )).flatten
+      members                  <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+      targetMembers             = members.members
+                                    .filter(member =>
+                                      applicationIds
+                                        .map(id => Some(id.value.value))
+                                        .contains(member.apiAppId)
+                                    )
+                                    .foldLeft(Seq[(String, String)]()) { (acc, cur) =>
+                                      cur.apiAppId match {
+                                        case Some(v) => acc :+ (v, cur.name)
+                                        case None    => acc
+                                      }
+                                    }
+      postIdsAndClientInfoList <- db.run {
+                                    for {
+                                      postIds     <- postQ
+                                      clientInfos <- clientInfoQ
+                                    } yield (postIds, clientInfos)
+                                  }
+      (postIds, clientInfos)    = postIdsAndClientInfoList
+
+    } yield for {
+      targetMember                <- targetMembers
+      (targetAppId, targetAppName) = targetMember
+      clientInfo                  <- clientInfos.find(info => targetAppId == info.botId).toSeq
+    } yield Application(
+      ApplicationId(Refined.unsafeApply(targetAppId)),
+      ApplicationName(Refined.unsafeApply(targetAppName)),
+      clientInfo.clientId.map(id =>
+        ApplicationClientId(Refined.unsafeApply(id))
+      ),
+      clientInfo.clientSecret.map(secret =>
+        ApplicationClientSecret(Refined.unsafeApply(secret))
+      ),
+      postIds.map(id => PostId(Refined.unsafeApply(id)))
+    )).ifFailedThenToInfraError("error while ApplicationRepository.filter")
   }
 
   override def update(application: Application): Future[Unit] = {
