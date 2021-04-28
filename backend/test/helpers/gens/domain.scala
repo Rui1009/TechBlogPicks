@@ -11,7 +11,6 @@ import helpers.gens.string._
 import helpers.gens.number._
 import domain._
 import domains.post.Post
-import cats.syntax.option._
 import domains.application.Application
 import domains.application.Application._
 import domains.channel.{Channel, ChannelMessage, Message}
@@ -58,8 +57,9 @@ trait WorkSpaceGen {
     id                 <- workSpaceIdGen
     temporaryOauthCode <- Gen.option(temporaryOauthCodeGen)
     bots               <- Gen.listOf(botGen)
-    channel            <- Gen.listOf(channelGen)
-  } yield WorkSpace(id, temporaryOauthCode, bots, channel)
+    channel            <- Gen.listOf(channelTypedChannelMessageGen)
+    token              <- Gen.option(accessTokensGen)
+  } yield WorkSpace(id, temporaryOauthCode, bots, channel, token)
 }
 
 trait PostGen {
@@ -81,7 +81,7 @@ trait PostGen {
     title    <- postTitleGen
     author   <- postAuthorGen
     postedAt <- postPostedAtGen
-  } yield Post(id.some, url, title, author, postedAt)
+  } yield Post(id, url, title, author, postedAt)
 }
 
 trait ApplicationGen {
@@ -118,9 +118,9 @@ trait BotGen {
     botId        <- Gen.option(botIdGen)
     botName      <- botNameGen
     appId        <- applicationIdGen
-    accessTokens <- Gen.option(accessTokensGen)
+    accessTokens <- accessTokensGen
     channels     <- Gen.listOf(channelIdGen)
-  } yield Bot(botId, botName, appId, accessTokens, channels)
+  } yield Bot(botId, botName, appId, accessTokens, channels, None) // todo draft messageのgenをちゃんと作る
 }
 
 //trait MessageGen {
