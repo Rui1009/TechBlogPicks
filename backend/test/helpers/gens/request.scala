@@ -1,6 +1,9 @@
 package helpers.gens
 
-import adapters.controllers.bot.{UninstallApplicationBody, UpdateClientInfoBody}
+import adapters.controllers.application.{
+  UninstallApplicationBody,
+  UpdateClientInfoBody
+}
 import adapters.controllers.post.{CreatePostBody, DeletePostsBody}
 import org.scalacheck.Gen
 import helpers.gens.string._

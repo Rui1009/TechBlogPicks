@@ -11,9 +11,9 @@ POST    /posts						adapters.controllers.post.PostController.create()
 GET     /posts/publish				adapters.controllers.post.PostController.publish()
 DELETE  /posts                  	adapters.controllers.post.PostController.delete()
 
-GET     /bot                  		adapters.controllers.bot.ApplicationController.install(code: String, bot_id: String)
-GET     /bots                  		adapters.controllers.bot.ApplicationController.index()
-POST    /bots/:id                  	adapters.controllers.bot.ApplicationController.update(id: String)
+GET     /bot                  		adapters.controllers.application.ApplicationController.install(code: String, bot_id: String)
+GET     /bots                  		adapters.controllers.application.ApplicationController.index()
+POST    /bots/:id                  	adapters.controllers.application.ApplicationController.update(id: String)
 
 POST	/events						adapters.controllers.event.EventController.handleEvent()
 

@@ -1,4 +1,4 @@
-package adapters.controllers.bot
+package adapters.controllers.application
 
 import adapters.controllers.helpers.JsonHelper
 import adapters.controllers.syntax.FutureSyntax
