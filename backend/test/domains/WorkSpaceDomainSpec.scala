@@ -2,7 +2,9 @@ package domains
 
 import domains.workspace.WorkSpace._
 import helpers.traits.ModelSpec
-import cats.syntax.either._
+import domains.bot.Bot
+import domains.bot.Bot.BotName
+import org.scalacheck.Gen
 
 class WorkSpaceDomainSpec extends ModelSpec {
   "WorkSpaceId.create" when {
@@ -10,7 +12,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
           val result = WorkSpaceId.create(str.value)
-          assert(result.map(_.value) == str.asRight)
+          assert(result.map(_.value) === Right(str))
         }
       }
     }
@@ -18,7 +20,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
     "given empty string" should {
       "return Left value which values equals DomainError" in {
         val result = WorkSpaceId.create("")
-        assert(result.leftSide == EmptyStringError("WorkSpaceId").asLeft)
+        assert(result.leftSide === Left(EmptyStringError("WorkSpaceId")))
       }
     }
   }
@@ -28,7 +30,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
           val result = WorkSpaceTemporaryOauthCode.create(str.value)
-          assert(result.map(_.value) == str.asRight)
+          assert(result.map(_.value) === Right(str))
         }
       }
     }
@@ -36,14 +38,162 @@ class WorkSpaceDomainSpec extends ModelSpec {
     "given empty string" should {
       "return Left value which values equals DomainError" in {
         val result = WorkSpaceTemporaryOauthCode.create("")
-        assert(result.leftSide == EmptyStringError("temporaryOauthCode").asLeft)
+        assert(result === Left(EmptyStringError("WorkSpaceTemporaryOauthCode")))
       }
     }
   }
 
-  "WorkSpace.installApplication" should {
+  "WorkSpace.installApplication" when {
+    "Application has some token" should {
+      "return WorkSpace which bots are updated" in {
+        forAll(workSpaceGen, applicationGen, accessTokensGen) {
+          (_workSpace, app, token) =>
+            val workSpace = _workSpace.copy(unallocatedToken = Some(token))
+            val result    = workSpace.installApplication(app)
+            val bot       = Bot(None, BotName(app.name.value), app.id, token, Seq())
+            val expected  = Right(workSpace.copy(bots = workSpace.bots :+ bot))
+
+            assert(result === expected)
+        }
+      }
+    }
+
+    "Application has none token" should {
+      "return domain error" in {
+        forAll(workSpaceGen, applicationGen) { (_workSpace, app) =>
+          val workSpace = _workSpace.copy(unallocatedToken = None)
+          val result    = workSpace.installApplication(app)
+
+          assert(result === Left(NotExistError("unallocatedToken")))
+        }
+      }
+    }
+  }
+
+  "WorkSpace.uninstallApplication" should {
     "return WorkSpace which bots are updated" in {
-      forAll(workSpaceGen, botGen)((workSpace, bot) => pending)
+      forAll(workSpaceGen, applicationGen, botGen) { (_workSpace, app, bot) =>
+        val installedBot = bot.copy(applicationId = app.id)
+        val workSpace    = _workSpace.copy(bots = _workSpace.bots :+ installedBot)
+        val result       = workSpace.uninstallApplication(app)
+        val expected     = workSpace.copy(bots =
+          workSpace.bots.filter(_.applicationId != app.id)
+        )
+
+        assert(result === expected)
+      }
+    }
+  }
+
+  "WorkSpace.isChannelExists" when {
+    "channel exists" should {
+      "return true" in {
+        forAll(workSpaceGen, channelGen) { (_workSpace, channel) =>
+          val workSpace =
+            _workSpace.copy(channels = _workSpace.channels :+ channel)
+          val result    = workSpace.isChannelExists(channel.id)
+
+          assert(result)
+        }
+      }
+    }
+
+    "channel doesn't exist" should {
+      "return false" in {
+        forAll(workSpaceGen, channelIdGen) { (_workSpace, id) =>
+          val workSpace =
+            _workSpace.copy(channels = _workSpace.channels.filter(_.id !== id))
+          val result    = workSpace.isChannelExists(id)
+
+          assert(!result)
+        }
+      }
+    }
+  }
+
+  "WorkSpace.addBot" should {
+    "return workSpace which bot is updated" in {
+      forAll(workSpaceGen, botGen) { (workSpace, bot) =>
+        val result   = workSpace.addBot(bot)
+        val expected = workSpace.copy(bots = workSpace.bots :+ bot)
+
+        assert(result === expected)
+      }
+    }
+  }
+
+  "WorkSpace.addBotToChannel" when {
+    "given right args" should {
+      "return WorkSpace which bots is updated" in {
+        forAll(workSpaceGen, channelGen, botGen) {
+          (_workSpace, channel, _bot) =>
+            val channels  =
+              _workSpace.channels.filter(_.id !== channel.id) :+ channel
+            val bot       = _bot.copy(channelIds =
+              _bot.channelIds.filter(id => id === channel.id)
+            )
+            val bots      = _workSpace.bots
+              .filter(_.applicationId !== bot.applicationId) :+ bot
+            val workSpace = _workSpace.copy(channels = channels, bots = bots)
+
+            val result =
+              workSpace.addBotToChannel(bot.applicationId, channel.id)
+
+            val updatedBot = bot.copy(channelIds = bot.channelIds :+ channel.id)
+            val expected   = Right(
+              workSpace.copy(bots =
+                workSpace.bots
+                  .filter(_.applicationId !== bot.applicationId) :+ updatedBot
+              )
+            )
+
+            assert(result === expected)
+        }
+      }
+    }
+
+    "given not exist application id" should {
+      "return domain error" in {
+        forAll(workSpaceGen, channelGen, botGen) { (_workSpace, channel, bot) =>
+          val workSpace = _workSpace.copy(
+            bots =
+              _workSpace.bots.filter(_.applicationId !== bot.applicationId),
+            channels = _workSpace.channels :+ channel
+          )
+
+          val result = workSpace.addBotToChannel(bot.applicationId, channel.id)
+          pending
+        }
+      }
+    }
+
+    "given not exist channel id" should {
+      "return domain error" in {
+        forAll(workSpaceGen, channelGen, botGen) { (_workSpace, channel, bot) =>
+          val workSpace = _workSpace.copy(
+            bots = _workSpace.bots :+ bot,
+            channels = _workSpace.channels.filter(_.id !== channel.id)
+          )
+
+          val result = workSpace.addBotToChannel(bot.applicationId, channel.id)
+          pending
+        }
+      }
+    }
+
+    "given not exist application id and channel id" should {
+      "return domain error which has combined message" in {
+        forAll(workSpaceGen, channelGen, botGen) { (_workSpace, channel, bot) =>
+          val workSpace = _workSpace.copy(
+            bots =
+              _workSpace.bots.filter(_.applicationId !== bot.applicationId),
+            channels = _workSpace.channels.filter(_.id !== channel.id)
+          )
+
+          val result = workSpace.addBotToChannel(bot.applicationId, channel.id)
+          pending
+        }
+      }
     }
   }
 }
