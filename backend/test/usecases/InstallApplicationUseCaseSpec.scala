@@ -39,8 +39,12 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
               application.clientSecret.get
             )
           ).thenReturn(Future.successful(Some(_workSpace)))
-          when(workSpaceRepo.update(_workSpace.installApplication(application)))
-            .thenReturn(Future.unit)
+          when(
+            workSpaceRepo.update(
+              _workSpace.installApplication(application).unsafeGet,
+              application.id
+            )
+          ).thenReturn(Future.successful(Some(Unit)))
 
           new InstallApplicationUseCaseImpl(workSpaceRepo, applicationRepo)
             .exec(params)
@@ -53,7 +57,8 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
             application.clientSecret.get
           )
           verify(workSpaceRepo).update(
-            _workSpace.installApplication(application)
+            _workSpace.installApplication(application).unsafeGet,
+            application.id
           )
           reset(workSpaceRepo)
           reset(applicationRepo)
@@ -202,7 +207,10 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
               )
             ).thenReturn(Future.successful(Some(workSpace)))
             when(
-              workSpaceRepo.update(workSpace.installApplication(application))
+              workSpaceRepo.update(
+                workSpace.installApplication(application).unsafeGet,
+                application.id
+              )
             ).thenReturn(Future.failed(DBError("error")))
 
             val result =

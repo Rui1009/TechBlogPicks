@@ -3,7 +3,7 @@ package domains.bot
 import domains.EmptyStringError
 import domains.application.Application.ApplicationId
 import domains.bot.Bot.{BotAccessToken, BotId, BotName}
-import domains.channel.{Channel, DraftMessage, Message}
+import domains.channel.{Channel, DraftMessage}
 import domains.channel.Channel.ChannelId
 import domains.channel.DraftMessage.{
   ActionBlock,

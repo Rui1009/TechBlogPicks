@@ -78,32 +78,17 @@ class WorkSpaceRepositoryImpl @Inject() (
                .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
              val joinedChannelsIds =
                channelIds.filter(_._2 === res.id).flatMap(_._1)
-             <<<<<<<.HEAD(
-               (for {
-                 appId <- res.apiAppId
-                 token <- maybeToken
-               } yield Bot(
-                 Some(BotId(Refined.unsafeApply(res.id))),
-                 BotName(Refined.unsafeApply(res.name)),
-                 ApplicationId(Refined.unsafeApply(appId)),
-                 token,
-                 joinedChannelsIds
-               )).toSeq
-             )
-             =======
-             res.apiAppId
-               .map(appId =>
-                 Bot(
-                   Some(BotId(Refined.unsafeApply(res.id))),
-                   BotName(Refined.unsafeApply(res.name)),
-                   ApplicationId(Refined.unsafeApply(appId)),
-                   token,
-                   joinedChannelsIds,
-                   None
-                 )
-               )
-               .toSeq
-             >>>>>>>.feature(/) fix_domain_model
+             (for {
+               appId <- res.apiAppId
+               token <- maybeToken
+             } yield Bot(
+               Some(BotId(Refined.unsafeApply(res.id))),
+               BotName(Refined.unsafeApply(res.name)),
+               ApplicationId(Refined.unsafeApply(appId)),
+               token,
+               joinedChannelsIds,
+               None
+             )).toSeq
            }
   } yield
     if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels, None)))
@@ -146,7 +131,6 @@ class WorkSpaceRepositoryImpl @Inject() (
     case None    => Future.successful(None)
   }
 
-  <<<<<<< HEAD
   override def joinChannels(
     model: WorkSpace,
     applicationId: ApplicationId,
@@ -171,17 +155,16 @@ class WorkSpaceRepositoryImpl @Inject() (
     )
     .map(_ => ())
     .ifFailedThenToInfraError("error while WorkSpaceRepository.removeBot")
-  =======
+
   override def sendMessage(
     bot: Bot,
     channel: Channel,
     message: DraftMessage
-  ): Future[Unit]                                        = for {
+  ): Future[Unit] = for {
     _ <- chatDao.postMessage(
            bot.accessToken.value.value,
            channel.id.value.value,
            message
          )
   } yield ()
-  >>>>>>>.feature(/) fix_domain_model
 }
