@@ -29,12 +29,13 @@ trait DomainGen
 trait ChannelGen {
   val channelIdGen: Gen[ChannelId] = stringRefinedNonEmptyGen.map(ChannelId(_))
 
-  val sentAtGen: Gen[ChannelMessageSentAt]             =
+  val sentAtGen: Gen[ChannelMessageSentAt] =
     refinedValidFloatGen.map(ChannelMessageSentAt(_))
+
   val senderUserIdGen: Gen[ChannelMessageSenderUserId] =
     stringRefinedNonEmptyGen.map(ChannelMessageSenderUserId(_))
 
-  val channelMessageGen: Gen[Message] = for {
+  val channelMessageGen: Gen[ChannelMessage] = for {
     sentAt       <- sentAtGen
     senderUserId <- senderUserIdGen
     text         <- Gen.alphaStr
@@ -42,7 +43,7 @@ trait ChannelGen {
 
   val channelTypedChannelMessageGen: Gen[Channel] = for {
     id      <- channelIdGen
-    history <- Gen.nonEmptyListOf(channelMessageGen)
+    history <- Gen.listOf(channelMessageGen)
   } yield Channel(id, history)
 }
 
@@ -57,9 +58,9 @@ trait WorkSpaceGen {
     id                 <- workSpaceIdGen
     temporaryOauthCode <- Gen.option(temporaryOauthCodeGen)
     bots               <- Gen.listOf(botGen)
-    channel            <- Gen.listOf(channelTypedChannelMessageGen)
+    channels           <- Gen.listOf(channelTypedChannelMessageGen)
     token              <- Gen.option(accessTokensGen)
-  } yield WorkSpace(id, temporaryOauthCode, bots, channel, token)
+  } yield WorkSpace(id, temporaryOauthCode, bots, channels, token)
 }
 
 trait PostGen {
