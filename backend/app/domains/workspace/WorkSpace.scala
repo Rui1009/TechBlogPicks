@@ -67,7 +67,7 @@ final case class WorkSpace(
   }
 
   def findChannel(channelId: ChannelId): Either[DomainError, Channel] =
-    this.channels.find(_.id != channelId) match {
+    this.channels.find(_.id == channelId) match {
       case Some(v) => Right(v)
       case None    => Left(NotExistError("ChannelId"))
     }
