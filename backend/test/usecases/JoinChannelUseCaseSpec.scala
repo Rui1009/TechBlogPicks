@@ -2,6 +2,7 @@ package usecases
 
 import domains.workspace.WorkSpaceRepository
 import helpers.traits.UseCaseSpec
+import infra.APIError
 import usecases.JoinChannelUseCase.Params
 
 import scala.concurrent.Future
@@ -11,7 +12,7 @@ class JoinChannelUseCaseSpec extends UseCaseSpec {
     val workSpaceRepo = mock[WorkSpaceRepository]
 
     "succeed" should {
-      "invoke botRepository.find & botRepository.join once" in {
+      "invoke workSpaceRepository.find & workSpaceRepository.update once" in {
         forAll(applicationIdGen, channelIdGen, workSpaceIdGen, workSpaceGen) {
           (appId, channelId, workspaceId, _workSpace) =>
             val params           = Params(channelId, appId, workspaceId)
@@ -33,7 +34,7 @@ class JoinChannelUseCaseSpec extends UseCaseSpec {
     }
 
     "find return None" should {
-      "return use case error & never invoke botRepository.join" in {
+      "return use case error & never invoke workSpaceRepository.update" in {
         forAll(applicationIdGen, channelIdGen, workSpaceIdGen) {
           (appId, channelId, workSpaceId) =>
             val params = Params(channelId, appId, workSpaceId)
@@ -52,6 +53,34 @@ class JoinChannelUseCaseSpec extends UseCaseSpec {
             )
             verify(workSpaceRepo, never).update(*)
             reset(workSpaceRepo)
+        }
+      }
+    }
+
+    "update return fail" should {
+      "return use case error" in {
+        forAll(applicationIdGen, channelIdGen, workSpaceIdGen, workSpaceGen) {
+          (appId, channelId, workspaceId, _workSpace) =>
+            val params           = Params(channelId, appId, workspaceId)
+            val workSpace        = _workSpace.copy(id = workspaceId)
+            val updatedWorkSpace =
+              workSpace.addBotToChannel(appId, channelId).unsafeGet
+
+            when(workSpaceRepo.find(params.workSpaceId))
+              .thenReturn(Future.successful(Some(workSpace)))
+            when(workSpaceRepo.update(updatedWorkSpace))
+              .thenReturn(Future.failed(APIError("error")))
+
+            val result = new JoinChannelUseCaseImpl(workSpaceRepo).exec(params)
+
+            whenReady(result.failed)(e =>
+              assert(
+                e === SystemError(
+                  "error while workSpaceRepository.update in join channel use case" + "\n"
+                    + APIError("error").getMessage
+                )
+              )
+            )
         }
       }
     }

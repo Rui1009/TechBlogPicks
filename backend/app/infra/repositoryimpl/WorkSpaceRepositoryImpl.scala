@@ -70,7 +70,9 @@ class WorkSpaceRepositoryImpl @Inject() (
     channelIds <- findChannelIds(rows)
 
     channels = channelIds.flatMap { case (ids, _) =>
-                 ids.map(i => Channel(i, Seq.empty))
+                 ids.map(i =>
+                   Channel(i, Seq.empty)
+                 ) // Todo: historyもきちんと取得してそれを返す
                }
 
     bots = responses.flatMap { res =>

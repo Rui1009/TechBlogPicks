@@ -14,23 +14,37 @@ import domains.post.Post
 import cats.syntax.option._
 import domains.application.Application
 import domains.application.Application._
-import domains.channel.Channel
+import domains.channel.{Channel, ChannelMessage, Message}
 import domains.channel.Channel._
-import domains.message.Message
-import domains.message.Message._
+import domains.channel.ChannelMessage.{
+  ChannelMessageSenderUserId,
+  ChannelMessageSentAt
+}
 
 object domain extends DomainGen
 
 trait DomainGen
-    extends WorkSpaceGen with BotGen with PostGen with MessageGen
-    with ApplicationGen with ChannelGen
+    extends WorkSpaceGen with BotGen with PostGen with ApplicationGen
+    with ChannelGen
 
 trait ChannelGen {
   val channelIdGen: Gen[ChannelId] = stringRefinedNonEmptyGen.map(ChannelId(_))
 
-  val channelGen: Gen[Channel] = for {
-    id <- channelIdGen
-  } yield Channel(id, Seq.empty)
+  val sentAtGen: Gen[ChannelMessageSentAt]             =
+    refinedValidFloatGen.map(ChannelMessageSentAt(_))
+  val senderUserIdGen: Gen[ChannelMessageSenderUserId] =
+    stringRefinedNonEmptyGen.map(ChannelMessageSenderUserId(_))
+
+  val channelMessageGen: Gen[Message] = for {
+    sentAt       <- sentAtGen
+    senderUserId <- senderUserIdGen
+    text         <- Gen.alphaStr
+  } yield ChannelMessage(sentAt, senderUserId, text)
+
+  val channelTypedChannelMessageGen: Gen[Channel] = for {
+    id      <- channelIdGen
+    history <- Gen.nonEmptyListOf(channelMessageGen)
+  } yield Channel(id, history)
 }
 
 trait WorkSpaceGen {
@@ -109,22 +123,22 @@ trait BotGen {
   } yield Bot(botId, botName, appId, accessTokens, channels)
 }
 
-trait MessageGen {
-  val messageIdGen: Gen[MessageId] = stringRefinedNonEmptyGen.map(MessageId(_))
-
-  val messageSentAtGen: Gen[MessageSentAt] =
-    refinedValidFloatGen.map(MessageSentAt(_))
-
-  val messageUserIdGen: Gen[MessageUserId] =
-    stringRefinedNonEmptyGen.map(MessageUserId(_))
-
-  val messageChannelIdGen: Gen[MessageChannelId] =
-    stringRefinedNonEmptyGen.map(MessageChannelId(_))
-
-  val messageGen: Gen[Message] = for {
-    id        <- messageIdGen
-    sentAt    <- messageSentAtGen
-    userId    <- messageUserIdGen
-    channelId <- messageChannelIdGen
-  } yield Message(Some(id), Some(sentAt), userId, channelId, Seq())
-}
+//trait MessageGen {
+//  val messageIdGen: Gen[MessageId] = stringRefinedNonEmptyGen.map(MessageId(_))
+//
+//  val messageSentAtGen: Gen[MessageSentAt] =
+//    refinedValidFloatGen.map(MessageSentAt(_))
+//
+//  val messageUserIdGen: Gen[MessageUserId] =
+//    stringRefinedNonEmptyGen.map(MessageUserId(_))
+//
+//  val messageChannelIdGen: Gen[MessageChannelId] =
+//    stringRefinedNonEmptyGen.map(MessageChannelId(_))
+//
+//  val messageGen: Gen[Message] = for {
+//    id        <- messageIdGen
+//    sentAt    <- messageSentAtGen
+//    userId    <- messageUserIdGen
+//    channelId <- messageChannelIdGen
+//  } yield Message(Some(id), Some(sentAt), userId, channelId, Seq())
+//}
