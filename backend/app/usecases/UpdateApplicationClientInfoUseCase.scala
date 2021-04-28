@@ -1,11 +1,7 @@
 package usecases
 
 import com.google.inject.Inject
-import domains.application.Application.{
-  ApplicationClientId,
-  ApplicationClientSecret,
-  ApplicationId
-}
+import domains.application.Application._
 import domains.application.ApplicationRepository
 import usecases.UpdateApplicationClientInfoUseCase._
 

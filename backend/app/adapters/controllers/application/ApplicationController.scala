@@ -1,4 +1,4 @@
-package adapters.controllers.bot
+package adapters.controllers.application
 
 import adapters.controllers.helpers.JsonHelper
 import adapters.controllers.syntax.FutureSyntax
@@ -8,30 +8,23 @@ import cats.implicits.catsSyntaxEither
 import cats.syntax.apply._
 import com.google.inject.Inject
 import domains.application.Application.ApplicationId
-import domains.bot.Bot.BotId
 import domains.workspace.WorkSpace.WorkSpaceTemporaryOauthCode
 import domains.{DomainError, EmptyStringError}
 import io.circe.generic.auto._
 import play.api.Logger
-import play.api.mvc.{
-  Action,
-  AnyContent,
-  BaseController,
-  ControllerComponents,
-  Result
-}
+import play.api.mvc._
 import query.bots.BotsQueryProcessor
 import usecases.InstallApplicationUseCase.Params
 import usecases.{InstallApplicationUseCase, UpdateApplicationClientInfoUseCase}
 
-import scala.util.{Failure, Success}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class ApplicationController @Inject() (
   val controllerComponents: ControllerComponents,
   installBotUseCase: InstallApplicationUseCase,
   botsQueryProcessor: BotsQueryProcessor,
-  updateBotClientInfoUseCase: UpdateApplicationClientInfoUseCase
+  updateApplicationClientInfoUseCase: UpdateApplicationClientInfoUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with FutureSyntax
     with UpdateClientInfoBodyMapper with UninstallApplicationBodyMapper {
@@ -72,7 +65,7 @@ class ApplicationController @Inject() (
 
   def index: Action[AnyContent] = Action.async {
     botsQueryProcessor.findAll
-      .ifFailedThenToAdapterError("error in BotController.index")
+      .ifFailedThenToAdapterError("error in ApplicationController.index")
       .toSuccessGetResponse
       .recoverError
   }
@@ -90,12 +83,14 @@ class ApplicationController @Inject() (
             request.body.fold(
               e => Future.successful(responseError(e)),
               body =>
-                updateBotClientInfoUseCase
+                updateApplicationClientInfoUseCase
                   .exec(
                     UpdateApplicationClientInfoUseCase
                       .Params(applicationId, body.clientId, body.clientSecret)
                   )
-                  .ifFailedThenToAdapterError("error in BotController.update")
+                  .ifFailedThenToAdapterError(
+                    "error in ApplicationController.update"
+                  )
                   .toSuccessPostResponse
                   .recoverError
             )

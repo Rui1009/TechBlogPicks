@@ -3,7 +3,6 @@ package usecases
 import com.google.inject.Inject
 import domains.application.Application.ApplicationId
 import domains.application.ApplicationRepository
-import domains.bot.Bot.BotId
 import domains.workspace.WorkSpace.WorkSpaceId
 import domains.workspace.WorkSpaceRepository
 import usecases.UninstallApplicationUseCase.Params

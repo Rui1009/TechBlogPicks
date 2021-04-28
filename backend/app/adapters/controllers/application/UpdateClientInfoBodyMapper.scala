@@ -1,4 +1,4 @@
-package adapters.controllers.bot
+package adapters.controllers.application
 
 import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonRequestMapper

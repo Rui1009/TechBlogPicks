@@ -1,6 +1,6 @@
 package controllers.bot
 
-import adapters.controllers.bot.UpdateClientInfoBody
+import adapters.controllers.application.UpdateClientInfoBody
 import helpers.traits.ControllerSpec
 import play.api.inject.bind
 import usecases.{SystemError, UpdateApplicationClientInfoUseCase}

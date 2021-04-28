@@ -6,7 +6,7 @@ import usecases.NotFoundError
 import scala.concurrent.Future
 
 trait EitherOps {
-  implicit final class EitherOps[S <: DomainError, T](
+  implicit final class EitherTOps[S <: DomainError, T](
     private val either: Either[S, T]
   ) {
     def ifLeftThenToUseCaseError(message: String): Future[T] = either match {
