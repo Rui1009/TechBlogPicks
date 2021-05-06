@@ -26,16 +26,21 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
 
             when(workSpaceRepo.find(params.workSpaceId))
               .thenReturn(Future.successful(Some(returnedWorkSpace)))
-            val onboardingMessage = returnedWorkSpace
+
+            val workSpaceWithUpdatedBots     = returnedWorkSpace
               .botCreateOnboardingMessage(params.botId)
               .unsafeGet
-            val targetBot         = returnedWorkSpace
-              .botPostMessage(params.botId, targetChannel.id, onboardingMessage)
+            val workSpaceWithUpdatedChannels = workSpaceWithUpdatedBots
+              .botPostMessage(params.botId, targetChannel.id)
               .unsafeGet
+
             when(
-              workSpaceRepo
-                .sendMessage(targetBot, targetChannel, onboardingMessage)
-            ).thenReturn(Future.successful(()))
+              workSpaceRepo.sendMessage(
+                workSpaceWithUpdatedChannels,
+                params.botId,
+                params.channelId
+              )
+            ).thenReturn(Future.successful(Some()))
 
             new PostOnboardingMessageUseCaseImpl(workSpaceRepo)
               .exec(params)
@@ -43,9 +48,9 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
 
             verify(workSpaceRepo).find(params.workSpaceId)
             verify(workSpaceRepo).sendMessage(
-              targetBot,
-              targetChannel,
-              onboardingMessage
+              workSpaceWithUpdatedChannels,
+              params.botId,
+              params.channelId
             )
 
             reset(workSpaceRepo)
@@ -121,15 +126,19 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
 
             when(workSpaceRepo.find(params.workSpaceId))
               .thenReturn(Future.successful(Some(returnedWorkSpace)))
-            val onboardingMessage = returnedWorkSpace
+            val workSpaceWithUpdatedBots     = returnedWorkSpace
               .botCreateOnboardingMessage(params.botId)
               .unsafeGet
-            val targetBot         = returnedWorkSpace
-              .botPostMessage(params.botId, targetChannel.id, onboardingMessage)
+            val workSpaceWithUpdatedChannels = workSpaceWithUpdatedBots
+              .botPostMessage(params.botId, targetChannel.id)
               .unsafeGet
+
             when(
-              workSpaceRepo
-                .sendMessage(targetBot, targetChannel, onboardingMessage)
+              workSpaceRepo.sendMessage(
+                workSpaceWithUpdatedChannels,
+                params.botId,
+                params.channelId
+              )
             ).thenReturn(Future.failed(APIError("error")))
 
             val result =
@@ -138,7 +147,7 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
             whenReady(result.failed) { e =>
               assert(
                 e === SystemError(
-                  "error while workSpaceRepository.sendMessage in post onboarding message use case" + "\n" +
+                  "error while workSpaceRepository.sendMessage in post onboarding message use case" +
                     APIError("error").getMessage
                 )
               )
