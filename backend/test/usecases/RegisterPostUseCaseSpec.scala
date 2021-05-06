@@ -1,67 +1,156 @@
-//package usecases
-//
-//import domains.post.{Post, PostRepository}
-//import helpers.traits.UseCaseSpec
-//import usecases.RegisterPostUseCase._
-//import cats.syntax.option._
-//import infra.DBError
-//import org.scalacheck.Gen
-//
-//import scala.concurrent.Future
-//
-//class RegisterPostUseCaseSpec extends UseCaseSpec {
-//  "exec" when {
-//    "succeed" should {
-//      "invoke PostRepository.add once" in {
-//        val repo = mock[PostRepository]
-//        forAll(
-//          postUrlGen,
-//          postTitleGen,
-//          postAuthorGen,
-//          postPostedAtGen,
-//          Gen.listOf(botIdGen)
-//        ) { (url, title, author, postedAt, botIds) =>
-//          val params = Params(url, title, author, postedAt, botIds)
-//          val post   = Post(None, url, title, author, postedAt)
-//
-//          when(repo.add(post, botIds)).thenReturn(Future.unit)
-//
-//          new RegisterPostUseCaseImpl(repo).exec(params).futureValue
-//
-//          verify(repo, only).add(post, botIds)
-//          reset(repo)
-//        }
-//      }
-//    }
-//
-//    "failed" should {
-//      "throw UseCaseError" in {
-//        val repo = mock[PostRepository]
-//        forAll(
-//          postUrlGen,
-//          postTitleGen,
-//          postAuthorGen,
-//          postPostedAtGen,
-//          Gen.listOf(botIdGen)
-//        ) { (url, title, author, postedAt, botIds) =>
-//          val params = Params(url, title, author, postedAt, botIds)
-//          val post   = Post(None, url, title, author, postedAt)
-//
-//          when(repo.add(post, botIds))
-//            .thenReturn(Future.failed(DBError("error")))
-//
-//          val result = new RegisterPostUseCaseImpl(repo).exec(params)
-//
-//          whenReady(result.failed) { e =>
-//            assert(
-//              e == SystemError(
-//                "error while postRepository.add in register post use case" +
-//                  "\n" + DBError("error").getMessage
-//              )
-//            )
-//          }
-//        }
-//      }
-//    }
-//  }
-//}
+package usecases
+
+import domains.post.{Post, PostRepository, UnsavedPost}
+import helpers.traits.UseCaseSpec
+import usecases.RegisterPostUseCase._
+import cats.syntax.option._
+import domains.application.ApplicationRepository
+import infra.DBError
+import org.scalacheck.Gen
+
+import scala.concurrent.Future
+
+class RegisterPostUseCaseSpec extends UseCaseSpec {
+  "exec" when {
+    val postRepo        = mock[PostRepository]
+    val applicationRepo = mock[ApplicationRepository]
+    "succeed" should {
+      "invoke PostRepository.add once" in {
+        forAll(postGen, Gen.listOf(applicationIdGen), applicationGen) {
+          (post, applicationIds, application) =>
+            val params      = Params(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              applicationIds
+            )
+            val unsavedPost =
+              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+
+            when(postRepo.save(unsavedPost)).thenReturn(Future.successful(post))
+            when(applicationRepo.filter(params.applicationIds))
+              .thenReturn(Future.successful(Seq(application)))
+
+            val assignedApplications = post.assign(Seq(application))
+
+            when(applicationRepo.save(assignedApplications, post.id))
+              .thenReturn(Future.successful(()))
+
+            new RegisterPostUseCaseImpl(postRepo, applicationRepo)
+              .exec(params)
+              .futureValue
+
+            verify(postRepo, only).save(unsavedPost)
+            verify(applicationRepo).filter(params.applicationIds)
+            verify(applicationRepo).save(assignedApplications, post.id)
+            reset(postRepo)
+            reset(applicationRepo)
+        }
+      }
+    }
+
+    "failed in postRepository.save" should {
+      "throw use case error & applicationRepository.filter & applicationRepository.save not invoked" in {
+        forAll(postGen, Gen.listOf(applicationIdGen)) {
+          (post, applicationIds) =>
+            val params      = Params(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              applicationIds
+            )
+            val unsavedPost =
+              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+
+            when(postRepo.save(unsavedPost))
+              .thenReturn(Future.failed(DBError("error")))
+
+            val result = new RegisterPostUseCaseImpl(postRepo, applicationRepo)
+              .exec(params)
+
+            val msg = """
+                |SystemError
+                |error while postRepository.save in register post use case
+                |DBError
+                |error
+                |""".stripMargin.trim
+
+            whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+        }
+      }
+    }
+
+    "no application exists in applicationRepository.filter" should {
+      "throw use case error & not invoke applicationRepository.save" in {
+        forAll(postGen, Gen.listOf(applicationIdGen)) {
+          (post, applicationIds) =>
+            val params      = Params(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              applicationIds
+            )
+            val unsavedPost =
+              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+
+            when(postRepo.save(unsavedPost)).thenReturn(Future.successful(post))
+            when(applicationRepo.filter(params.applicationIds))
+              .thenReturn(Future.successful(Seq()))
+
+            val result = new RegisterPostUseCaseImpl(postRepo, applicationRepo)
+              .exec(params)
+
+            whenReady(result.failed) { e =>
+              assert(
+                e === NotFoundError(
+                  "error while get applications in register post use case"
+                )
+              )
+              verify(applicationRepo, times(0)).save(*, *)
+            }
+        }
+      }
+    }
+
+    "failed in applicationRepository.save" should {
+      "throw use case error" in {
+        forAll(postGen, Gen.listOf(applicationIdGen), applicationGen) {
+          (post, applicationIds, application) =>
+            val params      = Params(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              applicationIds
+            )
+            val unsavedPost =
+              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+
+            when(postRepo.save(unsavedPost)).thenReturn(Future.successful(post))
+            when(applicationRepo.filter(params.applicationIds))
+              .thenReturn(Future.successful(Seq(application)))
+
+            val assignedApplications = post.assign(Seq(application))
+
+            when(applicationRepo.save(assignedApplications, post.id))
+              .thenReturn(Future.failed(DBError("error")))
+
+            val result = new RegisterPostUseCaseImpl(postRepo, applicationRepo)
+              .exec(params)
+
+            val msg = """
+                |SystemError
+                |error while applicationRepository.add in register post use case
+                |DBError
+                |error
+                |""".stripMargin.trim
+
+            whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+        }
+      }
+    }
+  }
+}
