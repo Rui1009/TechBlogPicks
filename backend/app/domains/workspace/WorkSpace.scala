@@ -80,8 +80,7 @@ final case class WorkSpace(
 
   def botPostMessage(
     botId: BotId,
-    channelId: ChannelId,
-    message: DraftMessage
+    channelId: ChannelId
   ): Either[DomainError, WorkSpace] = for {
     targetBot     <- this.bots.find(bot => bot.id.contains(botId)) match {
                        case Some(v) => Right(v)
@@ -92,8 +91,12 @@ final case class WorkSpace(
         case Some(v) => Right(v)
         case None    => Left(NotExistError("ChannelId"))
       }
-    updatedChannel = targetBot.postMessage(targetChannel, message)
-  } yield this.copy(channels = channels) // wip
+    postMessage   <- targetBot.draftMessage match {
+                       case Some(v) => Right(v)
+                       case None    => Left(NotExistError("DraftMessage"))
+                     }
+    updatedChannel = targetBot.postMessage(targetChannel, postMessage)
+  } yield this.copy(channels = channels.filter(channel => channel.id != targetChannel.id) :+ updatedChannel)
 }
 
 object WorkSpace {
