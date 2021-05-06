@@ -153,14 +153,18 @@ class WorkSpaceRepositoryImpl @Inject() (
     .ifFailedThenToInfraError("error while WorkSpaceRepository.removeBot")
 
   override def sendMessage(
-    bot: Bot,
-    channel: Channel,
-    message: DraftMessage
-  ): Future[Unit] = for {
-    _ <- chatDao.postMessage(
-           bot.accessToken.value.value,
-           channel.id.value.value,
-           message
-         )
-  } yield ()
+    workSpace: WorkSpace,
+    botId: BotId,
+    channelId: ChannelId
+  ): Future[Option[Unit]] =
+    workSpace.bots.find(bot => bot.id.contains(botId)) match {
+      case Some(v) => chatDao
+          .postMessage(
+            v.accessToken.value.value,
+            channelId.value.value,
+            v.draftMessage.get
+          )
+          .map(_ => Some(()))
+      case None    => Future.successful(None)
+    }
 }
