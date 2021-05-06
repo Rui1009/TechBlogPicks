@@ -158,13 +158,12 @@ class WorkSpaceRepositoryImpl @Inject() (
     channelId: ChannelId
   ): Future[Option[Unit]] =
     workSpace.bots.find(bot => bot.id.contains(botId)) match {
-      case Some(v) => chatDao
-          .postMessage(
-            v.accessToken.value.value,
-            channelId.value.value,
-            v.draftMessage.get
-          )
-          .map(_ => Some(()))
+      case Some(v) => v.draftMessage match {
+          case Some(d) => chatDao
+              .postMessage(v.accessToken.value.value, channelId.value.value, d)
+              .map(_ => Some(()))
+          case None    => Future.successful(None)
+        }
       case None    => Future.successful(None)
     }
 }
