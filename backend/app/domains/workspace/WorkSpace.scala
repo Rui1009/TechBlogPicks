@@ -74,7 +74,11 @@ final case class WorkSpace(
 
   def botCreateOnboardingMessage(botId: BotId): Either[DomainError, WorkSpace] =
     this.bots.find(bot => bot.id.contains(botId)) match {
-      case Some(v) => Right(this.copy(bots = bots :+ v.createOnboardingMessage))
+      case Some(v) => Right(
+          this.copy(bots =
+            bots.filter(bot => bot.id != v.id) :+ v.createOnboardingMessage
+          )
+        )
       case None    => Left(NotExistError("BotId"))
     }
 
