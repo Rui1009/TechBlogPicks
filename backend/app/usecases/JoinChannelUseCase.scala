@@ -47,7 +47,7 @@ final class JoinChannelUseCaseImpl @Inject() (
              Seq(params.channelId)
            )
            .ifFailThenToUseCaseError(
-             "error while WorkSpaceRepository.join in join channel use case"
+             "error while workSpaceRepository.joinChannels in join channel use case"
            )
   } yield ()
 }
