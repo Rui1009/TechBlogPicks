@@ -293,3 +293,55 @@ class ApplicationRepositoryImplSuccessSpec
     }
   }
 }
+
+class ApplicationRepositoryImplFailSpec extends ApplicationRepositoryImplSpec {
+  val mockWs = MockWS {
+    case ("GET", str: String)
+        if str.matches("https://slack.com/api/users.list") =>
+      val res = Json.fromJsonObject(
+        JsonObject(
+          "ok"    -> Json.fromBoolean(false),
+          "error" -> Json.fromString("error")
+        )
+      )
+      Action(Ok(res.noSpaces))
+  }
+
+  override val app =
+    builder.overrides(bind[WSClient].toInstance(mockWs)).build()
+
+  implicit val conf: PatienceConfig = PatienceConfig(scaled(Span(1000, Millis)))
+
+  "find" when {
+    "failed in userDao.list" should {
+      "return API error" in {
+        val result = repository.find(ApplicationId("bot1"))
+
+        val msg = """
+            |APIError
+            |error while converting list api response
+            |Attempt to decode value on failed cursor: DownField(members)
+            |""".stripMargin.trim
+
+        whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+      }
+    }
+  }
+
+  "filter" when {
+    "failed in userDao.list" should {
+      "return API error" in {
+        val result = repository.filter(Seq(ApplicationId("appId")))
+        val msg    = """
+                       |DBError
+                       |error while ApplicationRepository.filter
+                       |APIError
+                       |error while converting list api response
+                       |Attempt to decode value on failed cursor: DownField(members)
+                    |""".stripMargin.trim
+
+        whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+      }
+    }
+  }
+}
