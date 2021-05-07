@@ -70,33 +70,38 @@ class WorkSpaceRepositoryImpl @Inject() (
                  ids.map(i =>
                    Channel(i, Seq.empty)
                  ) // Todo: historyもきちんと取得してそれを返す
-               }
+               }.distinct
+    bots     = responses.flatMap { res =>
+                 val maybeToken = rows
+                   .find(row => res.apiAppId.contains(row.botId))
+                   .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
 
-    bots = responses.flatMap { res =>
-             val maybeToken        = rows
-               .find(_.botId == res.id)
-               .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
-             val joinedChannelsIds =
-               channelIds.filter(_._2 === res.id).flatMap(_._1)
-             (for {
-               appId <- res.apiAppId
-               token <- maybeToken
-             } yield Bot(
-               Some(BotId(Refined.unsafeApply(res.id))),
-               BotName(Refined.unsafeApply(res.name)),
-               ApplicationId(Refined.unsafeApply(appId)),
-               token,
-               joinedChannelsIds,
-               None
-             )).toSeq
-           }
+                 val joinedChannelsIds = channelIds // ここがJoinedになる理由がよくわからない
+                   .filter(id => res.apiAppId.contains(id._2))
+                   .flatMap(_._1)
+                 (for {
+                   appId <- res.apiAppId
+                   token <- maybeToken
+                 } yield Bot(
+                   Some(BotId(Refined.unsafeApply(res.id))),
+                   BotName(Refined.unsafeApply(res.name)),
+                   ApplicationId(Refined.unsafeApply(appId)),
+                   token,
+                   joinedChannelsIds,
+                   None
+                 )).toSeq
+               }
   } yield
     if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels, None)))
     .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
 
   private def findBotUser(botIds: Seq[String]) = usersDao
     .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-    .map(_.members.filter(m => m.isBot && Set(m.id).subsetOf(botIds.toSet)))
+    .map(
+      _.members.filter(m =>
+        m.isBot && Set(m.apiAppId).subsetOf(botIds.map(id => Some(id)).toSet)
+      )
+    )
 
   private def findChannelIds(rows: Seq[WorkSpacesRow]) = Future.sequence(
     rows.map(a =>
@@ -113,7 +118,7 @@ class WorkSpaceRepositoryImpl @Inject() (
     applicationId: ApplicationId
   ): Future[Option[Unit]] = model.bots
     .find(_.applicationId == applicationId)
-    .map(_.accessToken.value.value) match {
+    .map(_.accessToken.value.value) match { // これはSomeなら
     case Some(v) => db
         .run(
           WorkSpaces += WorkSpacesRow(
