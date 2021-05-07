@@ -11,6 +11,7 @@ import domains.application.{Application, ApplicationRepository}
 import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
 import infra.dao.slack.{ConversationDao, UsersDao, UsersDaoImpl}
+import infra.dto
 import infra.dto.Tables
 import infra.dto.Tables._
 import infra.syntax.all._
@@ -83,11 +84,8 @@ class ApplicationRepositoryImpl @Inject() (
     applicationIds: Seq[ApplicationId]
   ): Future[Seq[Application]] = {
 
-    val postQ = BotsPosts
-      .filter(_.botId.inSet(applicationIds.map(_.value.value)))
-      .flatMap(botpost => Posts.filter(_.id === botpost.id))
-      .map(_.id)
-      .result
+    val postQ =
+      BotsPosts.filter(_.botId.inSet(applicationIds.map(_.value.value))).result
 
     val clientInfoQ = BotClientInfo
       .filter(_.botId.inSet(applicationIds.map(_.value.value)))
@@ -109,16 +107,16 @@ class ApplicationRepositoryImpl @Inject() (
                                     }
       postIdsAndClientInfoList <- db.run {
                                     for {
-                                      postIds     <- postQ
+                                      posts       <- postQ
                                       clientInfos <- clientInfoQ
-                                    } yield (postIds, clientInfos)
+                                    } yield (posts, clientInfos)
                                   }
-      (postIds, clientInfos)    = postIdsAndClientInfoList
-
+      (posts, clientInfos)      = postIdsAndClientInfoList
     } yield for {
       targetMember                <- targetMembers
       (targetAppId, targetAppName) = targetMember
       clientInfo                  <- clientInfos.find(info => targetAppId == info.botId).toSeq
+      post                         = posts.filter(pos => pos.botId == targetAppId)
     } yield Application(
       ApplicationId(Refined.unsafeApply(targetAppId)),
       ApplicationName(Refined.unsafeApply(targetAppName)),
@@ -128,7 +126,7 @@ class ApplicationRepositoryImpl @Inject() (
       clientInfo.clientSecret.map(secret =>
         ApplicationClientSecret(Refined.unsafeApply(secret))
       ),
-      postIds.map(id => PostId(Refined.unsafeApply(id)))
+      post.map(row => PostId(Refined.unsafeApply(row.postId)))
     )).ifFailedThenToInfraError("error while ApplicationRepository.filter")
   }
 
@@ -139,7 +137,10 @@ class ApplicationRepositoryImpl @Inject() (
       .result
       .headOption
     val insertQ = BotClientInfo += application.toClientInfoRow
-    val updateQ = BotClientInfo.update(application.toClientInfoRow)
+    val updateQ = BotClientInfo
+      .findBy(_.botId)
+      .apply(application.id.value.value)
+      .update(application.toClientInfoRow)
 
     (for {
       clientInfo <- db.run(findQ)
