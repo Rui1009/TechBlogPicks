@@ -22,6 +22,7 @@ import infra.repositoryimpl.WorkSpaceRepositoryImpl
 import infra.dto.Tables._
 import io.circe.{Json, JsonObject}
 import io.circe.syntax._
+import org.scalacheck.Gen
 
 import scala.concurrent.Future
 
@@ -101,6 +102,21 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                 )
               )
             )
+        )
+      )
+      Action(Ok(res.noSpaces))
+
+    case ("POST", str: String)
+        if str.matches("https://slack.com/api/conversations.join") =>
+      val res = Json.fromJsonObject(
+        JsonObject(
+          "ok"      -> Json.fromBoolean(true),
+          "channel" -> Json.fromJsonObject(
+            JsonObject(
+              "id"   -> Json.fromString("channelID1"),
+              "name" -> Json.fromString("channelName")
+            )
+          )
         )
       )
       Action(Ok(res.noSpaces))
@@ -237,6 +253,28 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
               )
             )
             assert(savedValue.length === 1)
+        }
+      }
+    }
+  }
+
+  "joinChannels" when {
+    "succeed" should {
+      "return future unit" in {
+        forAll(
+          workSpaceGen,
+          applicationGen,
+          botGen,
+          Gen.nonEmptyListOf(channelIdGen)
+        ) { (_workSpace, application, bot, channelIds) =>
+          val workSpace = _workSpace.copy(bots =
+            _workSpace.bots :+ bot.copy(applicationId = application.id)
+          )
+
+          val result = repository
+            .joinChannels(workSpace, application.id, channelIds)
+            .futureValue
+          assert(result === ())
         }
       }
     }
