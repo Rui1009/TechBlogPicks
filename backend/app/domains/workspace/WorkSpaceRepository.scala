@@ -16,10 +16,7 @@ trait WorkSpaceRepository {
     clientSecret: ApplicationClientSecret
   ): Future[Option[WorkSpace]]
 
-  def update(
-    model: WorkSpace,
-    applicationId: ApplicationId
-  ): Future[Option[Unit]]
+  def update(model: WorkSpace, applicationId: ApplicationId): Future[Unit]
 
   def joinChannels(
     model: WorkSpace,
