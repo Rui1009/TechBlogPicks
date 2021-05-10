@@ -116,7 +116,7 @@ class WorkSpaceRepositoryImpl @Inject() (
   override def update(
     model: WorkSpace,
     applicationId: ApplicationId
-  ): Future[Unit] = model.bots
+  ): Future[Option[Unit]] = model.bots
     .find(_.applicationId == applicationId)
     .map(_.accessToken.value.value) match {
     case Some(v) => db
@@ -127,7 +127,7 @@ class WorkSpaceRepositoryImpl @Inject() (
             model.id.value.value
           )
         )
-        .map(_ => ())
+        .map(_ => Some())
         .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
     case None    => Future.successful(None)
   }

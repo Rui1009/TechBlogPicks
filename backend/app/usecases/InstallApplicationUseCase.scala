@@ -63,7 +63,7 @@ final class InstallApplicationUseCaseImpl @Inject() (
 
     _ <- workSpaceRepository
            .update(updatedWorkSpace, targetApplication.id)
-           .ifFailThenToUseCaseError(
+           .ifNotExistsToUseCaseError(
              "error while workSpaceRepository.update in install application use case"
            )
   } yield ()

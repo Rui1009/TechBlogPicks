@@ -216,13 +216,11 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
   "update" when {
     "succeed" should {
       "new data added correctly" in {
-        forAll(workSpaceGen, applicationGen, botGen) {
-          (_workSpace, application, bot) =>
+        forAll(workSpaceGen, applicationGen, botGen, accessTokensGen) {
+          (_workSpace, application, bot, accessToken) =>
             val workSpace = _workSpace.copy(bots =
-              _workSpace.bots :+ bot.copy(
-                applicationId = application.id,
-                accessToken = BotAccessToken("token")
-              )
+              _workSpace.bots :+ bot
+                .copy(applicationId = application.id, accessToken = accessToken)
             )
 
             db.run(WorkSpaces.delete)
@@ -230,10 +228,10 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
               repository.update(workSpace, application.id).futureValue
 
             val savedValue = db.run(WorkSpaces.result).futureValue
-            assert(result === ())
+            assert(result === Some())
             assert(
               savedValue.head === WorkSpacesRow(
-                "token",
+                accessToken.value.value,
                 application.id.value.value,
                 workSpace.id.value.value
               )
