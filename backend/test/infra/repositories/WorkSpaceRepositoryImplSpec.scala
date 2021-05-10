@@ -27,8 +27,7 @@ import org.scalacheck.Gen
 
 import scala.concurrent.Future
 
-class WorkSpaceRepositoryImplSpec
-    extends RepositorySpec[WorkSpaceRepositoryImpl]
+class WorkSpaceRepositoryImplSpec extends RepositorySpec[WorkSpaceRepository]
 
 class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
   val members = Seq(
@@ -119,6 +118,14 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
             )
           )
         )
+      )
+      Action(Ok(res.noSpaces))
+
+    case ("POST", str: String)
+        if str.matches("https://slack.com/api/chat.postMessage") =>
+      val res = Json.obj(
+        "ok"      -> Json.fromBoolean(true),
+        "channel" -> Json.fromString("testId")
       )
       Action(Ok(res.noSpaces))
   }
@@ -245,7 +252,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
               repository.update(workSpace, application.id).futureValue
 
             val savedValue = db.run(WorkSpaces.result).futureValue
-            assert(result === Some())
+            assert(result === Some(()))
             assert(
               savedValue.head === WorkSpacesRow(
                 accessToken.value.value,
@@ -307,148 +314,22 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
       }
     }
   }
+
+  "sendMessage" when {
+    "succeed" should {
+      "return some unit" in {
+        forAll(workSpaceGen, botGen, channelIdGen, botIdGen) {
+          (_workSpace, _bot, channelId, botId) =>
+            val bot       = _bot.copy(id = Some(botId)).createOnboardingMessage
+            val workSpace = _workSpace.copy(bots = _workSpace.bots :+ bot)
+
+            val result =
+              repository.sendMessage(workSpace, botId, channelId).futureValue
+
+            assert(result === Some())
+
+        }
+      }
+    }
+  }
 }
-
-//  "find" when {
-//    "succeed" should {
-//      "get work space" in {
-//        forAll(temporaryOauthCodeGen, botClientIdGen, botClientSecretGen) {
-//          (code, clientId, clientSecret) =>
-//            val result =
-//              repository.find(code, clientId, clientSecret).futureValue
-//
-//            assert(
-//              result === Some(
-//                WorkSpace(
-//                  WorkSpaceId("teamId"),
-//                  Seq(WorkSpaceToken("mock access token")),
-//                  Some(code),
-//                  Seq()
-//                )
-//              )
-//            )
-//        }
-//      }
-//    }
-//  }
-
-//  "find(by id & botId)" when {
-//    "succeed" should {
-//      "get work space" in {
-//        val beforeAction              = DBIO.seq(
-//          WorkSpaces.forceInsertAll(
-//            Seq(
-//              WorkSpacesRow("token1", "bot1", "teamA"),
-//              WorkSpacesRow("token2", "bot1", "teamB"),
-//              WorkSpacesRow("token3", "bot2", "teamA")
-//            )
-//          )
-//        )
-//        val afterAction               = WorkSpaces.delete
-//        db.run(beforeAction.transactionally).futureValue
-//        val result: Option[WorkSpace] =
-//          repository.find(WorkSpaceId("teamA"), BotId("bot2")).futureValue
-//
-//        assert(
-//          result === Some(
-//            WorkSpace(
-//              WorkSpaceId("teamA"),
-//              Seq(WorkSpaceToken("token3")),
-//              None,
-//              Seq(BotId("bot2"))
-//            )
-//          )
-//        )
-//        db.run(afterAction).futureValue
-//      }
-//    }
-//  }
-
-//  "add" when {
-//    "succeed" should {
-//      "add new data" in {
-//        forAll(newWorkSpaceGen) { newModel =>
-//          repository.joinChannels(newModel).futureValue
-//
-//          val result = db.run(WorkSpaces.result).futureValue
-//
-//          val expected = for {
-//            token <- newModel.tokens
-//            botId <- newModel.botIds
-//          } yield WorkSpacesRow(token.value.value, botId.value.value, newModel.id.value.value)
-//
-//          assert(result === expected)
-//
-//          db.run(WorkSpaces.delete).futureValue
-//        }
-//      }
-//    }
-//  }
-
-//  "update" when {
-//    "succeed" should {
-//      "delete data" in {
-//        val beforeAction = DBIO.seq(
-//          WorkSpaces.forceInsertAll(
-//            Seq(
-//              WorkSpacesRow("token1", "bot1", "team1"),
-//              WorkSpacesRow("token2", "bot2", "team2"),
-//              WorkSpacesRow("token3", "bot3", "team1")
-//            )
-//          )
-//        )
-//
-//        val deleteAction = WorkSpaces.delete
-//
-//        db.run(beforeAction.transactionally).futureValue
-//
-//        val params     = WorkSpace(
-//          WorkSpaceId("team1"),
-//          Seq(WorkSpaceToken("token2"), WorkSpaceToken("token3")),
-//          None,
-//          Seq(BotId("bot2"), BotId("bot3"))
-//        )
-//        repository.joinChannels(params)
-//        val workSpaces = db.run(WorkSpaces.result).futureValue
-//
-//        assert(workSpaces.length === 2)
-//        assert(workSpaces.head.token === "token2")
-//
-//        db.run(deleteAction).futureValue
-//
-//      }
-//    }
-//  }
-//}
-
-//class WorkSpaceRepositoryImplFailSpec
-//    extends RepositorySpec[WorkSpaceRepository] {
-//  "find" when {
-//    "failed" should {
-//      "None returned" in {
-//        forAll(temporaryOauthCodeGen, botClientIdGen, botClientSecretGen) {
-//          (code, clientId, clientSecret) =>
-//            val result = repository.find(code, clientId, clientSecret)
-//
-//            whenReady(result, timeout(Span(1, Seconds))) { e =>
-//              assert(e === None)
-//            }
-//        }
-//      }
-//    }
-//  }
-//
-//  "find(by id & botId)" when {
-//    "failed" should {
-//      "None returned" in {
-//        forAll(workSpaceIdGen, botIdGen) { (workSpaceId, botId) =>
-//          val result = repository.find(workSpaceId, botId)
-//
-//          whenReady(result, timeout(Span(1, Seconds))) { e =>
-//            assert(e === None)
-//          }
-//        }
-//      }
-//    }
-//  }
-//}

@@ -29,7 +29,7 @@ class WorkSpaceRepositoryImpl @Inject() (
   protected val ws: WSClient,
   protected val teamDao: TeamDao,
   protected val usersDao: UsersDao,
-  val conversationDao: ConversationDao,
+  protected val conversationDao: ConversationDao,
   protected val chatDao: ChatDao
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with WorkSpaceRepository
@@ -166,7 +166,10 @@ class WorkSpaceRepositoryImpl @Inject() (
       case Some(v) => v.draftMessage match {
           case Some(d) => chatDao
               .postMessage(v.accessToken.value.value, channelId.value.value, d)
-              .map(_ => Some(()))
+              .map(_ => Some())
+              .ifFailedThenToInfraError(
+                "error while WorkSpaceRepository.sendMessage"
+              )
           case None    => Future.successful(None)
         }
       case None    => Future.successful(None)
