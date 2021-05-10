@@ -168,7 +168,6 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
   "find(code, clientId, clientSecret)" when {
     "succeed" should {
       "get work space" in {
-        val workSpaceRepo = mock[WorkSpaceRepository]
         forAll(
           temporaryOauthCodeGen,
           applicationClientIdGen,
@@ -216,7 +215,32 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
 
   "update" when {
     "succeed" should {
-      ""
+      "new data added correctly" in {
+        forAll(workSpaceGen, applicationGen, botGen) {
+          (_workSpace, application, bot) =>
+            val workSpace = _workSpace.copy(bots =
+              _workSpace.bots :+ bot.copy(
+                applicationId = application.id,
+                accessToken = BotAccessToken("token")
+              )
+            )
+
+            db.run(WorkSpaces.delete)
+            val result =
+              repository.update(workSpace, application.id).futureValue
+
+            val savedValue = db.run(WorkSpaces.result).futureValue
+            assert(result === ())
+            assert(
+              savedValue.head === WorkSpacesRow(
+                "token",
+                application.id.value.value,
+                workSpace.id.value.value
+              )
+            )
+            assert(savedValue.length === 1)
+        }
+      }
     }
   }
 }
