@@ -23,17 +23,21 @@ final case class WorkSpace(
 ) {
   def installApplication(
     application: Application
-  ): Either[NotExistError, WorkSpace] = this.unallocatedToken match {
+  ): Either[DomainError, WorkSpace] = this.unallocatedToken match {
     case Some(token) =>
-      val bot = Bot(
-        None,
-        BotName(application.name.value),
-        application.id,
-        token,
-        Seq(),
-        None
-      )
-      Right(this.copy(bots = bots :+ bot))
+      this.bots.find(bo => bo.applicationId == application.id) match {
+        case Some(_) => Left(DuplicateError("bots"))
+        case None    =>
+          val bot = Bot(
+            None,
+            BotName(application.name.value),
+            application.id,
+            token,
+            Seq(),
+            None
+          )
+          Right(this.copy(bots = bots :+ bot))
+      }
     case None        => Left(NotExistError("unallocatedToken"))
   }
 
