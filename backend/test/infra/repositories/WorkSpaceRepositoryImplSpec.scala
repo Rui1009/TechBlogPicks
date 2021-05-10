@@ -10,7 +10,6 @@ import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import helpers.traits.RepositorySpec
 import org.scalatest.time.{Millis, Seconds, Span}
-import play.api.Application
 import mockws.MockWS
 import mockws.MockWSHelpers.Action
 import play.api.inject.bind
@@ -332,4 +331,123 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
       }
     }
   }
+}
+
+class WorkSpaceRepositoryImplFailSpec extends WorkSpaceRepositoryImplSpec {
+  val mockWs = MockWS {
+    case ("POST", str: String)
+        if str.matches("https://slack.com/api/oauth.v2.access") =>
+      Action(
+        Ok(
+          Json
+            .fromJsonObject(
+              JsonObject(
+                "ok"    -> Json.fromBoolean(false),
+                "error" -> Json.fromString("error")
+              )
+            )
+            .noSpaces
+        )
+      )
+
+    case ("POST", str: String)
+        if str.matches("https://slack.com/api/conversations.join") =>
+      val res = Json.fromJsonObject(
+        JsonObject(
+          "ok"    -> Json.fromBoolean(false),
+          "error" -> Json.fromString("error")
+        )
+      )
+      Action(Ok(res.noSpaces))
+
+    case ("POST", str: String)
+        if str.matches("https://slack.com/api/chat.postMessage") =>
+      val res = Json.obj(
+        "ok"    -> Json.fromBoolean(false),
+        "error" -> Json.fromString("error")
+      )
+      Action(Ok(res.noSpaces))
+  }
+
+  override val app =
+    builder.overrides(bind[WSClient].toInstance(mockWs)).build()
+
+  implicit val conf: PatienceConfig = PatienceConfig(scaled(Span(1000, Millis)))
+
+  "find(code, clientId, clientSecret)" when {
+    "failed in oauth api" should {
+      "return infra error" in {
+        forAll(
+          temporaryOauthCodeGen,
+          applicationClientIdGen,
+          applicationClientSecretGen
+        ) { (code, clientId, clientSecret) =>
+          val result = repository.find(code, clientId, clientSecret)
+
+          val msg = """
+              |APIError
+              |error while bot access token decode in workSpaceRepository.find
+              |Attempt to decode value on failed cursor: DownField(access_token)
+              |""".stripMargin.trim
+
+          whenReady(result.failed)(e => assert(msg === e.getMessage.trim))
+        }
+      }
+    }
+  }
+
+  "joinChannels" when {
+    "failed in conversationDao.join" should {
+      "return infra error" in {
+        forAll(
+          workSpaceGen,
+          applicationGen,
+          botGen,
+          Gen.nonEmptyListOf(channelIdGen)
+        ) { (_workSpace, application, bot, channelIds) =>
+          val workSpace = _workSpace.copy(bots =
+            _workSpace.bots :+ bot.copy(applicationId = application.id)
+          )
+
+          val result =
+            repository.joinChannels(workSpace, application.id, channelIds)
+
+          val msg = """
+              |DBError
+              |error while WorkSpaceRepository.joinChannel
+              |APIError
+              |error while converting conversation join api response
+              |Attempt to decode value on failed cursor: DownField(channel)
+              |""".stripMargin.trim
+
+          whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+        }
+      }
+    }
+  }
+
+  "sendMessage" when {
+    "failed in chatDao.postMessage" should {
+      "return infra error" in {
+        forAll(workSpaceGen, botGen, channelIdGen, botIdGen) {
+          (_workSpace, _bot, channelId, botId) =>
+            val bot       = _bot.copy(id = Some(botId)).createOnboardingMessage
+            val workSpace = _workSpace.copy(bots = _workSpace.bots :+ bot)
+
+            val result = repository.sendMessage(workSpace, botId, channelId)
+
+            val msg = """
+                |DBError
+                |error while WorkSpaceRepository.sendMessage
+                |APIError
+                |error while converting list api response
+                |Attempt to decode value on failed cursor: DownField(channel)
+                |""".stripMargin.trim
+
+            whenReady(result.failed)(e => assert(e.getMessage.trim === msg))
+        }
+      }
+    }
+  }
+
 }

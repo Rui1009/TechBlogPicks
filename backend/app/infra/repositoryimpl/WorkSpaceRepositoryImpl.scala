@@ -51,7 +51,9 @@ class WorkSpaceRepositoryImpl @Inject() (
                        .post(Json.Null.noSpaces)
                        .ifFailedThenToInfraError(s"error while posting $oauthURL")
       accessToken <-
-        decode[BotAccessToken](resp.json.toString()).ifLeftThenToInfraError
+        decode[BotAccessToken](resp.json.toString()).ifLeftThenToInfraError(
+          "error while bot access token decode in workSpaceRepository.find"
+        )
       info        <- teamDao.info(accessToken.value.value)
       workSpace   <-
         find(WorkSpaceId(Refined.unsafeApply(info.team.id)))
