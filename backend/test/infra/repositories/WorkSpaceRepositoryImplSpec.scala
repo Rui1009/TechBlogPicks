@@ -18,6 +18,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
 import eu.timepit.refined.auto._
 import infra.dao.slack.UsersDaoImpl.Member
+import infra.dto.Tables
 import infra.repositoryimpl.WorkSpaceRepositoryImpl
 import infra.dto.Tables._
 import io.circe.{Json, JsonObject}
@@ -275,6 +276,33 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
             .joinChannels(workSpace, application.id, channelIds)
             .futureValue
           assert(result === ())
+        }
+      }
+    }
+  }
+
+  "removeBot" when {
+    "succeed" should {
+      "target data removed correctly" in {
+        forAll(workSpaceGen, botGen) { (_workSpace, bot) =>
+          val workSpace = _workSpace.copy(
+            id = WorkSpaceId("workSpace1"),
+            bots =
+              _workSpace.bots :+ bot.copy(applicationId = ApplicationId("bot1"))
+          )
+
+          db.run(WorkSpaces.delete).futureValue
+          db.run(insertAction).futureValue
+
+          val result        = repository.removeBot(workSpace).futureValue
+          val dbContent     = db.run(WorkSpaces.result).futureValue
+          val targetContent = db
+            .run(WorkSpaces.filter(_.teamId === "workSpace3").result)
+            .futureValue
+
+          assert(result === ())
+          assert(dbContent.length === 2)
+          assert(targetContent.length === 0)
         }
       }
     }
