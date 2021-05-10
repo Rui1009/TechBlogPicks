@@ -237,29 +237,45 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
   }
 
   "update" when {
-    "succeed" should {
-      "new data added correctly" in {
-        forAll(workSpaceGen, applicationGen, botGen, accessTokensGen) {
-          (_workSpace, application, bot, accessToken) =>
-            val workSpace = _workSpace.copy(bots =
-              _workSpace.bots :+ bot
-                .copy(applicationId = application.id, accessToken = accessToken)
-            )
+    "succeed".which {
+      "target bot exists" should {
+        "new data added correctly" in {
+          forAll(workSpaceGen, applicationGen, botGen, accessTokensGen) {
+            (_workSpace, application, bot, accessToken) =>
+              val workSpace = _workSpace.copy(bots =
+                _workSpace.bots :+ bot.copy(
+                  applicationId = application.id,
+                  accessToken = accessToken
+                )
+              )
 
+              db.run(WorkSpaces.delete)
+              val result =
+                repository.update(workSpace, application.id).futureValue
+
+              val savedValue = db.run(WorkSpaces.result).futureValue
+              assert(result === Some(()))
+              assert(
+                savedValue.head === WorkSpacesRow(
+                  accessToken.value.value,
+                  application.id.value.value,
+                  workSpace.id.value.value
+                )
+              )
+              assert(savedValue.length === 1)
+          }
+        }
+      }
+
+      "no target bot exists" should {
+        "return None" in {
+          forAll(workSpaceGen, applicationGen) { (workSpace, application) =>
             db.run(WorkSpaces.delete)
             val result =
               repository.update(workSpace, application.id).futureValue
 
-            val savedValue = db.run(WorkSpaces.result).futureValue
-            assert(result === Some(()))
-            assert(
-              savedValue.head === WorkSpacesRow(
-                accessToken.value.value,
-                application.id.value.value,
-                workSpace.id.value.value
-              )
-            )
-            assert(savedValue.length === 1)
+            assert(result === None)
+          }
         }
       }
     }
@@ -315,18 +331,45 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
   }
 
   "sendMessage" when {
-    "succeed" should {
-      "return some unit" in {
+    "succeed".which {
+      "target bot & its draft message exists" should {
+        "return some unit" in {
+          forAll(workSpaceGen, botGen, channelIdGen, botIdGen) {
+            (_workSpace, _bot, channelId, botId) =>
+              val bot       = _bot.copy(id = Some(botId)).createOnboardingMessage
+              val workSpace = _workSpace.copy(bots = _workSpace.bots :+ bot)
+
+              val result =
+                repository.sendMessage(workSpace, botId, channelId).futureValue
+
+              assert(result === Some())
+
+          }
+        }
+      }
+
+      "no target bot exists" should {
+        "return None" in {
+          forAll(workSpaceGen, channelIdGen, botIdGen) {
+            (_workSpace, channelId, botId) =>
+              val result =
+                repository.sendMessage(_workSpace, botId, channelId).futureValue
+
+              assert(result === None)
+          }
+        }
+      }
+
+      "no draft message exists" in {
         forAll(workSpaceGen, botGen, channelIdGen, botIdGen) {
           (_workSpace, _bot, channelId, botId) =>
-            val bot       = _bot.copy(id = Some(botId)).createOnboardingMessage
+            val bot       = _bot.copy(id = Some(botId), draftMessage = None)
             val workSpace = _workSpace.copy(bots = _workSpace.bots :+ bot)
 
             val result =
               repository.sendMessage(workSpace, botId, channelId).futureValue
 
-            assert(result === Some())
-
+            assert(result === None)
         }
       }
     }
@@ -449,5 +492,4 @@ class WorkSpaceRepositoryImplFailSpec extends WorkSpaceRepositoryImplSpec {
       }
     }
   }
-
 }
