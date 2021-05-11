@@ -32,7 +32,7 @@ trait WorkSpaceRepository {
   def find(id: WorkSpaceId): Future[Option[WorkSpace]]
   def sendMessage(
     workSpace: WorkSpace,
-    botId: BotId,
+    applicationId: ApplicationId,
     channelId: ChannelId
   ): Future[Option[Unit]]
 }

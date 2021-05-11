@@ -76,24 +76,27 @@ final case class WorkSpace(
       case None    => Left(NotExistError("ChannelId"))
     }
 
-  def botCreateOnboardingMessage(botId: BotId): Either[DomainError, WorkSpace] =
-    this.bots.find(bot => bot.id.contains(botId)) match {
+  def botCreateOnboardingMessage(
+    applicationId: ApplicationId
+  ): Either[DomainError, WorkSpace] =
+    this.bots.find(bot => bot.applicationId == applicationId) match {
       case Some(v) => Right(
           this.copy(bots =
             bots.filter(bot => bot.id != v.id) :+ v.createOnboardingMessage
           )
         )
-      case None    => Left(NotExistError("BotId"))
+      case None    => Left(NotExistError("Bot"))
     }
 
   def botPostMessage(
-    botId: BotId,
+    applicationId: ApplicationId,
     channelId: ChannelId
   ): Either[DomainError, WorkSpace] = for {
-    targetBot     <- this.bots.find(bot => bot.id.contains(botId)) match {
-                       case Some(v) => Right(v)
-                       case None    => Left(NotExistError("BotId"))
-                     }
+    targetBot     <-
+      this.bots.find(bot => bot.applicationId == applicationId) match {
+        case Some(v) => Right(v)
+        case None    => Left(NotExistError("Bot"))
+      }
     targetChannel <-
       this.channels.find(channel => channel.id == channelId) match {
         case Some(v) => Right(v)

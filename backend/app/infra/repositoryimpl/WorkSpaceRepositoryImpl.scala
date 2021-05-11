@@ -161,10 +161,10 @@ class WorkSpaceRepositoryImpl @Inject() (
 
   override def sendMessage(
     workSpace: WorkSpace,
-    botId: BotId,
+    applicationId: ApplicationId,
     channelId: ChannelId
   ): Future[Option[Unit]] =
-    workSpace.bots.find(bot => bot.id.contains(botId)) match {
+    workSpace.bots.find(bot => bot.applicationId == applicationId) match {
       case Some(v) => v.draftMessage match {
           case Some(d) => chatDao
               .postMessage(v.accessToken.value.value, channelId.value.value, d)

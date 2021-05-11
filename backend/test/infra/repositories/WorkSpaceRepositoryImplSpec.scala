@@ -334,13 +334,13 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
     "succeed".which {
       "target bot & its draft message exists" should {
         "return some unit" in {
-          forAll(workSpaceGen, botGen, channelIdGen, botIdGen) {
-            (_workSpace, _bot, channelId, botId) =>
-              val bot       = _bot.copy(id = Some(botId)).createOnboardingMessage
+          forAll(workSpaceGen, botGen, channelIdGen, applicationIdGen) {
+            (_workSpace, _bot, channelId, appId) =>
+              val bot       = _bot.copy(applicationId = appId).createOnboardingMessage
               val workSpace = _workSpace.copy(bots = _workSpace.bots :+ bot)
 
               val result =
-                repository.sendMessage(workSpace, botId, channelId).futureValue
+                repository.sendMessage(workSpace, appId, channelId).futureValue
 
               assert(result === Some())
 
@@ -350,10 +350,10 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
 
       "no target bot exists" should {
         "return None" in {
-          forAll(workSpaceGen, channelIdGen, botIdGen) {
-            (_workSpace, channelId, botId) =>
+          forAll(workSpaceGen, channelIdGen, applicationIdGen) {
+            (_workSpace, channelId, appId) =>
               val result =
-                repository.sendMessage(_workSpace, botId, channelId).futureValue
+                repository.sendMessage(_workSpace, appId, channelId).futureValue
 
               assert(result === None)
           }
@@ -361,13 +361,13 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
       }
 
       "no draft message exists" in {
-        forAll(workSpaceGen, botGen, channelIdGen, botIdGen) {
-          (_workSpace, _bot, channelId, botId) =>
-            val bot       = _bot.copy(id = Some(botId), draftMessage = None)
+        forAll(workSpaceGen, botGen, channelIdGen, applicationIdGen) {
+          (_workSpace, _bot, channelId, appId) =>
+            val bot       = _bot.copy(applicationId = appId, draftMessage = None)
             val workSpace = _workSpace.copy(bots = _workSpace.bots :+ bot)
 
             val result =
-              repository.sendMessage(workSpace, botId, channelId).futureValue
+              repository.sendMessage(workSpace, appId, channelId).futureValue
 
             assert(result === None)
         }
@@ -472,12 +472,12 @@ class WorkSpaceRepositoryImplFailSpec extends WorkSpaceRepositoryImplSpec {
   "sendMessage" when {
     "failed in chatDao.postMessage" should {
       "return infra error" in {
-        forAll(workSpaceGen, botGen, channelIdGen, botIdGen) {
-          (_workSpace, _bot, channelId, botId) =>
-            val bot       = _bot.copy(id = Some(botId)).createOnboardingMessage
+        forAll(workSpaceGen, botGen, channelIdGen, applicationIdGen) {
+          (_workSpace, _bot, channelId, appId) =>
+            val bot       = _bot.copy(applicationId = appId).createOnboardingMessage
             val workSpace = _workSpace.copy(bots = _workSpace.bots :+ bot)
 
-            val result = repository.sendMessage(workSpace, botId, channelId)
+            val result = repository.sendMessage(workSpace, appId, channelId)
 
             val msg = """
                 |DBError
