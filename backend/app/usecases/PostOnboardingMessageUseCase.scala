@@ -1,6 +1,7 @@
 package usecases
 
 import com.google.inject.Inject
+import domains.application.Application.ApplicationId
 import domains.bot.Bot.BotId
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace.WorkSpaceId
@@ -15,7 +16,7 @@ trait PostOnboardingMessageUseCase {
 
 object PostOnboardingMessageUseCase {
   final case class Params(
-    botId: BotId,
+    applicationId: ApplicationId,
     workSpaceId: WorkSpaceId,
     channelId: ChannelId
   )
@@ -44,20 +45,20 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
     else for {
       workSpaceWithUpdatedBots     <-
         targetWorkSpace
-          .botCreateOnboardingMessage(params.botId)
+          .botCreateOnboardingMessage(params.applicationId)
           .ifLeftThenToUseCaseError(
             "error while WorkSpace.botCreateOnboardingMessage in post onboarding message use case"
           )
       workSpaceWithUpdatedChannels <-
         workSpaceWithUpdatedBots
-          .botPostMessage(params.botId, targetChannel.id)
+          .botPostMessage(params.applicationId, targetChannel.id)
           .ifLeftThenToUseCaseError(
             "error while WorkSpace.botPostMessage in post onboarding message use case"
           )
       _                            <- workSpaceRepository
                                         .sendMessage(
                                           workSpaceWithUpdatedChannels,
-                                          params.botId,
+                                          params.applicationId,
                                           params.channelId
                                         )
                                         .ifNotExistsToUseCaseError(
