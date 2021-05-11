@@ -68,7 +68,7 @@ class AppUninstalledSpec extends ControllerSpec with AppUninstalledSpecContext {
     }
 
     "given body which is invalid".which {
-      "teamId is invalid" should {
+      "teamId & applicationId are invalid" should {
         "return Bad Request Error" in {
           when(uc.exec(*)).thenReturn(Future.unit)
 
@@ -86,7 +86,7 @@ class AppUninstalledSpec extends ControllerSpec with AppUninstalledSpecContext {
           val msg = """
                 |BadRequestError
                 |domains.EmptyStringError: WorkSpaceId is empty string
-                |domains.EmptyStringError: BotId is empty string
+                |domains.EmptyStringError: ApplicationId is empty string
                 |""".stripMargin.trim
 
           assert(status(res) === BAD_REQUEST)
