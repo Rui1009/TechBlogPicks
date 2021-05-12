@@ -89,11 +89,7 @@ final case class WorkSpace(
                        case Some(v) => Right(v)
                        case None    => Left(NotExistError("BotId"))
                      }
-    targetChannel <-
-      this.channels.find(channel => channel.id == channelId) match {
-        case Some(v) => Right(v)
-        case None    => Left(NotExistError("ChannelId"))
-      }
+    targetChannel <- findChannel(channelId)
     _              = targetBot.postMessage(targetChannel, message)
   } yield targetBot
 }
