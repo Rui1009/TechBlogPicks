@@ -1,6 +1,6 @@
 package domains.bot
 
-import domains.EmptyStringError
+import domains.{EmptyStringError, NotExistError}
 import domains.application.Application.ApplicationId
 import domains.bot.Bot.{BotAccessToken, BotId, BotName}
 import domains.channel.{Channel, DraftMessage}
@@ -54,8 +54,9 @@ final case class Bot(
     this.copy(draftMessage = Some(draft))
   }
 
-  def postMessage(channel: Channel, message: DraftMessage): Channel =
-    channel.receiveMessage(message)
+  def postMessage(channel: Channel): Either[NotExistError, Channel] = for {
+    message <- this.draftMessage.toRight(NotExistError("DraftMessage"))
+  } yield channel.receiveMessage(message)
 }
 
 object Bot {

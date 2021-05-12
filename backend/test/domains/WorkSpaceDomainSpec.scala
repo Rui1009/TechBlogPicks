@@ -302,7 +302,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
                 _workSpace.channels.filter(_.id !== channel.id) :+ channel
             )
 
-            val updatedChannel = bot.postMessage(channel, bot.draftMessage.get)
+            val updatedChannel = bot.postMessage(channel).unsafeGet
 
             val result   = workSpace.botPostMessage(bot.applicationId, channel.id)
             val expected = Right(

@@ -92,21 +92,13 @@ final case class WorkSpace(
     applicationId: ApplicationId,
     channelId: ChannelId
   ): Either[DomainError, WorkSpace] = for {
-    targetBot     <-
-      this.bots.find(bot => bot.applicationId == applicationId) match {
-        case Some(v) => Right(v)
-        case None    => Left(NotExistError("Bot"))
-      }
-    targetChannel <-
-      this.channels.find(channel => channel.id == channelId) match {
-        case Some(v) => Right(v)
-        case None    => Left(NotExistError("ChannelId"))
-      }
-    postMessage   <- targetBot.draftMessage match {
-                       case Some(v) => Right(v)
-                       case None    => Left(NotExistError("DraftMessage"))
-                     }
-    updatedChannel = targetBot.postMessage(targetChannel, postMessage)
+    targetBot      <- this.bots
+                        .find(bot => bot.applicationId == applicationId)
+                        .toRight(NotExistError("Bot"))
+    targetChannel  <- this.channels
+                        .find(channel => channel.id == channelId)
+                        .toRight(NotExistError("ChannelId"))
+    updatedChannel <- targetBot.postMessage(targetChannel)
   } yield this.copy(channels = channels.filter(_.id != targetChannel.id) :+ updatedChannel)
 }
 
