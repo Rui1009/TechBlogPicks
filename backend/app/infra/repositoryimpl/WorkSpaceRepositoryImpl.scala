@@ -78,7 +78,7 @@ class WorkSpaceRepositoryImpl @Inject() (
                    .find(row => res.apiAppId.contains(row.botId))
                    .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
 
-                 val joinedChannelsIds = channelIds // ここがJoinedになる理由がよくわからない
+                 val joinedChannelsIds = channelIds
                    .filter(id => res.apiAppId.contains(id._2))
                    .flatMap(_._1)
                  (for {
