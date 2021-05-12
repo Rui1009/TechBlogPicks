@@ -28,7 +28,7 @@ final class UpdateApplicationClientInfoUseCaseImpl @Inject() (
       applicationRepository
         .find(params.applicationId)
         .ifNotExistsToUseCaseError(
-          "error while applicationRepository.find in update bot client info use case"
+          "error while applicationRepository.find in update application client info use case"
         )
 
     updatedApplication = application.updateClientInfo(
@@ -39,7 +39,7 @@ final class UpdateApplicationClientInfoUseCaseImpl @Inject() (
     _ <- applicationRepository
            .update(updatedApplication)
            .ifFailThenToUseCaseError(
-             "error while applicationRepository.update in update bot client info use case"
+             "error while applicationRepository.update in update application client info use case"
            )
   } yield ()
 }

@@ -1,4 +1,4 @@
-package controllers.bot
+package controllers.application
 
 import adapters.controllers.application.UpdateClientInfoBody
 import helpers.traits.ControllerSpec
@@ -9,14 +9,14 @@ import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-trait BotControllerUpdateSpecContext { this: ControllerSpec =>
+trait ApplicationControllerUpdateSpecContext { this: ControllerSpec =>
   val uc = mock[UpdateApplicationClientInfoUseCase]
 
   val path = (id: String) => "/bots/" + id
 
   val failedError = """
       |InternalServerError
-      |error in BotController.update
+      |error in ApplicationController.update
       |SystemError
       |error
       |""".stripMargin.trim
@@ -27,12 +27,12 @@ trait BotControllerUpdateSpecContext { this: ControllerSpec =>
 }
 
 class ApplicationControllerUpdateSpec
-    extends ControllerSpec with BotControllerUpdateSpecContext {
+    extends ControllerSpec with ApplicationControllerUpdateSpecContext {
   "update" when {
     "given body which is valid".which {
       "results succeed" should {
         "invoke use case exec once & return 201 & valid body" in {
-          forAll(updateBotClientInfoBodyGen) { body =>
+          forAll(updateApplicationClientInfoBodyGen) { body =>
             when(uc.exec(*)).thenReturn(Future.unit)
 
             val res = Request.post(path("botId")).withJsonBody(body).unsafeExec
@@ -45,7 +45,7 @@ class ApplicationControllerUpdateSpec
 
       "results failed" should {
         "return Internal Server Error" in {
-          forAll(updateBotClientInfoBodyGen) { body =>
+          forAll(updateApplicationClientInfoBodyGen) { body =>
             when(uc.exec(*)).thenReturn(Future.failed(SystemError("error")))
 
             val res = Request.post(path("botId")).withJsonBody(body).unsafeExec
@@ -60,7 +60,7 @@ class ApplicationControllerUpdateSpec
     "given body".which {
       "clientId is invalid" should {
         "return BadRequest Error" in {
-          forAll(updateBotClientInfoBodyGen) { body =>
+          forAll(updateApplicationClientInfoBodyGen) { body =>
             val req = body.copy(clientId = Some(""))
             val res = Request.post(path("botId")).withJsonBody(req).unsafeExec
 
@@ -69,7 +69,7 @@ class ApplicationControllerUpdateSpec
               decodeERes(
                 res
               ).unsafeGet.message === (badRequestError + emptyStringError(
-                "BotClientId"
+                "ApplicationClientId"
               )).trim
             )
           }
@@ -78,7 +78,7 @@ class ApplicationControllerUpdateSpec
 
       "clientSecret is invalid" should {
         "return BadRequest Error" in {
-          forAll(updateBotClientInfoBodyGen) { body =>
+          forAll(updateApplicationClientInfoBodyGen) { body =>
             val req = body.copy(clientSecret = Some(""))
             val res = Request.post(path("botId")).withJsonBody(req).unsafeExec
 
@@ -87,7 +87,7 @@ class ApplicationControllerUpdateSpec
               decodeERes(
                 res
               ).unsafeGet.message === (badRequestError + emptyStringError(
-                "BotClientSecret"
+                "ApplicationClientSecret"
               )).trim
             )
           }
@@ -104,8 +104,8 @@ class ApplicationControllerUpdateSpec
             decodeERes(
               res
             ).unsafeGet.message === (badRequestError + emptyStringError(
-              "BotClientId"
-            ) + emptyStringError("BotClientSecret")).trim
+              "ApplicationClientId"
+            ) + emptyStringError("ApplicationClientSecret")).trim
           )
         }
       }

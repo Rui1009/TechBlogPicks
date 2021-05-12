@@ -1,5 +1,7 @@
 package infra.syntax
 
+import infra.APIError
+
 import scala.concurrent.Future
 
 object either extends InfraSyntax
@@ -18,8 +20,8 @@ final private[syntax] class EitherOps[S <: Throwable, T](
     case Right(v) => Some(v)
   }
 
-  def ifLeftThenToInfraError: Future[T] = either match {
-    case Left(e)  => Future.failed(e)
+  def ifLeftThenToInfraError(message: String): Future[T] = either match {
+    case Left(e)  => Future.failed(APIError(message + "\n" + e.getMessage))
     case Right(v) => Future.successful(v)
   }
 }

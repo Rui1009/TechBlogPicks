@@ -27,3 +27,7 @@ final case class RegexError(className: String) extends DomainError {
 final case class NotExistError(className: String) extends DomainError {
   override lazy val content: String = s"$className don't exist"
 }
+
+final case class DuplicateError(className: String) extends DomainError {
+  override lazy val content: String = s"$className can't have duplicated value"
+}

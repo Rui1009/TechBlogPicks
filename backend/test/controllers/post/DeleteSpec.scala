@@ -1,10 +1,10 @@
-package controllers.bot
+package controllers.post
 
 import helpers.traits.ControllerSpec
-import usecases.DeletePostsUseCase
+import io.circe.generic.auto._
 import play.api.inject._
 import play.api.test.Helpers._
-import io.circe.generic.auto._
+import usecases.DeletePostsUseCase
 
 import scala.concurrent.Future
 

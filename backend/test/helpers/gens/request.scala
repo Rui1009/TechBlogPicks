@@ -24,7 +24,7 @@ trait RequestGen {
     ids <- Gen.nonEmptyListOf(Gen.posNum[Long])
   } yield DeletePostsBody(ids)
 
-  val updateBotClientInfoBodyGen: Gen[UpdateClientInfoBody] = for {
+  val updateApplicationClientInfoBodyGen: Gen[UpdateClientInfoBody] = for {
     clientId     <- Gen.option(nonEmptyStringGen)
     clientSecret <- Gen.option(nonEmptyStringGen)
   } yield UpdateClientInfoBody(clientId, clientSecret)

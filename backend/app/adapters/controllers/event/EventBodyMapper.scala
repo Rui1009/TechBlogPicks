@@ -88,7 +88,7 @@ object AppHomeOpenedEventBody {
 
 final case class AppHomeOpenedEventCommand(
   channelId: ChannelId,
-  botId: BotId,
+  applicationId: ApplicationId,
   workSpaceId: WorkSpaceId
 ) extends EventCommand
 object AppHomeOpenedEventCommand {
@@ -96,7 +96,7 @@ object AppHomeOpenedEventCommand {
     body: AppHomeOpenedEventBody
   ): Either[BadRequestError, EventCommand] = (
     ChannelId.create(body.channel).toValidatedNec,
-    BotId.create(body.appId).toValidatedNec,
+    ApplicationId.create(body.appId).toValidatedNec,
     WorkSpaceId.create(body.teamId).toValidatedNec
   ).mapN(AppHomeOpenedEventCommand.apply)
     .toEither

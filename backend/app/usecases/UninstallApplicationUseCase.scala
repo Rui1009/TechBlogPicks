@@ -32,7 +32,7 @@ final class UninstallApplicationUseCaseImpl @Inject() (
       applicationRepository
         .find(params.applicationId)
         .ifNotExistsToUseCaseError(
-          "error while applicationRepository.find in uninstall bot use case"
+          "error while applicationRepository.find in uninstall application use case"
         )
     targetWorkSpace   <- workSpaceRepository.find(params.workSpaceId).map {
                            case Some(v) => v
@@ -42,7 +42,7 @@ final class UninstallApplicationUseCaseImpl @Inject() (
     _                 <- workSpaceRepository
                            .removeBot(updatedWorkSpace)
                            .ifFailThenToUseCaseError(
-                             "error while workSpaceRepository.add in uninstall bot use case"
+                             "error while workSpaceRepository.removeBot in uninstall application use case"
                            )
   } yield ()).recoverWith { case WorkSpaceNotFound => Future.unit }
 }

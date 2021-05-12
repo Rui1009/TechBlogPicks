@@ -23,17 +23,21 @@ final case class WorkSpace(
 ) {
   def installApplication(
     application: Application
-  ): Either[NotExistError, WorkSpace] = this.unallocatedToken match {
+  ): Either[DomainError, WorkSpace] = this.unallocatedToken match {
     case Some(token) =>
-      val bot = Bot(
-        None,
-        BotName(application.name.value),
-        application.id,
-        token,
-        Seq(),
-        None
-      )
-      Right(this.copy(bots = bots :+ bot))
+      this.bots.find(bo => bo.applicationId == application.id) match {
+        case Some(_) => Left(DuplicateError("bots"))
+        case None    =>
+          val bot = Bot(
+            None,
+            BotName(application.name.value),
+            application.id,
+            token,
+            Seq(),
+            None
+          )
+          Right(this.copy(bots = bots :+ bot))
+      }
     case None        => Left(NotExistError("unallocatedToken"))
   }
 
@@ -73,25 +77,37 @@ final case class WorkSpace(
     }
 
   def botCreateOnboardingMessage(
-    botId: BotId
-  ): Either[DomainError, DraftMessage] =
-    this.bots.find(bot => bot.id.contains(botId)) match {
-      case Some(v) => Right(v.createOnboardingMessage)
-      case None    => Left(NotExistError("BotId"))
+    applicationId: ApplicationId
+  ): Either[DomainError, WorkSpace] =
+    this.bots.find(bot => bot.applicationId == applicationId) match {
+      case Some(v) => Right(
+          this.copy(bots =
+            bots.filter(bot => bot.id != v.id) :+ v.createOnboardingMessage
+          )
+        )
+      case None    => Left(NotExistError("Bot"))
     }
 
   def botPostMessage(
-    botId: BotId,
-    channelId: ChannelId,
-    message: DraftMessage
-  ): Either[DomainError, Bot] = for {
-    targetBot     <- this.bots.find(bot => bot.id.contains(botId)) match {
+    applicationId: ApplicationId,
+    channelId: ChannelId
+  ): Either[DomainError, WorkSpace] = for {
+    targetBot     <-
+      this.bots.find(bot => bot.applicationId == applicationId) match {
+        case Some(v) => Right(v)
+        case None    => Left(NotExistError("Bot"))
+      }
+    targetChannel <-
+      this.channels.find(channel => channel.id == channelId) match {
+        case Some(v) => Right(v)
+        case None    => Left(NotExistError("ChannelId"))
+      }
+    postMessage   <- targetBot.draftMessage match {
                        case Some(v) => Right(v)
-                       case None    => Left(NotExistError("BotId"))
+                       case None    => Left(NotExistError("DraftMessage"))
                      }
-    targetChannel <- findChannel(channelId)
-    _              = targetBot.postMessage(targetChannel, message)
-  } yield targetBot
+    updatedChannel = targetBot.postMessage(targetChannel, postMessage)
+  } yield this.copy(channels = channels.filter(channel => channel.id != targetChannel.id) :+ updatedChannel)
 }
 
 object WorkSpace {

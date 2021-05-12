@@ -11,10 +11,10 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
-import query.bots.{BotsQueryProcessor, BotsView}
+import query.applications.{ApplicationsQueryProcessor, ApplicationsView}
 import infra.dto.Tables._
 
-trait BotsQueryProcessorSuccessSpecContext {
+trait ApplicationsQueryProcessorSuccessSpecContext {
   val members = Seq(
     Member("1", "SlackBot", false, true, None),
     Member("2", "front_end", true, false, Some("2")),
@@ -50,9 +50,9 @@ trait BotsQueryProcessorSuccessSpecContext {
   }
 }
 
-class BotsQueryProcessorSuccessSpec
-    extends QueryProcessorSpec[BotsQueryProcessor]
-    with BotsQueryProcessorSuccessSpecContext {
+class ApplicationsQueryProcessorSuccessSpec
+    extends QueryProcessorSpec[ApplicationsQueryProcessor]
+    with ApplicationsQueryProcessorSuccessSpecContext {
 
   val beforeAction = DBIO.seq(BotClientInfo.forceInsertAll(seed))
 
@@ -70,8 +70,13 @@ class BotsQueryProcessorSuccessSpec
       "return BotsView" in {
         val result   = queryProcessor.findAll.futureValue
         val expected = Seq(
-          BotsView("2", "front_end", Some("clientId"), Some("clientSecret")),
-          BotsView("4", "back_end", None, None)
+          ApplicationsView(
+            "2",
+            "front_end",
+            Some("clientId"),
+            Some("clientSecret")
+          ),
+          ApplicationsView("4", "back_end", None, None)
         )
 
         assert(result.length === expected.length)
@@ -95,8 +100,8 @@ trait BotsQueryProcessorFailSpecContext {
   }
 }
 
-class BotsQueryProcessorFailSpec
-    extends QueryProcessorSpec[BotsQueryProcessor]
+class ApplicationsQueryProcessorFailSpec
+    extends QueryProcessorSpec[ApplicationsQueryProcessor]
     with BotsQueryProcessorFailSpecContext {
 
   override val app: Application =
@@ -106,13 +111,13 @@ class BotsQueryProcessorFailSpec
     PatienceConfig(scaled(Span(10000, Millis)), scaled(Span(15, Millis)))
 
   "findAll" when {
-    "succeed" should {
-      "return BotsView" in {
+    "failed" should {
+      "return ApplicationsView" in {
         val result = queryProcessor.findAll
 
         val msg = """
             |DBError
-            |error while BotsQueryProcessorImpl.findAll
+            |error while ApplicationsQueryProcessorImpl.findAll
             |APIError
             |error while converting list api response
             |Attempt to decode value on failed cursor: DownField(members)

@@ -56,7 +56,7 @@ final class InstallApplicationUseCaseImpl @Inject() (
 
     updatedWorkSpace <-
       workSpace
-        .installApplication(targetApplication)
+        .installApplication(targetApplication) // ここで重複があるかどうかをみる。なければupdate
         .ifLeftThenToUseCaseError(
           "error while workSpace.installApplication in install application use case"
         )

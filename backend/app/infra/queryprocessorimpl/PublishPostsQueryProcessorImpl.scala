@@ -38,12 +38,12 @@ class PublishPostsQueryProcessorImpl @Inject() (
         workSpaces <- workSpaceQ
         posts      <- postsQ
       } yield for {
-        (botId, tokens) <- workSpaces
-        postView         = posts
-                             .filter(_._2.botId == botId)
-                             .map(_._1)
-                             .map(p => Post(p.url, p.title))
-        tokenRow        <- tokens
+        (applicationId, tokens) <- workSpaces
+        postView                 = posts
+                                     .filter(_._2.botId == applicationId)
+                                     .map(_._1)
+                                     .map(p => Post(p.url, p.title))
+        tokenRow                <- tokens
       } yield for {
         conversations <- usersDao.conversations(tokenRow.token)
       } yield PublishPostsView(

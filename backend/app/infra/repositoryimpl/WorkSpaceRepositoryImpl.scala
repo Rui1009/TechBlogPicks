@@ -29,7 +29,7 @@ class WorkSpaceRepositoryImpl @Inject() (
   protected val ws: WSClient,
   protected val teamDao: TeamDao,
   protected val usersDao: UsersDao,
-  val conversationDao: ConversationDao,
+  protected val conversationDao: ConversationDao,
   protected val chatDao: ChatDao
 )(implicit val ec: ExecutionContext)
     extends HasDatabaseConfigProvider[PostgresProfile] with WorkSpaceRepository
@@ -51,7 +51,9 @@ class WorkSpaceRepositoryImpl @Inject() (
                        .post(Json.Null.noSpaces)
                        .ifFailedThenToInfraError(s"error while posting $oauthURL")
       accessToken <-
-        decode[BotAccessToken](resp.json.toString()).ifLeftThenToInfraError
+        decode[BotAccessToken](resp.json.toString()).ifLeftThenToInfraError(
+          "error while bot access token decode in workSpaceRepository.find"
+        )
       info        <- teamDao.info(accessToken.value.value)
       workSpace   <-
         find(WorkSpaceId(Refined.unsafeApply(info.team.id)))
@@ -70,33 +72,38 @@ class WorkSpaceRepositoryImpl @Inject() (
                  ids.map(i =>
                    Channel(i, Seq.empty)
                  ) // Todo: historyもきちんと取得してそれを返す
-               }
+               }.distinct
+    bots     = responses.flatMap { res =>
+                 val maybeToken = rows
+                   .find(row => res.apiAppId.contains(row.botId))
+                   .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
 
-    bots = responses.flatMap { res =>
-             val maybeToken        = rows
-               .find(_.botId == res.id)
-               .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
-             val joinedChannelsIds =
-               channelIds.filter(_._2 === res.id).flatMap(_._1)
-             (for {
-               appId <- res.apiAppId
-               token <- maybeToken
-             } yield Bot(
-               Some(BotId(Refined.unsafeApply(res.id))),
-               BotName(Refined.unsafeApply(res.name)),
-               ApplicationId(Refined.unsafeApply(appId)),
-               token,
-               joinedChannelsIds,
-               None
-             )).toSeq
-           }
+                 val joinedChannelsIds = channelIds // ここがJoinedになる理由がよくわからない
+                   .filter(id => res.apiAppId.contains(id._2))
+                   .flatMap(_._1)
+                 (for {
+                   appId <- res.apiAppId
+                   token <- maybeToken
+                 } yield Bot(
+                   Some(BotId(Refined.unsafeApply(res.id))),
+                   BotName(Refined.unsafeApply(res.name)),
+                   ApplicationId(Refined.unsafeApply(appId)),
+                   token,
+                   joinedChannelsIds,
+                   None
+                 )).toSeq
+               }
   } yield
     if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels, None)))
     .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
 
   private def findBotUser(botIds: Seq[String]) = usersDao
     .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-    .map(_.members.filter(m => m.isBot && Set(m.id).subsetOf(botIds.toSet)))
+    .map(
+      _.members.filter(m =>
+        m.isBot && Set(m.apiAppId).subsetOf(botIds.map(id => Some(id)).toSet)
+      )
+    )
 
   private def findChannelIds(rows: Seq[WorkSpacesRow]) = Future.sequence(
     rows.map(a =>
@@ -153,14 +160,20 @@ class WorkSpaceRepositoryImpl @Inject() (
     .ifFailedThenToInfraError("error while WorkSpaceRepository.removeBot")
 
   override def sendMessage(
-    bot: Bot,
-    channel: Channel,
-    message: DraftMessage
-  ): Future[Unit] = for {
-    _ <- chatDao.postMessage(
-           bot.accessToken.value.value,
-           channel.id.value.value,
-           message
-         )
-  } yield ()
+    workSpace: WorkSpace,
+    applicationId: ApplicationId,
+    channelId: ChannelId
+  ): Future[Option[Unit]] =
+    workSpace.bots.find(bot => bot.applicationId == applicationId) match {
+      case Some(v) => v.draftMessage match {
+          case Some(d) => chatDao
+              .postMessage(v.accessToken.value.value, channelId.value.value, d)
+              .map(_ => Some())
+              .ifFailedThenToInfraError(
+                "error while WorkSpaceRepository.sendMessage"
+              )
+          case None    => Future.successful(None)
+        }
+      case None    => Future.successful(None)
+    }
 }
