@@ -7,6 +7,7 @@ import cats.syntax.option._
 import mockws.MockWS
 import mockws.MockWSHelpers.Action
 import io.circe._
+import org.scalatest.time.{Millis, Span}
 import play.api.Application
 import play.api.inject.bind
 import play.api.libs.ws.WSClient
@@ -73,6 +74,9 @@ class PublishPostsQueryProcessorSpec
     with PublishPostsQueryProcessorSpecContext {
   override val app: Application =
     builder.overrides(bind[WSClient].toInstance(mockWs)).build()
+
+  implicit val conf: PatienceConfig =
+    PatienceConfig(scaled(Span(10000, Millis)), scaled(Span(15, Millis)))
 
   before(db.run(beforeAction).futureValue)
   after(db.run(deleteAction).ready())
