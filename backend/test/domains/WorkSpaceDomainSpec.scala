@@ -173,7 +173,7 @@ class WorkSpaceDomainSpec extends ModelSpec {
     }
 
     "given not exist channel id" should {
-      "return domain error" in {
+      "return domain which message is right" in {
         forAll(workSpaceGen, channelTypedChannelMessageGen, botGen) {
           (_workSpace, channel, bot) =>
             val workSpace = _workSpace.copy(
@@ -214,5 +214,75 @@ class WorkSpaceDomainSpec extends ModelSpec {
         }
       }
     }
+  }
+
+  "WorkSpace.findChannel" when {
+    "given exist channel id" should {
+      "return channel" in {
+        forAll(workSpaceGen, channelTypedChannelMessageGen) {
+          (_workSpace, channel) =>
+            val workSpace = _workSpace.copy(channels =
+              _workSpace.channels.filter(_.id !== channel.id) :+ channel
+            )
+
+            val result   = workSpace.findChannel(channel.id)
+            val expected = Right(channel)
+
+            assert(result === expected)
+        }
+      }
+    }
+
+    "given not exist channel id" should {
+      "return domain error" in {
+        forAll(workSpaceGen, channelIdGen) { (_workSpace, channelId) =>
+          val workSpace = _workSpace.copy(channels =
+            _workSpace.channels.filter(_.id !== channelId)
+          )
+
+          val result   = workSpace.findChannel(channelId)
+          val expected = Left(NotExistError("ChannelId"))
+
+          assert(result === expected)
+        }
+      }
+    }
+  }
+
+  "WorkSpace.botCreateOnboardingMessage" when {
+    "given exist bot id" should {
+      "return draft message" in {
+        forAll(workSpaceGen, botGen, botIdGen) { (_workSpace, _bot, botId) =>
+          val bot       = _bot.copy(id = Some(botId))
+          val workSpace = _workSpace.copy(bots =
+            _workSpace.bots.filter(_.id !== bot.id) :+ bot
+          )
+
+          val result   = workSpace.botCreateOnboardingMessage(botId)
+          val expected = Right(bot.createOnboardingMessage)
+
+          assert(result === expected)
+        }
+      }
+    }
+
+    "given not exist bot id" should {
+      "return domain error" in {
+        forAll(workSpaceGen, botGen, botIdGen) { (_workSpace, _bot, botId) =>
+          val bot       = _bot.copy(id = Some(botId))
+          val workSpace =
+            _workSpace.copy(bots = _workSpace.bots.filter(_.id !== bot.id))
+
+          val result   = workSpace.botCreateOnboardingMessage(botId)
+          val expected = Left(NotExistError("BotId"))
+
+          assert(result === expected)
+        }
+      }
+    }
+  }
+
+  "WorkSpace.botPostMessage" when {
+    "given not exist bot id" should {}
   }
 }
