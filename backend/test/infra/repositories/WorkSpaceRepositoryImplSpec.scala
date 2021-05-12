@@ -144,7 +144,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                   "type" -> Json.fromString("message"),
                   "user" -> Json.fromString("userId"),
                   "text" -> Json.fromString("text"),
-                  "ts"   -> Json.fromString("1212.222")
+                  "ts"   -> Json.fromString("1513718191.000038")
                 )
               )
             )
@@ -206,7 +206,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                   ChannelId("channel1"),
                   Seq(
                     ChannelMessage(
-                      ChannelMessageSentAt("1212.222"),
+                      ChannelMessageSentAt(1513718191.000038f),
                       ChannelMessageSenderUserId("userId"),
                       "text"
                     )
@@ -216,7 +216,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                   ChannelId("channel2"),
                   Seq(
                     ChannelMessage(
-                      ChannelMessageSentAt("1212.222"),
+                      ChannelMessageSentAt(1513718191.000038f),
                       ChannelMessageSenderUserId("userId"),
                       "text"
                     )
@@ -271,7 +271,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                     ChannelId("channel1"),
                     Seq(
                       ChannelMessage(
-                        ChannelMessageSentAt("1212.222"),
+                        ChannelMessageSentAt(1513718191.000038f),
                         ChannelMessageSenderUserId("userId"),
                         "text"
                       )
@@ -281,7 +281,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                     ChannelId("channel2"),
                     Seq(
                       ChannelMessage(
-                        ChannelMessageSentAt("1212.222"),
+                        ChannelMessageSentAt(1513718191.000038f),
                         ChannelMessageSenderUserId("userId"),
                         "text"
                       )
