@@ -14,7 +14,7 @@ import play.api.mvc.Results.Ok
 import query.applications.{ApplicationsQueryProcessor, ApplicationsView}
 import infra.dto.Tables._
 
-trait BotsQueryProcessorSuccessSpecContext {
+trait ApplicationsQueryProcessorSuccessSpecContext {
   val members = Seq(
     Member("1", "SlackBot", false, true, None),
     Member("2", "front_end", true, false, Some("2")),
@@ -52,7 +52,7 @@ trait BotsQueryProcessorSuccessSpecContext {
 
 class ApplicationsQueryProcessorSuccessSpec
     extends QueryProcessorSpec[ApplicationsQueryProcessor]
-    with BotsQueryProcessorSuccessSpecContext {
+    with ApplicationsQueryProcessorSuccessSpecContext {
 
   val beforeAction = DBIO.seq(BotClientInfo.forceInsertAll(seed))
 
@@ -111,13 +111,13 @@ class ApplicationsQueryProcessorFailSpec
     PatienceConfig(scaled(Span(10000, Millis)), scaled(Span(15, Millis)))
 
   "findAll" when {
-    "succeed" should {
-      "return BotsView" in {
+    "failed" should {
+      "return ApplicationsView" in {
         val result = queryProcessor.findAll
 
         val msg = """
             |DBError
-            |error while BotsQueryProcessorImpl.findAll
+            |error while ApplicationsQueryProcessorImpl.findAll
             |APIError
             |error while converting list api response
             |Attempt to decode value on failed cursor: DownField(members)

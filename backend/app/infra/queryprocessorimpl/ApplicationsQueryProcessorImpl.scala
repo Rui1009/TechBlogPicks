@@ -20,16 +20,20 @@ class ApplicationsQueryProcessorImpl @Inject() (
   override def findAll: Future[Seq[ApplicationsView]] = (for {
     res <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
   } yield for {
-    member <- res.members.filter(m => m.isBot && !m.deleted)
-    botId  <- member.apiAppId.toList
+    member        <- res.members.filter(m => m.isBot && !m.deleted)
+    applicationId <- member.apiAppId.toList
   } yield for {
     clientInfo <-
-      db.run(BotClientInfo.findBy(_.botId).apply(botId).result.headOption)
+      db.run(
+        BotClientInfo.findBy(_.botId).apply(applicationId).result.headOption
+      )
   } yield ApplicationsView(
-    botId,
+    applicationId,
     member.name,
     clientInfo.flatMap(_.clientId),
     clientInfo.flatMap(_.clientSecret)
   )).flatMap(Future.sequence(_))
-    .ifFailedThenToInfraError("error while BotsQueryProcessorImpl.findAll")
+    .ifFailedThenToInfraError(
+      "error while ApplicationsQueryProcessorImpl.findAll"
+    )
 }
