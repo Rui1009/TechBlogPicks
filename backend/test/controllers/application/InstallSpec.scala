@@ -8,20 +8,17 @@ import usecases.{InstallApplicationUseCase, SystemError}
 
 import scala.concurrent.Future
 
-trait BotControllerInstallSpecContent {
+trait ApplicationControllerInstallSpecContent {
   this: ControllerSpec =>
 
   val uc = mock[InstallApplicationUseCase]
 
   override val app =
     builder.overrides(bind[InstallApplicationUseCase].toInstance(uc)).build()
-
-  val failedError =
-    internalServerError + "error in BotController.install\nSystemError\nerror"
 }
 
 class ApplicationControllerInstallSpec
-    extends ControllerSpec with BotControllerInstallSpecContent {
+    extends ControllerSpec with ApplicationControllerInstallSpecContent {
   "install" when {
     "given body which is valid, ".which {
       "results succeed" should {
@@ -56,8 +53,8 @@ class ApplicationControllerInstallSpec
     "given body".which {
       "code is invalid" should {
         "return BadRequest Error" in {
-          forAll(nonEmptyStringGen) { botId =>
-            val path = "/bot?code=" + "&bot_id=" + botId
+          forAll(nonEmptyStringGen) { appId =>
+            val path = "/bot?code=" + "&bot_id=" + appId
             val res  = Request.get(path).unsafeExec
 
             assert(status(res) === BAD_REQUEST)
@@ -65,7 +62,7 @@ class ApplicationControllerInstallSpec
               decodeERes(
                 res
               ).unsafeGet.message === (badRequestError + emptyStringError(
-                "temporaryOauthCode"
+                "WorkSpaceTemporaryOauthCode"
               )).trim
             )
           }
@@ -73,7 +70,7 @@ class ApplicationControllerInstallSpec
         }
       }
 
-      "bot_id is invalid" should {
+      "api_app_id is invalid" should {
         "return BadRequest Error" in {
           forAll(nonEmptyStringGen) { code =>
             val path = "/bot?code=" + code + "&bot_id="
@@ -84,7 +81,7 @@ class ApplicationControllerInstallSpec
               decodeERes(
                 res
               ).unsafeGet.message === (badRequestError + emptyStringError(
-                "BotId"
+                "ApplicationId"
               )).trim
             )
           }
@@ -101,8 +98,8 @@ class ApplicationControllerInstallSpec
             decodeERes(
               res
             ).unsafeGet.message === (badRequestError + emptyStringError(
-              "temporaryOauthCode"
-            ) + emptyStringError("BotId")).trim
+              "WorkSpaceTemporaryOauthCode"
+            ) + emptyStringError("ApplicationId")).trim
           )
         }
       }
