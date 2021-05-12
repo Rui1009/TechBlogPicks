@@ -107,7 +107,7 @@ final case class WorkSpace(
                        case None    => Left(NotExistError("DraftMessage"))
                      }
     updatedChannel = targetBot.postMessage(targetChannel, postMessage)
-  } yield this.copy(channels = channels.filter(channel => channel.id != targetChannel.id) :+ updatedChannel)
+  } yield this.copy(channels = channels.filter(_.id != targetChannel.id) :+ updatedChannel)
 }
 
 object WorkSpace {
