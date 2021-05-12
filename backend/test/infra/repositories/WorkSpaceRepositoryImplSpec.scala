@@ -4,8 +4,12 @@ import domains.application.Application
 import domains.application.Application.ApplicationId
 import domains.bot.Bot
 import domains.bot.Bot.{BotAccessToken, BotId, BotName}
-import domains.channel.Channel
+import domains.channel.{Channel, ChannelMessage}
 import domains.channel.Channel.ChannelId
+import domains.channel.ChannelMessage.{
+  ChannelMessageSenderUserId,
+  ChannelMessageSentAt
+}
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import helpers.traits.RepositorySpec
@@ -127,6 +131,27 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
         "channel" -> Json.fromString("testId")
       )
       Action(Ok(res.noSpaces))
+
+    case ("GET", str: String)
+        if str.matches("https://slack.com/api/conversations.info") =>
+      val res = Json.fromJsonObject(
+        JsonObject(
+          "ok"      -> Json.fromBoolean(true),
+          "channel" -> Json.fromJsonObject(
+            JsonObject(
+              "latest" -> Json.fromJsonObject(
+                JsonObject(
+                  "type" -> Json.fromString("message"),
+                  "user" -> Json.fromString("userId"),
+                  "text" -> Json.fromString("text"),
+                  "ts"   -> Json.fromString("1212.222")
+                )
+              )
+            )
+          )
+        )
+      )
+      Action(Ok(res.noSpaces))
   }
 
   override val app =
@@ -177,8 +202,26 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                 )
               ),
               Seq(
-                Channel(ChannelId("channel1"), Seq()),
-                Channel(ChannelId("channel2"), Seq())
+                Channel(
+                  ChannelId("channel1"),
+                  Seq(
+                    ChannelMessage(
+                      ChannelMessageSentAt("1212.222"),
+                      ChannelMessageSenderUserId("userId"),
+                      "text"
+                    )
+                  )
+                ),
+                Channel(
+                  ChannelId("channel2"),
+                  Seq(
+                    ChannelMessage(
+                      ChannelMessageSentAt("1212.222"),
+                      ChannelMessageSenderUserId("userId"),
+                      "text"
+                    )
+                  )
+                )
               ),
               None
             )
@@ -224,8 +267,26 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                   )
                 ),
                 Seq(
-                  Channel(ChannelId("channel1"), Seq()),
-                  Channel(ChannelId("channel2"), Seq())
+                  Channel(
+                    ChannelId("channel1"),
+                    Seq(
+                      ChannelMessage(
+                        ChannelMessageSentAt("1212.222"),
+                        ChannelMessageSenderUserId("userId"),
+                        "text"
+                      )
+                    )
+                  ),
+                  Channel(
+                    ChannelId("channel2"),
+                    Seq(
+                      ChannelMessage(
+                        ChannelMessageSentAt("1212.222"),
+                        ChannelMessageSenderUserId("userId"),
+                        "text"
+                      )
+                    )
+                  )
                 ),
                 Some(BotAccessToken("mock access token"))
               )
