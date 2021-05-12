@@ -7,12 +7,13 @@ import cats.syntax.option._
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive
 import org.scalacheck.Gen
-import query.bots.BotsView
+import query.applications.ApplicationsView
 import query.posts.PostsView
 
 object view extends ViewGen
 
-trait ViewGen extends PublishPostsViewGen with BotsViewGen with PostsViewGen
+trait ViewGen
+    extends PublishPostsViewGen with ApplicationsViewGen with PostsViewGen
 
 trait PublishPostsViewGen {
   val postViewGen: Gen[Post] = for {
@@ -27,13 +28,13 @@ trait PublishPostsViewGen {
   } yield PublishPostsView(posts, token, channels)
 }
 
-trait BotsViewGen {
-  val botsViewGen: Gen[BotsView] = for {
+trait ApplicationsViewGen {
+  val applicationsViewGen: Gen[ApplicationsView] = for {
     id           <- nonEmptyStringGen
     name         <- nonEmptyStringGen
     clientId     <- Gen.option(nonEmptyStringGen)
     clientSecret <- Gen.option(nonEmptyStringGen)
-  } yield BotsView(id, name, clientId, clientSecret)
+  } yield ApplicationsView(id, name, clientId, clientSecret)
 }
 
 trait PostsViewGen {

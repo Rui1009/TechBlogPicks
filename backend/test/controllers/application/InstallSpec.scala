@@ -1,4 +1,4 @@
-package controllers.bot
+package controllers.application
 
 import helpers.traits.ControllerSpec
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}

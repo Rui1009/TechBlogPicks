@@ -5,7 +5,7 @@ import domains.post.PostRepository
 import infra.dao.slack._
 import infra.queryprocessorimpl._
 import infra.repositoryimpl._
-import query.bots.BotsQueryProcessor
+import query.applications.ApplicationsQueryProcessor
 import query.posts.PostsQueryProcessor
 import query.publishposts.PublishPostsQueryProcessor
 import usecases._
@@ -33,7 +33,8 @@ class Module extends AbstractModule {
     // query processor impl
     bind(classOf[PublishPostsQueryProcessor])
       .to(classOf[PublishPostsQueryProcessorImpl])
-    bind(classOf[BotsQueryProcessor]).to(classOf[BotsQueryProcessorImpl])
+    bind(classOf[ApplicationsQueryProcessor])
+      .to(classOf[ApplicationsQueryProcessorImpl])
     bind(classOf[PostsQueryProcessor]).to(classOf[PostsQueryProcessorImpl])
 
     // dao

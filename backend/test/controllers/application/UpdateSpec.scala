@@ -1,4 +1,4 @@
-package controllers.bot
+package controllers.application
 
 import adapters.controllers.application.UpdateClientInfoBody
 import helpers.traits.ControllerSpec

@@ -1,6 +1,6 @@
-package query.bots
+package query.applications
 
-case class BotsView(
+case class ApplicationsView(
   id: String,
   name: String,
   clientId: Option[String],

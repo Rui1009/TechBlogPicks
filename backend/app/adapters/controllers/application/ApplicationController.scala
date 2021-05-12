@@ -13,7 +13,7 @@ import domains.{DomainError, EmptyStringError}
 import io.circe.generic.auto._
 import play.api.Logger
 import play.api.mvc._
-import query.bots.BotsQueryProcessor
+import query.applications.ApplicationsQueryProcessor
 import usecases.InstallApplicationUseCase.Params
 import usecases.{InstallApplicationUseCase, UpdateApplicationClientInfoUseCase}
 
@@ -23,7 +23,7 @@ import scala.util.{Failure, Success}
 class ApplicationController @Inject() (
   val controllerComponents: ControllerComponents,
   installBotUseCase: InstallApplicationUseCase,
-  botsQueryProcessor: BotsQueryProcessor,
+  applicationsQueryProcessor: ApplicationsQueryProcessor,
   updateApplicationClientInfoUseCase: UpdateApplicationClientInfoUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with FutureSyntax
@@ -64,7 +64,7 @@ class ApplicationController @Inject() (
     }
 
   def index: Action[AnyContent] = Action.async {
-    botsQueryProcessor.findAll
+    applicationsQueryProcessor.findAll
       .ifFailedThenToAdapterError("error in ApplicationController.index")
       .toSuccessGetResponse
       .recoverError

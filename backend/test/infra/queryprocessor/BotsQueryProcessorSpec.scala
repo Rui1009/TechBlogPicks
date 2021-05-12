@@ -11,7 +11,7 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
-import query.bots.{BotsQueryProcessor, BotsView}
+import query.applications.{ApplicationsQueryProcessor, ApplicationsView}
 import infra.dto.Tables._
 
 trait BotsQueryProcessorSuccessSpecContext {
@@ -50,8 +50,8 @@ trait BotsQueryProcessorSuccessSpecContext {
   }
 }
 
-class BotsQueryProcessorSuccessSpec
-    extends QueryProcessorSpec[BotsQueryProcessor]
+class ApplicationsQueryProcessorSuccessSpec
+    extends QueryProcessorSpec[ApplicationsQueryProcessor]
     with BotsQueryProcessorSuccessSpecContext {
 
   val beforeAction = DBIO.seq(BotClientInfo.forceInsertAll(seed))
@@ -70,8 +70,13 @@ class BotsQueryProcessorSuccessSpec
       "return BotsView" in {
         val result   = queryProcessor.findAll.futureValue
         val expected = Seq(
-          BotsView("2", "front_end", Some("clientId"), Some("clientSecret")),
-          BotsView("4", "back_end", None, None)
+          ApplicationsView(
+            "2",
+            "front_end",
+            Some("clientId"),
+            Some("clientSecret")
+          ),
+          ApplicationsView("4", "back_end", None, None)
         )
 
         assert(result.length === expected.length)
@@ -95,8 +100,8 @@ trait BotsQueryProcessorFailSpecContext {
   }
 }
 
-class BotsQueryProcessorFailSpec
-    extends QueryProcessorSpec[BotsQueryProcessor]
+class ApplicationsQueryProcessorFailSpec
+    extends QueryProcessorSpec[ApplicationsQueryProcessor]
     with BotsQueryProcessorFailSpecContext {
 
   override val app: Application =

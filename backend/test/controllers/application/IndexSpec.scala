@@ -1,41 +1,41 @@
-package controllers.bot
+package controllers.application
 
 import helpers.traits.ControllerSpec
 import infra.DBError
 import org.scalacheck.Gen
-import query.bots.{BotsQueryProcessor, BotsView}
+import query.applications.{ApplicationsQueryProcessor, ApplicationsView}
 import play.api.inject._
 import play.api.test.Helpers._
 import io.circe.generic.auto._
 
 import scala.concurrent.Future
 
-trait BotControllerIndexSpecContext { this: ControllerSpec =>
-  val qp = mock[BotsQueryProcessor]
+trait ApplicationControllerIndexSpecContext { this: ControllerSpec =>
+  val qp = mock[ApplicationsQueryProcessor]
 
   val path = "/bots"
 
   override val app =
-    builder.overrides(bind[BotsQueryProcessor].toInstance(qp)).build()
+    builder.overrides(bind[ApplicationsQueryProcessor].toInstance(qp)).build()
 
   val failedError = """
       |InternalServerError
-      |error in BotController.index
+      |error in ApplicationController.index
       |DBError
       |error
       |""".stripMargin.trim
 }
 
 class ApplicationControllerIndexSpec
-    extends ControllerSpec with BotControllerIndexSpecContext {
+    extends ControllerSpec with ApplicationControllerIndexSpecContext {
   "index" when {
     "succeed" should {
-      "invoke BotsQueryProcessor.findAll once & return 200 & valid body" in {
-        forAll(Gen.nonEmptyListOf(botsViewGen)) { views =>
+      "invoke ApplicationsQueryProcessor.findAll once & return 200 & valid body" in {
+        forAll(Gen.nonEmptyListOf(applicationsViewGen)) { views =>
           when(qp.findAll).thenReturn(Future.successful(views))
 
           val res  = Request.get(path).unsafeExec
-          val body = decodeRes[Seq[BotsView]](res)
+          val body = decodeRes[Seq[ApplicationsView]](res)
 
           assert(status(res) === OK)
           assert(body.unsafeGet.data.length === views.length)
