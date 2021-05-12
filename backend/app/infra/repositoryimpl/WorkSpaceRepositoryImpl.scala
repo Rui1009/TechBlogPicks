@@ -7,8 +7,12 @@ import domains.bot.Bot
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import domains.bot.Bot._
-import domains.channel.{Channel, DraftMessage}
 import domains.channel.Channel.ChannelId
+import domains.channel.ChannelMessage.{
+  ChannelMessageSenderUserId,
+  ChannelMessageSentAt
+}
+import domains.channel._
 import eu.timepit.refined.api.Refined
 import infra.dao.slack._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -64,37 +68,33 @@ class WorkSpaceRepositoryImpl @Inject() (
   }
 
   override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = (for {
-    rows       <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
-    responses  <- findBotUser(rows.map(_.botId))
-    channelIds <- findChannelIds(rows)
+    rows      <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
+    responses <- findBotUser(rows.map(_.botId))
+    channels  <- findChannels(rows)
 
-    channels = channelIds.flatMap { case (ids, _) =>
-                 ids.map(i =>
-                   Channel(i, Seq.empty)
-                 ) // Todo: historyもきちんと取得してそれを返す
-               }.distinct
-    bots     = responses.flatMap { res =>
-                 val maybeToken = rows
-                   .find(row => res.apiAppId.contains(row.botId))
-                   .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
+    bots = responses.flatMap { res =>
+             val maybeToken = rows
+               .find(row => res.apiAppId.contains(row.botId))
+               .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
 
-                 val joinedChannelsIds = channelIds // ここがJoinedになる理由がよくわからない
-                   .filter(id => res.apiAppId.contains(id._2))
-                   .flatMap(_._1)
-                 (for {
-                   appId <- res.apiAppId
-                   token <- maybeToken
-                 } yield Bot(
-                   Some(BotId(Refined.unsafeApply(res.id))),
-                   BotName(Refined.unsafeApply(res.name)),
-                   ApplicationId(Refined.unsafeApply(appId)),
-                   token,
-                   joinedChannelsIds,
-                   None
-                 )).toSeq
-               }
+             val joinedChannelsIds =
+               channels.filter(id => res.apiAppId.contains(id._2)).map(_._1.id)
+
+             (for {
+               appId <- res.apiAppId
+               token <- maybeToken
+             } yield Bot(
+               Some(BotId(Refined.unsafeApply(res.id))),
+               BotName(Refined.unsafeApply(res.name)),
+               ApplicationId(Refined.unsafeApply(appId)),
+               token,
+               joinedChannelsIds,
+               None
+             )).toSeq
+           }
   } yield
-    if (rows.isEmpty) None else Some(WorkSpace(id, None, bots, channels, None)))
+    if (rows.isEmpty) None
+    else Some(WorkSpace(id, None, bots, channels.map(_._1).distinct, None)))
     .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
 
   private def findBotUser(botIds: Seq[String]) = usersDao
@@ -105,15 +105,35 @@ class WorkSpaceRepositoryImpl @Inject() (
       )
     )
 
-  private def findChannelIds(rows: Seq[WorkSpacesRow]) = Future.sequence(
-    rows.map(a =>
-      usersDao
-        .conversations(a.token)
-        .map(r =>
-          (r.channels.map(c => ChannelId(Refined.unsafeApply(c.id))), a.botId)
-        )
+  private def findChannels(rows: Seq[WorkSpacesRow]) = Future
+    .sequence(
+      for {
+        row <- rows
+      } yield for {
+        r <- usersDao.conversations(row.token)
+      } yield for {
+        channel <- r.channels
+      } yield for {
+        info <- conversationDao.info(row.token, channel.id)
+      } yield (
+        Channel(
+          ChannelId(Refined.unsafeApply(channel.id)),
+          Seq(
+            ChannelMessage(
+              ChannelMessageSentAt(Refined.unsafeApply(info.ts)),
+              ChannelMessageSenderUserId(
+                Refined.unsafeApply(info.senderUserId)
+              ),
+              info.text
+            )
+          )
+        ),
+        row.botId
+      )
     )
-  )
+    .map(_.flatten)
+    .map(v => Future.sequence(v))
+    .flatten
 
   override def update(
     model: WorkSpace,

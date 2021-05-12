@@ -49,17 +49,28 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
 }
 
 object ConversationDaoImpl {
-  case class InfoResponse(latest: Json) {
-    def isFirst: Boolean = this.latest.isNull
+  case class InfoResponse(senderUserId: String, text: String, ts: String)
+  implicit
+  val conversationDecoder: Decoder[InfoResponse] = Decoder.instance { cursor =>
+    for {
+      senderUserId <- cursor
+                        .downField("channel")
+                        .downField("latest")
+                        .downField("user")
+                        .as[String]
+      text         <- cursor
+                        .downField("channel")
+                        .downField("latest")
+                        .downField("text")
+                        .as[String]
+
+      ts <- cursor
+              .downField("channel")
+              .downField("latest")
+              .downField("ts")
+              .as[String]
+    } yield InfoResponse(senderUserId, text, ts)
   }
-  implicit val conversationDecoder: Decoder[InfoResponse] =
-    Decoder.instance { cursor =>
-      cursor
-        .downField("channel")
-        .downField("latest")
-        .as[Json]
-        .map(v => InfoResponse(v))
-    }
 
   case class JoinResponse(channel: String)
   implicit
