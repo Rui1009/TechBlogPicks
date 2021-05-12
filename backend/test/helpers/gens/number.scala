@@ -13,4 +13,6 @@ trait NumberGen {
 
   val positiveLongGen: Gen[Long] = Gen.posNum[Long]
 
+  val floatRefinedPositiveGen: Gen[Refined[Float, Positive]] =
+    Gen.posNum[Float].map(refineV[Positive].unsafeFrom(_))
 }

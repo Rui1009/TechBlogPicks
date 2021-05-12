@@ -49,7 +49,7 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
 }
 
 object ConversationDaoImpl {
-  case class InfoResponse(senderUserId: String, text: String, ts: String)
+  case class InfoResponse(senderUserId: String, text: String, ts: Float)
   implicit
   val conversationDecoder: Decoder[InfoResponse] = Decoder.instance { cursor =>
     for {
@@ -69,7 +69,7 @@ object ConversationDaoImpl {
               .downField("latest")
               .downField("ts")
               .as[String]
-    } yield InfoResponse(senderUserId, text, ts)
+    } yield InfoResponse(senderUserId, text, ts.toFloat)
   }
 
   case class JoinResponse(channel: String)

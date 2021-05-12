@@ -30,7 +30,7 @@ trait ChannelGen {
   val channelIdGen: Gen[ChannelId] = stringRefinedNonEmptyGen.map(ChannelId(_))
 
   val sentAtGen: Gen[ChannelMessageSentAt] =
-    refinedValidFloatGen.map(ChannelMessageSentAt(_))
+    floatRefinedPositiveGen.map(ChannelMessageSentAt(_))
 
   val senderUserIdGen: Gen[ChannelMessageSenderUserId] =
     stringRefinedNonEmptyGen.map(ChannelMessageSenderUserId(_))

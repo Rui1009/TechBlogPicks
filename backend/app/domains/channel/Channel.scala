@@ -13,6 +13,7 @@ import domains.channel.ChannelMessage.{
   ChannelMessageSentAt
 }
 import domains.channel.DraftMessage.MessageBlock
+import eu.timepit.refined.numeric.Positive
 
 final case class Channel(id: ChannelId, history: Seq[Message]) {
   def isMessageExists: Boolean = this.history.nonEmpty
@@ -40,10 +41,10 @@ final case class ChannelMessage(
 ) extends Message
 
 object ChannelMessage {
-  @newtype case class ChannelMessageSentAt(value: String Refined ValidFloat)
+  @newtype case class ChannelMessageSentAt(value: Float Refined Positive)
   object ChannelMessageSentAt {
-    def create(value: String): Either[RegexError, ChannelMessageSentAt] =
-      refineV[ValidFloat](value) match {
+    def create(value: Float): Either[RegexError, ChannelMessageSentAt] =
+      refineV[Positive](value) match {
         case Right(v) => Right(ChannelMessageSentAt(v))
         case Left(_)  => Left(RegexError("ChannelMessageSentAt"))
       }
