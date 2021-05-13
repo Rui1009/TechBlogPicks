@@ -285,9 +285,8 @@ class ApplicationRepositoryImplSuccessSpec
 
             repository.save(applications, postId).futureValue
             val botsPosts = db.run(BotsPosts.result).futureValue
-            assert(botsPosts.length === applications.length)
 
-            assert(botsPosts.head.botId === applications.last.id.value.value)
+            assert(botsPosts.length === applications.length)
         }
       }
     }
