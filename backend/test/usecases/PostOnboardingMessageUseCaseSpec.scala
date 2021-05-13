@@ -68,7 +68,9 @@ class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
           workSpaceGen,
           applicationIdGen,
           botGen,
-          channelTypedChannelMessageGen
+          channelTypedChannelMessageGen.suchThat(chan =>
+            chan.history.length !== 0
+          )
         ) { (workSpace, appId, bot, channel) =>
           val params            = Params(appId, workSpace.id, channel.id)
           val returnedWorkSpace = workSpace.copy(
