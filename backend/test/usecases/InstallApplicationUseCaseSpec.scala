@@ -39,7 +39,8 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
             workSpaceRepo.find(
               params.temporaryOauthCode,
               application.clientId.get,
-              application.clientSecret.get
+              application.clientSecret.get,
+              application.id
             )
           ).thenReturn(Future.successful(Some(targetWorkSpace)))
           when(
@@ -57,7 +58,8 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
           verify(workSpaceRepo).find(
             params.temporaryOauthCode,
             application.clientId.get,
-            application.clientSecret.get
+            application.clientSecret.get,
+            application.id
           )
           verify(workSpaceRepo).update(
             targetWorkSpace.installApplication(application).unsafeGet,
@@ -171,7 +173,8 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
               workSpaceRepo.find(
                 params.temporaryOauthCode,
                 ApplicationClientId("test"),
-                ApplicationClientSecret("test")
+                ApplicationClientSecret("test"),
+                application.id
               )
             ).thenReturn(Future.successful(None))
 
@@ -208,7 +211,8 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
               workSpaceRepo.find(
                 params.temporaryOauthCode,
                 ApplicationClientId("test"),
-                ApplicationClientSecret("test")
+                ApplicationClientSecret("test"),
+                application.id
               )
             ).thenReturn(Future.successful(Some(targetWorkSpace)))
             when(
