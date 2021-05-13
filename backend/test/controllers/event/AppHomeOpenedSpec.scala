@@ -84,7 +84,7 @@ class AppHomeOpenedSpec extends ControllerSpec {
 
           val msg = """
               |BadRequestError
-              |domains.EmptyStringError: ChannelId is empty string
+              |EmptyStringError: ChannelId is empty string
               |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)
@@ -92,7 +92,7 @@ class AppHomeOpenedSpec extends ControllerSpec {
         }
       }
 
-      "botId is invalid" should {
+      "ApplicationId is invalid" should {
         "return Bad Request Error" in {
           when(uc.exec(*)).thenReturn(Future.unit)
 
@@ -109,7 +109,7 @@ class AppHomeOpenedSpec extends ControllerSpec {
 
           val msg = """
                       |BadRequestError
-                      |domains.EmptyStringError: ApplicationId is empty string
+                      |EmptyStringError: ApplicationId is empty string
                       |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)
@@ -134,7 +134,7 @@ class AppHomeOpenedSpec extends ControllerSpec {
 
           val msg = """
                       |BadRequestError
-                      |domains.EmptyStringError: WorkSpaceId is empty string
+                      |EmptyStringError: WorkSpaceId is empty string
                       |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)
@@ -159,9 +159,9 @@ class AppHomeOpenedSpec extends ControllerSpec {
 
           val msg = """
                       |BadRequestError
-                      |domains.EmptyStringError: ChannelId is empty string
-                      |domains.EmptyStringError: ApplicationId is empty string
-                      |domains.EmptyStringError: WorkSpaceId is empty string
+                      |EmptyStringError: ChannelId is empty string
+                      |EmptyStringError: ApplicationId is empty string
+                      |EmptyStringError: WorkSpaceId is empty string
                       |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)
