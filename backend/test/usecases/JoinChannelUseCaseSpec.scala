@@ -24,7 +24,7 @@ class JoinChannelUseCaseSpec extends UseCaseSpec {
           val params           = Params(channel.id, appId, workspaceId)
           val workSpace        = _workSpace.copy(
             id = workspaceId,
-            bots = _workSpace.bots :+ bot,
+            bots = _workSpace.bots :+ bot.copy(applicationId = appId),
             channels = _workSpace.channels :+ channel
           )
           val updatedWorkSpace = workSpace
@@ -90,7 +90,7 @@ class JoinChannelUseCaseSpec extends UseCaseSpec {
           val params           = Params(channel.id, appId, workspaceId)
           val workSpace        = _workSpace.copy(
             id = workspaceId,
-            bots = _workSpace.bots :+ bot,
+            bots = _workSpace.bots :+ bot.copy(applicationId = appId),
             channels = _workSpace.channels :+ channel
           )
           val updatedWorkSpace = workSpace
