@@ -17,14 +17,15 @@ class PostQueryProcessorSpec extends QueryProcessorSpec[PostsQueryProcessor] {
     )
   )
 
-  val deleteAction = Posts.delete
-
-  before(db.run(beforeAction).futureValue)
-  after(db.run(deleteAction).ready())
+  val deleteAction = BotsPosts.delete >> Posts.delete
 
   "findAll" when {
     "success" should {
       "return PostsView seq" in {
+
+        db.run(deleteAction).futureValue
+        db.run(beforeAction).futureValue
+
         val result   = queryProcessor.findAll.futureValue
         val expected = Seq(
           PostsView(3, "url3", "Maihime", "Mori Ougai", 3, 4),
@@ -34,6 +35,8 @@ class PostQueryProcessorSpec extends QueryProcessorSpec[PostsQueryProcessor] {
         )
 
         assert(result === expected)
+
+        db.run(deleteAction).futureValue
       }
     }
   }
