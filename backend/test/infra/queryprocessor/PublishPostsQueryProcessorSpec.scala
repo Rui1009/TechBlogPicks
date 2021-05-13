@@ -78,12 +78,12 @@ class PublishPostsQueryProcessorSpec
   implicit val conf: PatienceConfig =
     PatienceConfig(scaled(Span(10000, Millis)), scaled(Span(15, Millis)))
 
-  before(db.run(beforeAction).futureValue)
-  after(db.run(deleteAction).ready())
-
   "findAll" when {
     "success" should {
       "return PublishPostsView seq" in {
+
+        db.run(deleteAction).futureValue
+        db.run(beforeAction).futureValue
         val result   = queryProcessor.findAll().futureValue
         val expected = Seq(
           PublishPostsView(
