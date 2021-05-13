@@ -85,8 +85,8 @@ class AppUninstalledSpec extends ControllerSpec with AppUninstalledSpecContext {
 
           val msg = """
                 |BadRequestError
-                |domains.EmptyStringError: WorkSpaceId is empty string
-                |domains.EmptyStringError: ApplicationId is empty string
+                |EmptyStringError: WorkSpaceId is empty string
+                |EmptyStringError: ApplicationId is empty string
                 |""".stripMargin.trim
 
           assert(status(res) === BAD_REQUEST)
