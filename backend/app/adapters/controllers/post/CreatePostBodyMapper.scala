@@ -24,7 +24,7 @@ final case class CreatePostCommand(
   title: PostTitle,
   author: PostAuthor,
   postedAt: PostPostedAt,
-  applicationIds: Seq[ApplicationId]
+  botIds: Seq[ApplicationId] // ここはfileld名をapplicationIdsにしてフロントからの値を修正する
 )
 
 trait PostCreateBodyMapper extends JsonRequestMapper {
