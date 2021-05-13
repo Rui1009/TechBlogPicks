@@ -16,6 +16,7 @@ GET     /bots                  		adapters.controllers.application.ApplicationCon
 POST    /bots/:id                  	adapters.controllers.application.ApplicationController.update(id: String)
 
 POST	/events						adapters.controllers.event.EventController.handleEvent()
+POST   /interactivities             adapters.controllers.interactivity.InteractivityController.handleInteractivity()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
