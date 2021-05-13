@@ -16,7 +16,7 @@ final case class CreatePostBody(
   title: String,
   author: String,
   postedAt: Long,
-  applicationIds: Seq[String]
+  botIds: Seq[String]
 )
 
 final case class CreatePostCommand(
@@ -38,7 +38,7 @@ trait PostCreateBodyMapper extends JsonRequestMapper {
         PostTitle.create(body.title).toValidatedNec,
         PostAuthor.create(body.author).toValidatedNec,
         PostPostedAt.create(body.postedAt).toValidatedNec,
-        body.applicationIds.map(ApplicationId.create(_).toValidatedNec).sequence
+        body.botIds.map(ApplicationId.create(_).toValidatedNec).sequence
       ).mapN(CreatePostCommand.apply)
         .toEither
         .leftMap(errors =>

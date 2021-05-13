@@ -127,7 +127,7 @@ class PostControllerCreateSpec extends ControllerSpec with CreateSpecContext {
       "applicationIds is invalid" should {
         "return BadRequest Error" in {
           forAll(createPostBodyGen) { body =>
-            val req = body.copy(applicationIds = Seq(""))
+            val req = body.copy(botIds = Seq(""))
             val res = Request.post(path).withJsonBody(req).unsafeExec
 
             assert(status(res) === BAD_REQUEST)
