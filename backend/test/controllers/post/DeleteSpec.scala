@@ -45,7 +45,7 @@ class PostControllerDeleteSpec
 
             val msg = """
                 |BadRequestError
-                |domains.NegativeNumberError: PostId is negative number
+                |NegativeNumberError: PostId is negative number
                 |""".stripMargin.trim
 
             assert(status(res) === BAD_REQUEST)
