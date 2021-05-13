@@ -123,23 +123,3 @@ trait BotGen {
     channels     <- Gen.listOf(channelIdGen)
   } yield Bot(botId, botName, appId, accessTokens, channels, None) // todo draft messageのgenをちゃんと作る
 }
-
-//trait MessageGen {
-//  val messageIdGen: Gen[MessageId] = stringRefinedNonEmptyGen.map(MessageId(_))
-//
-//  val messageSentAtGen: Gen[MessageSentAt] =
-//    refinedValidFloatGen.map(MessageSentAt(_))
-//
-//  val messageUserIdGen: Gen[MessageUserId] =
-//    stringRefinedNonEmptyGen.map(MessageUserId(_))
-//
-//  val messageChannelIdGen: Gen[MessageChannelId] =
-//    stringRefinedNonEmptyGen.map(MessageChannelId(_))
-//
-//  val messageGen: Gen[Message] = for {
-//    id        <- messageIdGen
-//    sentAt    <- messageSentAtGen
-//    userId    <- messageUserIdGen
-//    channelId <- messageChannelIdGen
-//  } yield Message(Some(id), Some(sentAt), userId, channelId, Seq())
-//}
