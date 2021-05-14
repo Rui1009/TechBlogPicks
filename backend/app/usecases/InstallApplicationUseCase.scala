@@ -48,10 +48,9 @@ final class InstallApplicationUseCaseImpl @Inject() (
         .find(
           params.temporaryOauthCode,
           targetApplicationClientId,
-          targetApplicationClientSecret,
-          params.applicationId
+          targetApplicationClientSecret
         )
-        .ifNotExistsToUseCaseError(
+        .ifFailThenToUseCaseError(
           "error while workSpaceRepository.find in install application use case"
         )
 

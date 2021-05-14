@@ -13,9 +13,8 @@ trait WorkSpaceRepository {
   def find(
     code: WorkSpaceTemporaryOauthCode,
     clientId: ApplicationClientId,
-    clientSecret: ApplicationClientSecret,
-    applicationId: ApplicationId
-  ): Future[Option[WorkSpace]]
+    clientSecret: ApplicationClientSecret
+  ): Future[WorkSpace]
 
   def update(
     model: WorkSpace,

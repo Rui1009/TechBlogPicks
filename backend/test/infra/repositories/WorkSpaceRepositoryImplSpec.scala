@@ -237,22 +237,15 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
         forAll(
           temporaryOauthCodeGen,
           applicationClientIdGen,
-          applicationClientSecretGen,
-          applicationIdGen
-        ) { (code, clientId, clientSecret, appId) =>
+          applicationClientSecretGen
+        ) { (code, clientId, clientSecret) =>
           db.run(WorkSpaces.delete).futureValue
           db.run(insertAction).futureValue
 
-          val result =
-            repository.find(code, clientId, clientSecret, appId).futureValue
+          val result = repository.find(code, clientId, clientSecret).futureValue
 
-          val targetWorkSpacesRow = db
-            .run(WorkSpaces.filter(_.botId === appId.value.value).result)
-            .futureValue
-
-          assert(targetWorkSpacesRow.length === 1)
           assert(
-            result === Some(
+            result ===
               WorkSpace(
                 WorkSpaceId("workSpace1"),
                 None,
@@ -298,7 +291,6 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                 ),
                 Some(BotAccessToken("mock access token"))
               )
-            )
           )
         }
       }
@@ -492,10 +484,9 @@ class WorkSpaceRepositoryImplFailSpec extends WorkSpaceRepositoryImplSpec {
         forAll(
           temporaryOauthCodeGen,
           applicationClientIdGen,
-          applicationClientSecretGen,
-          applicationIdGen
-        ) { (code, clientId, clientSecret, appId) =>
-          val result = repository.find(code, clientId, clientSecret, appId)
+          applicationClientSecretGen
+        ) { (code, clientId, clientSecret) =>
+          val result = repository.find(code, clientId, clientSecret)
 
           val msg = """
               |APIError

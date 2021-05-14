@@ -41,9 +41,8 @@ class WorkSpaceRepositoryImpl @Inject() (
   override def find(
     code: WorkSpaceTemporaryOauthCode,
     clientId: ApplicationClientId,
-    clientSecret: ApplicationClientSecret,
-    applicationId: ApplicationId
-  ): Future[Option[WorkSpace]] = {
+    clientSecret: ApplicationClientSecret
+  ): Future[WorkSpace] = {
     val oauthURL = "https://slack.com/api/oauth.v2.access"
 
     for {
@@ -60,21 +59,21 @@ class WorkSpaceRepositoryImpl @Inject() (
           "error while bot access token decode in workSpaceRepository.find"
         )
       info        <- teamDao.info(accessToken.value.value)
-      _           <- db.run(
-                       WorkSpaces += WorkSpacesRow(
-                         accessToken.value.value,
-                         applicationId.value.value,
-                         info.team.id
-                       )
-                     ).ifFailedThenToInfraError(
-                       "error while workSpaceRepository.find(code, clientId, clientSecret, applicationId)"
-                     )
       workSpace   <-
         find(WorkSpaceId(Refined.unsafeApply(info.team.id)))
           .ifFailedThenToInfraError(
             "error while workSpaceRepository.find in workSpaceRepository.find"
           )
-    } yield workSpace.map(_.copy(unallocatedToken = Some(accessToken)))
+    } yield workSpace match {
+      case Some(v) => v.copy(unallocatedToken = Some(accessToken))
+      case None    => WorkSpace(
+          WorkSpaceId(Refined.unsafeApply(info.team.id)),
+          Some(code),
+          Seq(),
+          Seq(),
+          Some(accessToken)
+        )
+    }
   }
 
   override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = (for {

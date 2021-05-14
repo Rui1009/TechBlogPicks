@@ -39,10 +39,9 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
             workSpaceRepo.find(
               params.temporaryOauthCode,
               application.clientId.get,
-              application.clientSecret.get,
-              application.id
+              application.clientSecret.get
             )
-          ).thenReturn(Future.successful(Some(targetWorkSpace)))
+          ).thenReturn(Future.successful(targetWorkSpace))
           when(
             workSpaceRepo.update(
               targetWorkSpace.installApplication(application).unsafeGet,
@@ -58,8 +57,7 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
           verify(workSpaceRepo).find(
             params.temporaryOauthCode,
             application.clientId.get,
-            application.clientSecret.get,
-            application.id
+            application.clientSecret.get
           )
           verify(workSpaceRepo).update(
             targetWorkSpace.installApplication(application).unsafeGet,
@@ -173,10 +171,9 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
               workSpaceRepo.find(
                 params.temporaryOauthCode,
                 ApplicationClientId("test"),
-                ApplicationClientSecret("test"),
-                application.id
+                ApplicationClientSecret("test")
               )
-            ).thenReturn(Future.successful(None))
+            ).thenReturn(Future.failed(DBError("error")))
 
             val result =
               new InstallApplicationUseCaseImpl(workSpaceRepo, applicationRepo)
@@ -184,8 +181,9 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
 
             whenReady(result.failed) { e =>
               assert(
-                e === NotFoundError(
+                e === SystemError(
                   "error while workSpaceRepository.find in install application use case"
+                    + "\n" + DBError("error").getMessage
                 )
               )
             }
@@ -211,10 +209,9 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
               workSpaceRepo.find(
                 params.temporaryOauthCode,
                 ApplicationClientId("test"),
-                ApplicationClientSecret("test"),
-                application.id
+                ApplicationClientSecret("test")
               )
-            ).thenReturn(Future.successful(Some(targetWorkSpace)))
+            ).thenReturn(Future.successful(targetWorkSpace))
             when(
               workSpaceRepo.update(
                 targetWorkSpace.installApplication(application).unsafeGet,
