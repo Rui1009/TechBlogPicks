@@ -52,7 +52,9 @@ class EventController @Inject() (
       .toSuccessPostResponse
       .recoverError
 
-  private def appHomeOpened(command: AppHomeOpenedEventCommand) =
+  private def appHomeOpened(command: AppHomeOpenedEventCommand) = {
+    logger.warn("app home private method")
+    logger.warn(command.toString)
     postOnboardingMessageUseCase
       .exec(
         PostOnboardingMessageUseCase
@@ -61,4 +63,5 @@ class EventController @Inject() (
       .ifFailedThenToAdapterError("error in EventController.appHomeOpened")
       .toSuccessPostResponse
       .recoverError
+  }
 }

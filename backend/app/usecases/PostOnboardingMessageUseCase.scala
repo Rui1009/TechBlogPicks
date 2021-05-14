@@ -34,6 +34,7 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
           "error while workSpaceRepository.find in post onboarding message use case"
         )
 
+    _              = println("use case exec")
     targetChannel <-
       targetWorkSpace
         .findChannel(params.channelId)
