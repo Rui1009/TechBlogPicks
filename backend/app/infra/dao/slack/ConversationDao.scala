@@ -56,7 +56,9 @@ object ConversationDaoImpl {
   implicit val conversationDecoder: Decoder[Option[InfoResponse]] =
     Decoder.instance { cursor =>
       cursor.downField("channel").downField("latest").focus match {
-        case Some(_) => for {
+        case Some(_) =>
+          println("some first in")
+          for {
             senderUserId <- cursor
                               .downField("channel")
                               .downField("latest")
