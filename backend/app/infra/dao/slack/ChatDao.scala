@@ -115,7 +115,7 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
         .map(_.asJson)
         .toString
         .patch(0, "[", 5)
-        .patch(blocks.blocks.map(_.asJson).toString.length - 1, "]", 1)
+        .patch(blocks.blocks.map(_.asJson).toString.length - 2, "]", 2)
     )
     (for {
       res <-
@@ -127,7 +127,7 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
               .map(_.asJson)
               .toString
               .patch(0, "[", 5)
-              .patch(blocks.blocks.map(_.asJson).toString.length - 1, "]", 1)
+              .patch(blocks.blocks.map(_.asJson).toString.length - 2, "]", 2)
           )
           .post(Json.Null.noSpaces)
           .ifFailedThenToInfraError(s"error while posting $url")
