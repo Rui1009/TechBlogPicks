@@ -17,22 +17,17 @@ class EventController @Inject() (
   postOnboardingMessageUseCase: PostOnboardingMessageUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
-  private lazy val logger = Logger(this.getClass)
-  def handleEvent         = Action { implicit request =>
-    logger.warn(request.body.toString)
-    Ok("OK")
-  }
-//  def handleEvent: Action[Either[AdapterError, EventCommand]] =
-//    Action.async(mapToEventCommand) { implicit request =>
-//      request.body.fold(
-//        e => Future.successful(responseError(e)),
-//        {
-//          case command: AppUninstalledEventCommand  => appUninstalled(command)
-//          case command: UrlVerificationEventCommand => urlVerification(command)
-//          case command: AppHomeOpenedEventCommand   => appHomeOpened(command)
-//        }
-//      )
-//    }
+  def handleEvent: Action[Either[AdapterError, EventCommand]] =
+    Action.async(mapToEventCommand) { implicit request =>
+      request.body.fold(
+        e => Future.successful(responseError(e)),
+        {
+          case command: AppUninstalledEventCommand  => appUninstalled(command)
+          case command: UrlVerificationEventCommand => urlVerification(command)
+          case command: AppHomeOpenedEventCommand   => appHomeOpened(command)
+        }
+      )
+    }
 
   private def urlVerification(command: UrlVerificationEventCommand) = Future
     .successful(

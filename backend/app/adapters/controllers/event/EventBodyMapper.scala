@@ -14,6 +14,7 @@ import adapters.controllers.event.AppHomeOpenedEventBody._
 import adapters.controllers.event.EventBody._
 import domains.application.Application.ApplicationId
 import domains.channel.Channel.ChannelId
+import play.api.Logger
 
 import scala.concurrent.ExecutionContext
 
@@ -92,19 +93,23 @@ final case class AppHomeOpenedEventCommand(
   workSpaceId: WorkSpaceId
 ) extends EventCommand
 object AppHomeOpenedEventCommand {
+  private lazy val logger                  = Logger(this.getClass)
   def validate(
     body: AppHomeOpenedEventBody
   ): Either[BadRequestError, EventCommand] = (
     ChannelId.create(body.channel).toValidatedNec,
     ApplicationId.create(body.appId).toValidatedNec,
     WorkSpaceId.create(body.teamId).toValidatedNec
-  ).mapN(AppHomeOpenedEventCommand.apply)
-    .toEither
-    .leftMap(errors =>
+  ).mapN(AppHomeOpenedEventCommand.apply).toEither.leftMap { errors =>
+    logger.warn(
       BadRequestError(
         errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-      )
+      ).getMessage
     )
+    BadRequestError(
+      errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
+    )
+  }
 }
 
 final case class UrlVerificationEventBody(challenge: String) extends EventBody
