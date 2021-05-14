@@ -55,6 +55,7 @@ object ConversationDaoImpl {
   case class InfoResponse(senderUserId: String, text: String, ts: Float)
   implicit val conversationDecoder: Decoder[Option[InfoResponse]] =
     Decoder.instance { cursor =>
+      println("decode first in")
       cursor.downField("channel").downField("latest").focus match {
         case Some(_) =>
           println("some first in")
@@ -78,7 +79,9 @@ object ConversationDaoImpl {
                     .as[String]
           } yield Some(InfoResponse(senderUserId, text, ts.toFloat))
 
-        case None => for {
+        case None =>
+          println("none first in")
+          for {
             _ <- cursor.downField("channel").downField("id").as[String]
             _  = println("decode none")
           } yield None
