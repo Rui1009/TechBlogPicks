@@ -59,6 +59,7 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
   ): Future[PostMessageResponse] = {
     val url                                                = "https://slack.com/api/chat.postMessage"
     println("post message in!")
+    println(blocks)
     implicit val encodeSectionBlock: Encoder[MessageBlock] = Encoder.instance {
       case section: SectionBlock =>
         val commonJson = JsonObject.empty
@@ -109,6 +110,7 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
         )
     }
 
+    println(blocks.blocks.map(_.asJson).toString)
     (for {
       res <- ws.url(url)
                .withHttpHeaders("Authorization" -> s"Bearer $token")
