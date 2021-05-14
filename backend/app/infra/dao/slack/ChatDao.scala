@@ -58,6 +58,7 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     blocks: DraftMessage
   ): Future[PostMessageResponse] = {
     val url                                                = "https://slack.com/api/chat.postMessage"
+    println("post message in!")
     implicit val encodeSectionBlock: Encoder[MessageBlock] = Encoder.instance {
       case section: SectionBlock =>
         val commonJson = JsonObject.empty
@@ -117,6 +118,7 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
                )
                .post(Json.Null.noSpaces)
                .ifFailedThenToInfraError(s"error while posting $url")
+      _    = println(res.json.toString)
     } yield decode[PostMessageResponse](res.json.toString))
       .ifLeftThenToInfraError("error while converting list api response")
   }
