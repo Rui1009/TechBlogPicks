@@ -136,7 +136,9 @@ class WorkSpaceRepositoryImpl @Inject() (
                   "error while conversationDao.info in findChannels"
                 )
                 .transformWith {
-                  case Success(Some(v)) => Future.successful(
+                  case Success(Some(v)) =>
+                    println("transform success some")
+                    Future.successful(
                       (
                         Channel(
                           ChannelId(Refined.unsafeApply(channel.id)),
@@ -153,7 +155,9 @@ class WorkSpaceRepositoryImpl @Inject() (
                         row.botId
                       )
                     )
-                  case Success(None)    => Future.successful(
+                  case Success(None)    =>
+                    println("transform success none")
+                    Future.successful(
                       (
                         Channel(
                           ChannelId(Refined.unsafeApply(channel.id)),

@@ -62,6 +62,7 @@ object ConversationDaoImpl {
                               .downField("latest")
                               .downField("user")
                               .as[String]
+            _             = println("decode some")
             text         <- cursor
                               .downField("channel")
                               .downField("latest")
@@ -77,6 +78,7 @@ object ConversationDaoImpl {
 
         case None => for {
             _ <- cursor.downField("channel").downField("id").as[String]
+            _  = println("decode none")
           } yield None
       }
     }
