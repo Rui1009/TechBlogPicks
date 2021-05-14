@@ -24,7 +24,7 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     (for {
       res <- ws.url(url)
                .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
-               .withQueryStringParameters("types" -> "public_channel")
+               .withQueryStringParameters("types" -> "public_channel%2Cim")
                .get()
                .ifFailedThenToInfraError(s"error while getting $url")
                .map(_.json.toString)
