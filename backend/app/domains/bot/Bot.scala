@@ -43,7 +43,7 @@ final case class Bot(
         ActionBlock(
           Seq(
             ActionSelect(
-              "Select a channel",
+              "channels_select",
               SelectPlaceHolder("Select a channel", false),
               "actionId-0"
             )
