@@ -21,6 +21,7 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
 ) extends ApiDao(ws) with ConversationDao {
   def info(token: String, channelId: String): Future[InfoResponse] = {
     val url = "https://slack.com/api/conversations.info"
+    println(channelId)
     (for {
       resp <- ws.url(url)
                 .withHttpHeaders("Authorization" -> s"Bearer $token")
@@ -28,6 +29,7 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
                 .get()
                 .ifFailedThenToInfraError(s"error while getting $url")
                 .map(res => res.json.toString)
+      _     = println(resp)
     } yield decode[InfoResponse](resp)).ifLeftThenToInfraError(
       "error while converting conversation info api response"
     )
