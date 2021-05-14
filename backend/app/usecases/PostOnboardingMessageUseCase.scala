@@ -56,6 +56,7 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
           .ifLeftThenToUseCaseError(
             "error while WorkSpace.botPostMessage in post onboarding message use case"
           )
+      _                             = println("before send message")
       _                            <- workSpaceRepository
                                         .sendMessage(
                                           workSpaceWithUpdatedChannels,
@@ -65,5 +66,6 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
                                         .ifNotExistsToUseCaseError(
                                           "error while workSpaceRepository.sendMessage in post onboarding message use case"
                                         )
+      _                             = println("after send message")
     } yield ()).flatten
 }
