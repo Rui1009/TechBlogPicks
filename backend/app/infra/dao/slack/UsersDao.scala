@@ -29,11 +29,13 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
                .ifFailedThenToInfraError(s"error while getting $url")
                .map(_.json.toString)
       _    = println(res)
-    } yield decode[ConversationResponse](res).left.map(e =>
+    } yield decode[ConversationResponse](res).left.map { e =>
+      println("left")
+      println(e.getMessage)
       APIError(
         s"error while converting conversations api response -> token: $accessToken" + "\n" + e.getMessage + "\n" + res
       )
-    )).anywaySuccess(ConversationResponse.empty)
+    }).anywaySuccess(ConversationResponse.empty)
   }
 
   def list(accessToken: String): Future[ListResponse] = {
