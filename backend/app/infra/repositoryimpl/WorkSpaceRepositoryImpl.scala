@@ -118,12 +118,24 @@ class WorkSpaceRepositoryImpl @Inject() (
     .sequence(
       for {
         row <- rows
+        _    = println("rows")
       } yield for {
-        r <- usersDao.conversations(row.token)
+        r <- usersDao
+               .conversations(row.token)
+               .ifFailedThenToInfraError(
+                 "error while usersDao.conversations in findChannels"
+               )
+        _  = println("userDao")
       } yield for {
         channel <- r.channels
+        _        = println("channel")
       } yield for {
-        info <- conversationDao.info(row.token, channel.id)
+        info <- conversationDao
+                  .info(row.token, channel.id)
+                  .ifFailedThenToInfraError(
+                    "error while conversationDao.info in findChannels"
+                  )
+        _     = println("conversationDao")
       } yield (
         Channel(
           ChannelId(Refined.unsafeApply(channel.id)),
