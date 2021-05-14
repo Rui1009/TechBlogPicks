@@ -107,19 +107,19 @@ object AppHomeOpenedEventCommand {
       ChannelId.create(body.channel).toValidatedNec,
       ApplicationId.create(body.appId).toValidatedNec,
       WorkSpaceId.create(body.teamId).toValidatedNec
-    ).mapN(AppHomeOpenedEventCommand.apply).toEither.leftMap { errors =>
-      logger.warn(
-        BadRequestError(
-          errors.foldLeft("")((acc, curr: DomainError) =>
-            acc + curr.errorMessage
+    ).mapN(AppHomeOpenedEventCommand.apply).toEither match {
+      case Right(v) =>
+        logger.warn(v.toString)
+        logger.warn("right")
+        Right(v)
+      case Left(e)  =>
+        logger.warn("left")
+        logger.warn(e.toString)
+        Left(
+          BadRequestError(
+            e.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
           )
-        ).getMessage
-      )
-      logger.warn("bad req error")
-      logger.warn(errors.toString)
-      BadRequestError(
-        errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-      )
+        )
     }
   }
 }
