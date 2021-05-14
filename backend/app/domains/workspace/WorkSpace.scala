@@ -74,8 +74,15 @@ final case class WorkSpace(
     println("find channel")
 
     this.channels.find(_.id == channelId) match {
-      case Some(v) => Right(v)
-      case None    => Left(NotExistError("ChannelId"))
+      case Some(v) =>
+        println(v)
+        println("some match")
+        Right(v)
+      case None    =>
+        println("none match")
+        println(channelId)
+        println(this.channels)
+        Left(NotExistError("ChannelId"))
     }
   }
 
