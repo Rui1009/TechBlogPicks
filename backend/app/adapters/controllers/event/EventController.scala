@@ -17,6 +17,7 @@ class EventController @Inject() (
   postOnboardingMessageUseCase: PostOnboardingMessageUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
+  private lazy val logger                                     = Logger(this.getClass)
   def handleEvent: Action[Either[AdapterError, EventCommand]] =
     Action.async(mapToEventCommand) { implicit request =>
       request.body.fold(

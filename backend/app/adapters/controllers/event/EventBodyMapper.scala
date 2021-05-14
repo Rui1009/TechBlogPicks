@@ -52,18 +52,23 @@ final case class AppUninstalledEventCommand(
   applicationId: ApplicationId
 ) extends EventCommand
 object AppUninstalledEventCommand {
+  private lazy val logger = Logger(this.getClass)
   def validate(
     body: AppUninstalledEventBody
-  ): Either[BadRequestError, EventCommand] = (
-    WorkSpaceId.create(body.teamId).toValidatedNec,
-    ApplicationId.create(body.apiAppId).toValidatedNec
-  ).mapN(AppUninstalledEventCommand.apply)
-    .toEither
-    .leftMap(errors =>
-      BadRequestError(
-        errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
+  ): Either[BadRequestError, EventCommand] = {
+    logger.warn("app uninstalled!!")
+    (
+      WorkSpaceId.create(body.teamId).toValidatedNec,
+      ApplicationId.create(body.apiAppId).toValidatedNec
+    ).mapN(AppUninstalledEventCommand.apply)
+      .toEither
+      .leftMap(errors =>
+        BadRequestError(
+          errors
+            .foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
+        )
       )
-    )
+  }
 }
 
 final case class AppHomeOpenedEventBody(
@@ -93,22 +98,27 @@ final case class AppHomeOpenedEventCommand(
   workSpaceId: WorkSpaceId
 ) extends EventCommand
 object AppHomeOpenedEventCommand {
-  private lazy val logger                  = Logger(this.getClass)
+  private lazy val logger = Logger(this.getClass)
   def validate(
     body: AppHomeOpenedEventBody
-  ): Either[BadRequestError, EventCommand] = (
-    ChannelId.create(body.channel).toValidatedNec,
-    ApplicationId.create(body.appId).toValidatedNec,
-    WorkSpaceId.create(body.teamId).toValidatedNec
-  ).mapN(AppHomeOpenedEventCommand.apply).toEither.leftMap { errors =>
-    logger.warn(
+  ): Either[BadRequestError, EventCommand] = {
+    logger.warn("app home opened")
+    (
+      ChannelId.create(body.channel).toValidatedNec,
+      ApplicationId.create(body.appId).toValidatedNec,
+      WorkSpaceId.create(body.teamId).toValidatedNec
+    ).mapN(AppHomeOpenedEventCommand.apply).toEither.leftMap { errors =>
+      logger.warn(
+        BadRequestError(
+          errors.foldLeft("")((acc, curr: DomainError) =>
+            acc + curr.errorMessage
+          )
+        ).getMessage
+      )
       BadRequestError(
         errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-      ).getMessage
-    )
-    BadRequestError(
-      errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-    )
+      )
+    }
   }
 }
 
