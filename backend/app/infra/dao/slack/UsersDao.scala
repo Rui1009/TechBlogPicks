@@ -23,6 +23,7 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     val url = "https://slack.com/api/users.conversations"
     (for {
       res <- ws.url(url)
+               .withQueryStringParameters("types" -> "public_channel,im")
                .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
                .get()
                .ifFailedThenToInfraError(s"error while getting $url")
