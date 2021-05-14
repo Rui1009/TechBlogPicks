@@ -115,6 +115,8 @@ object AppHomeOpenedEventCommand {
           )
         ).getMessage
       )
+      logger.warn("bad req error")
+      logger.warn(errors.toString)
       BadRequestError(
         errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
       )
