@@ -8,6 +8,7 @@ import io.circe.Decoder.Result
 import play.api.libs.ws.WSClient
 import infra.syntax.all._
 import io.circe.parser._
+import io.circe.Decoder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -54,28 +55,30 @@ object ConversationDaoImpl {
   case class InfoResponse(senderUserId: String, text: String, ts: Float)
   implicit val conversationDecoder: Decoder[Option[InfoResponse]] =
     Decoder.instance { cursor =>
-      val latest: Option[Json] =
-        cursor.downField("channel").downField("latest").focus
-      for {
-        senderUserId <- cursor
-                          .downField("channel")
-                          .downField("latest")
-                          .downField("user")
-                          .as[String]
-        text         <- cursor
-                          .downField("channel")
-                          .downField("latest")
-                          .downField("text")
-                          .as[String]
+      cursor.downField("channel").downField("latest").focus match {
+        case Some(_) => for {
+            senderUserId <- cursor
+                              .downField("channel")
+                              .downField("latest")
+                              .downField("user")
+                              .as[String]
+            text         <- cursor
+                              .downField("channel")
+                              .downField("latest")
+                              .downField("text")
+                              .as[String]
 
-        ts <- cursor
-                .downField("channel")
-                .downField("latest")
-                .downField("ts")
-                .as[String]
-      } yield
-        if (latest.isDefined) Some(InfoResponse(senderUserId, text, ts.toFloat))
-        else None
+            ts <- cursor
+                    .downField("channel")
+                    .downField("latest")
+                    .downField("ts")
+                    .as[String]
+          } yield Some(InfoResponse(senderUserId, text, ts.toFloat))
+
+        case None => for {
+            _ <- cursor.downField("channel").downField("id").as[String]
+          } yield None
+      }
     }
 
   case class JoinResponse(channel: String)
