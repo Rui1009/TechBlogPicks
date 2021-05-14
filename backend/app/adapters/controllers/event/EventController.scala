@@ -21,7 +21,11 @@ class EventController @Inject() (
   def handleEvent: Action[Either[AdapterError, EventCommand]] =
     Action.async(mapToEventCommand) { implicit request =>
       request.body.fold(
-        e => Future.successful(responseError(e)),
+        e => {
+          logger.warn("request body fold")
+          logger.warn(e.getMessage)
+          Future.successful(responseError(e))
+        },
         {
           case command: AppUninstalledEventCommand  => appUninstalled(command)
           case command: UrlVerificationEventCommand => urlVerification(command)
