@@ -41,9 +41,12 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
         .ifLeftThenToUseCaseError(
           "error while WorkSpace.findChannel in post onboarding message use case"
         )
+    _              = println(targetChannel)
   } yield
-    if (targetChannel.isMessageExists) Future.unit
-    else for {
+    if (targetChannel.isMessageExists) {
+      println("targetChannel message exists")
+      Future.unit
+    } else for {
       workSpaceWithUpdatedBots     <-
         targetWorkSpace
           .botCreateOnboardingMessage(params.applicationId)
