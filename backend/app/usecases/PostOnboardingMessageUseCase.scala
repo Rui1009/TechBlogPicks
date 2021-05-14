@@ -42,6 +42,7 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
           "error while WorkSpace.findChannel in post onboarding message use case"
         )
     _              = println(targetChannel)
+    _              = println("after findchannel")
   } yield
     if (targetChannel.isMessageExists) {
       println("targetChannel message exists")

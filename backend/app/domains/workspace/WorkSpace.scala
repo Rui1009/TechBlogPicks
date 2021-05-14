@@ -70,11 +70,14 @@ final case class WorkSpace(
     case None    => Left(NotExistError("ApplicationId"))
   }
 
-  def findChannel(channelId: ChannelId): Either[DomainError, Channel] =
+  def findChannel(channelId: ChannelId): Either[DomainError, Channel] = {
+    println("find channel")
+
     this.channels.find(_.id == channelId) match {
       case Some(v) => Right(v)
       case None    => Left(NotExistError("ChannelId"))
     }
+  }
 
   def botCreateOnboardingMessage(
     applicationId: ApplicationId
