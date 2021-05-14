@@ -110,16 +110,27 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
         )
     }
 
-    println(blocks.blocks.map(_.asJson).toString)
+    println(
+      blocks.blocks
+        .map(_.asJson)
+        .toString
+        .patch(0, "[", 5)
+        .patch(blocks.blocks.map(_.asJson).toString.length - 1, "]", 1)
+    )
     (for {
-      res <- ws.url(url)
-               .withHttpHeaders("Authorization" -> s"Bearer $token")
-               .withQueryStringParameters(
-                 "channel" -> channel,
-                 "blocks"  -> blocks.blocks.map(_.asJson).toString
-               )
-               .post(Json.Null.noSpaces)
-               .ifFailedThenToInfraError(s"error while posting $url")
+      res <-
+        ws.url(url)
+          .withHttpHeaders("Authorization" -> s"Bearer $token")
+          .withQueryStringParameters(
+            "channel" -> channel,
+            "blocks"  -> blocks.blocks
+              .map(_.asJson)
+              .toString
+              .patch(0, "[", 5)
+              .patch(blocks.blocks.map(_.asJson).toString.length - 1, "]", 1)
+          )
+          .post(Json.Null.noSpaces)
+          .ifFailedThenToInfraError(s"error while posting $url")
       _    = println(res.json.toString)
     } yield decode[PostMessageResponse](res.json.toString))
       .ifLeftThenToInfraError("error while converting list api response")
