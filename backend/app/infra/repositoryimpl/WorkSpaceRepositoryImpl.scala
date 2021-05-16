@@ -224,20 +224,14 @@ class WorkSpaceRepositoryImpl @Inject() (
   ): Future[Option[Unit]] =
     workSpace.bots.find(bot => bot.applicationId == applicationId) match {
       case Some(v) => v.draftMessage match {
-          case Some(d) =>
-            println("some some")
-            chatDao
+          case Some(d) => chatDao
               .postMessage(v.accessToken.value.value, channelId.value.value, d)
               .map(_ => Some())
               .ifFailedThenToInfraError(
                 "error while WorkSpaceRepository.sendMessage"
               )
-          case None    =>
-            println("some none")
-            Future.successful(None)
+          case None    => Future.successful(None)
         }
-      case None    =>
-        println("none")
-        Future.successful(None)
+      case None    => Future.successful(None)
     }
 }

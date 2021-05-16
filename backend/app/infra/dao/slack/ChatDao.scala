@@ -58,8 +58,6 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     blocks: DraftMessage
   ): Future[PostMessageResponse] = {
     val url                                                = "https://slack.com/api/chat.postMessage"
-    println("post message in!")
-    println(blocks)
     implicit val encodeSectionBlock: Encoder[MessageBlock] = Encoder.instance {
       case section: SectionBlock =>
         val commonJson = JsonObject.empty
@@ -110,13 +108,14 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
         )
     }
 
-    println(
-      blocks.blocks
-        .map(_.asJson)
-        .toString
-        .patch(0, "[", 5)
-        .patch(blocks.blocks.map(_.asJson).toString.length - 2, "]", 2)
-    )
+//    println(
+//      blocks.blocks
+//        .map(_.asJson)
+//        .toString
+//        .patch(blocks.blocks.map(_.asJson).toString.length - 1, "]", 1)
+//        .patch(0, "[", 5)
+//    )
+
     (for {
       res <-
         ws.url(url)
@@ -126,8 +125,8 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
             "blocks"  -> blocks.blocks
               .map(_.asJson)
               .toString
+              .patch(blocks.blocks.map(_.asJson).toString.length - 1, "]", 1)
               .patch(0, "[", 5)
-              .patch(blocks.blocks.map(_.asJson).toString.length - 2, "]", 2)
           )
           .post(Json.Null.noSpaces)
           .ifFailedThenToInfraError(s"error while posting $url")

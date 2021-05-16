@@ -139,6 +139,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
           "ok"      -> Json.fromBoolean(true),
           "channel" -> Json.fromJsonObject(
             JsonObject(
+              "id"     -> Json.fromString("channel"),
               "latest" -> Json.fromJsonObject(
                 JsonObject(
                   "type" -> Json.fromString("message"),
