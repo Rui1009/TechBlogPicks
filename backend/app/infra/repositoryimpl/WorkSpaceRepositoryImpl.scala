@@ -167,7 +167,6 @@ class WorkSpaceRepositoryImpl @Inject() (
                       )
                     )
                 }
-      _     = println("conversationDao")
     } yield info)
     .map(_.flatten)
     .map(v => Future.sequence(v))

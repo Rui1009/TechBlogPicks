@@ -55,19 +55,13 @@ object ConversationDaoImpl {
   case class InfoResponse(senderUserId: String, text: String, ts: Float)
   implicit val conversationDecoder: Decoder[Option[InfoResponse]] =
     Decoder.instance { cursor =>
-      println("decode first in")
       cursor.downField("channel").downField("latest").values match {
-        case Some(_) =>
-          println(cursor.downField("channel").downField("latest").focus)
-          println("some first in")
-          println(cursor.downField("channel").downField("latest").values)
-          for {
+        case Some(_) => for {
             senderUserId <- cursor
                               .downField("channel")
                               .downField("latest")
                               .downField("user")
                               .as[String]
-            _             = println("decode some")
             text         <- cursor
                               .downField("channel")
                               .downField("latest")
@@ -81,11 +75,12 @@ object ConversationDaoImpl {
                     .as[String]
           } yield Some(InfoResponse(senderUserId, text, ts.toFloat))
 
-        case None =>
-          println("none first in")
-          for {
-            _ <- cursor.downField("channel").downField("id").as[String]
-            _  = println("decode none")
+        case None => for {
+            _ <-
+              cursor
+                .downField("channel")
+                .downField("id")
+                .as[String] // もっとスマートな方法はないか
           } yield None
       }
     }

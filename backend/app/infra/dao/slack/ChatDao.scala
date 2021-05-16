@@ -108,14 +108,6 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
         )
     }
 
-//    println(
-//      blocks.blocks
-//        .map(_.asJson)
-//        .toString
-//        .patch(blocks.blocks.map(_.asJson).toString.length - 1, "]", 1)
-//        .patch(0, "[", 5)
-//    )
-
     (for {
       res <-
         ws.url(url)
@@ -130,7 +122,6 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
           )
           .post(Json.Null.noSpaces)
           .ifFailedThenToInfraError(s"error while posting $url")
-      _    = println(res.json.toString)
     } yield decode[PostMessageResponse](res.json.toString))
       .ifLeftThenToInfraError("error while converting list api response")
   }

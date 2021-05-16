@@ -4,7 +4,6 @@ import adapters.controllers.helpers.JsonRequestMapper
 import adapters.{AdapterError, BadRequestError}
 import cats.implicits._
 import domains.DomainError
-import domains.bot.Bot.BotId
 import domains.workspace.WorkSpace.WorkSpaceId
 import io.circe._
 import io.circe.generic.auto._
@@ -52,23 +51,19 @@ final case class AppUninstalledEventCommand(
   applicationId: ApplicationId
 ) extends EventCommand
 object AppUninstalledEventCommand {
-  private lazy val logger = Logger(this.getClass)
+  private lazy val logger                  = Logger(this.getClass)
   def validate(
     body: AppUninstalledEventBody
-  ): Either[BadRequestError, EventCommand] = {
-    logger.warn("app uninstalled!!")
-    (
-      WorkSpaceId.create(body.teamId).toValidatedNec,
-      ApplicationId.create(body.apiAppId).toValidatedNec
-    ).mapN(AppUninstalledEventCommand.apply)
-      .toEither
-      .leftMap(errors =>
-        BadRequestError(
-          errors
-            .foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-        )
+  ): Either[BadRequestError, EventCommand] = (
+    WorkSpaceId.create(body.teamId).toValidatedNec,
+    ApplicationId.create(body.apiAppId).toValidatedNec
+  ).mapN(AppUninstalledEventCommand.apply)
+    .toEither
+    .leftMap(errors =>
+      BadRequestError(
+        errors.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
       )
-  }
+    )
 }
 
 final case class AppHomeOpenedEventBody(
@@ -98,29 +93,19 @@ final case class AppHomeOpenedEventCommand(
   workSpaceId: WorkSpaceId
 ) extends EventCommand
 object AppHomeOpenedEventCommand {
-  private lazy val logger = Logger(this.getClass)
   def validate(
     body: AppHomeOpenedEventBody
-  ): Either[BadRequestError, EventCommand] = {
-    logger.warn("app home opened")
-    (
-      ChannelId.create(body.channel).toValidatedNec,
-      ApplicationId.create(body.appId).toValidatedNec,
-      WorkSpaceId.create(body.teamId).toValidatedNec
-    ).mapN(AppHomeOpenedEventCommand.apply).toEither match {
-      case Right(v) =>
-        logger.warn(v.toString)
-        logger.warn("right")
-        Right(v)
-      case Left(e)  =>
-        logger.warn("left")
-        logger.warn(e.toString)
-        Left(
-          BadRequestError(
-            e.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-          )
+  ): Either[BadRequestError, EventCommand] = (
+    ChannelId.create(body.channel).toValidatedNec,
+    ApplicationId.create(body.appId).toValidatedNec,
+    WorkSpaceId.create(body.teamId).toValidatedNec
+  ).mapN(AppHomeOpenedEventCommand.apply).toEither match { // leftMapになおす
+    case Right(v) => Right(v)
+    case Left(e)  => Left(
+        BadRequestError(
+          e.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
         )
-    }
+      )
   }
 }
 
