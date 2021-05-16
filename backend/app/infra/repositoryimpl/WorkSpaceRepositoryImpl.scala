@@ -135,7 +135,7 @@ class WorkSpaceRepositoryImpl @Inject() (
                 .ifFailedThenToInfraError(
                   "error while conversationDao.info in findChannels"
                 )
-                .transformWith {
+                .transformWith { //　上のエラー処理とまとめる
                   case Success(Some(v)) =>
                     println("transform success some")
                     Future.successful(

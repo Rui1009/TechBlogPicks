@@ -62,6 +62,8 @@ object ConversationDaoImpl {
                               .downField("latest")
                               .downField("user")
                               .as[String]
+            _             = println("some enter")
+            _             = println(cursor.downField("channel").downField("latest").values)
             text         <- cursor
                               .downField("channel")
                               .downField("latest")
@@ -75,7 +77,9 @@ object ConversationDaoImpl {
                     .as[String]
           } yield Some(InfoResponse(senderUserId, text, ts.toFloat))
 
-        case None => for {
+        case None =>
+          println("none enter")
+          for {
             _ <-
               cursor
                 .downField("channel")
