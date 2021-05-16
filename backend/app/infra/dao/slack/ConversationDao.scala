@@ -55,15 +55,31 @@ object ConversationDaoImpl {
   case class InfoResponse(senderUserId: String, text: String, ts: Float)
   implicit val conversationDecoder: Decoder[Option[InfoResponse]] =
     Decoder.instance { cursor =>
-      cursor.downField("channel").downField("latest").values match {
-        case Some(_) => for {
+      println(
+        "tests" + cursor
+          .downField("channel")
+          .downField("latest")
+          .as[Json]
+          .toString
+      )
+
+      cursor.downField("channel").downField("latest").as[Json] match {
+        case Right(v) if v.isNull =>
+          for {
+            _ <-
+              cursor
+                .downField("channel")
+                .downField("id")
+                .as[String] // もっとスマートな方法はないか
+          } yield None
+
+        case Right(_) => for {
             senderUserId <- cursor
                               .downField("channel")
                               .downField("latest")
                               .downField("user")
                               .as[String]
             _             = println("some enter")
-            _             = println(cursor.downField("channel").downField("latest").values)
             text         <- cursor
                               .downField("channel")
                               .downField("latest")
@@ -76,16 +92,6 @@ object ConversationDaoImpl {
                     .downField("ts")
                     .as[String]
           } yield Some(InfoResponse(senderUserId, text, ts.toFloat))
-
-        case None =>
-          println("none enter")
-          for {
-            _ <-
-              cursor
-                .downField("channel")
-                .downField("id")
-                .as[String] // もっとスマートな方法はないか
-          } yield None
       }
     }
 

@@ -25,6 +25,7 @@ import infra.dto.Tables
 import infra.repositoryimpl.WorkSpaceRepositoryImpl
 import infra.dto.Tables._
 import io.circe.{Json, JsonObject}
+import io.circe.Json._
 import io.circe.syntax._
 import org.scalacheck.Gen
 
