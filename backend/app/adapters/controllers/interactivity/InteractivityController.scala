@@ -19,8 +19,10 @@ class InteractivityController @Inject() (
     with InteractivityBodyMapper {
 
   def handleInteractivity = Action { implicit request =>
-    val converted =
-      request.body.toString.patch(15, "[", 7).patch(0, "[", 8).drop(2) + "]]"
+    val converted = request.body.toString
+      .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
+      .replace("-> List(", ":[")
+      .dropRight(2) + "]]"
     println(converted)
     println(request.body.toString)
     Ok("ok")
