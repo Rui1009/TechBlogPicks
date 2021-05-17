@@ -34,20 +34,15 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
           "error while workSpaceRepository.find in post onboarding message use case"
         )
 
-    _              = println(targetWorkSpace)
     targetChannel <-
       targetWorkSpace
         .findChannel(params.channelId)
         .ifLeftThenToUseCaseError(
           "error while WorkSpace.findChannel in post onboarding message use case"
         )
-    _              = println(targetChannel)
-    _              = println("after findchannel")
   } yield
-    if (targetChannel.isMessageExists) {
-      println("targetChannel message exists")
-      Future.unit
-    } else for {
+    if (targetChannel.isMessageExists) Future.unit
+    else for {
       workSpaceWithUpdatedBots     <-
         targetWorkSpace
           .botCreateOnboardingMessage(params.applicationId)
@@ -60,7 +55,6 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
           .ifLeftThenToUseCaseError(
             "error while WorkSpace.botPostMessage in post onboarding message use case"
           )
-      _                             = println("before send message")
       _                            <- workSpaceRepository
                                         .sendMessage(
                                           workSpaceWithUpdatedChannels,
@@ -70,6 +64,5 @@ final class PostOnboardingMessageUseCaseImpl @Inject() (
                                         .ifNotExistsToUseCaseError(
                                           "error while workSpaceRepository.sendMessage in post onboarding message use case"
                                         )
-      _                             = println("after send message")
     } yield ()).flatten
 }

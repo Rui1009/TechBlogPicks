@@ -5,13 +5,14 @@ import io.circe.{Json, JsonObject}
 import usecases.{JoinChannelUseCase, SystemError}
 import play.api.inject.bind
 import play.api.test.Helpers._
+import io.circe.parser._
+import play.api.test.FakeRequest
 import play.api.libs.json.{Json => PJson}
-
 import scala.concurrent.Future
 
 class ChannelSelectSpec extends ControllerSpec {
   val uc   = mock[JoinChannelUseCase]
-  val path = "/interactivities"
+  val path = "/interactivity"
 
   override val app =
     builder.overrides(bind[JoinChannelUseCase].toInstance(uc)).build()
@@ -23,67 +24,22 @@ class ChannelSelectSpec extends ControllerSpec {
           forAll(nonEmptyStringGen) { str =>
             when(uc.exec(*)).thenReturn(Future.unit)
 
-            val body2 = Json.fromValues(
-              Seq(
-                Json.fromJsonObject(
-                  JsonObject(
-                    "payload" -> Json.fromValues(
-                      Seq(
-                        Json.fromJsonObject(
-                          JsonObject(
-                            "api_app_id" -> Json.fromString(str),
-                            "team"       -> Json.fromJsonObject(
-                              JsonObject("id" -> Json.fromString(str))
-                            ),
-                            "actions"    -> Json.fromValues(
-                              Seq(
-                                Json.fromJsonObject(
-                                  JsonObject(
-                                    "type"             -> Json
-                                      .fromString("channels_select"),
-                                    "selected_channel" -> Json.fromString(str)
-                                  )
-                                )
-                              )
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
+            val body =
+              "AnyContentAsFormUrlEncoded(ListMap(payload->List({\"type\": \"block_actions\", \"api_app_id\": \"appId\", \"team\": {\"id\": \"teamId\"}, \"actions\": [{\"type\": \"channels_select\", \"selected_channel\": \"channelId\"}]})))"
+
+            val resp = route(
+              app,
+              FakeRequest(POST, path).withJsonBody(
+                PJson.parse(
+                  body
+                    .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
+                    .replace("->List(", ":[")
+                    .replace("[payload", "[{\"payload\"")
+                    .dropRight(3) + "]}]"
                 )
               )
-            )
+            ).get
 
-            val body = Json.fromJsonObject(
-              JsonObject(
-                "payload" -> Json.fromValues(
-                  Seq(
-                    Json.fromJsonObject(
-                      JsonObject(
-                        "api_app_id" -> Json.fromString(str),
-                        "team"       -> Json.fromJsonObject(
-                          JsonObject("id" -> Json.fromString(str))
-                        ),
-                        "actions"    -> Json.fromValues(
-                          Seq(
-                            Json.fromJsonObject(
-                              JsonObject(
-                                "type"             -> Json.fromString("channels_select"),
-                                "selected_channel" -> Json.fromString(str)
-                              )
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
-              )
-            )
-            val resp = Request.post(path).withJsonBody(body2).unsafeExec
-
-            println(body2)
             assert(status(resp) === CREATED)
             verify(uc).exec(*)
             reset(uc)
@@ -96,34 +52,21 @@ class ChannelSelectSpec extends ControllerSpec {
           forAll(nonEmptyStringGen) { str =>
             when(uc.exec(*)).thenReturn(Future.failed(SystemError("error")))
 
-            val body = Json.fromJsonObject(
-              JsonObject(
-                "payload" -> Json.fromValues(
-                  Seq(
-                    Json.fromJsonObject(
-                      JsonObject(
-                        "api_app_id" -> Json.fromString(str),
-                        "team"       -> Json.fromJsonObject(
-                          JsonObject("id" -> Json.fromString(str))
-                        ),
-                        "actions"    -> Json.fromValues(
-                          Seq(
-                            Json.fromJsonObject(
-                              JsonObject(
-                                "type"             -> Json.fromString("channels_select"),
-                                "selected_channel" -> Json.fromString(str)
-                              )
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
+            val body =
+              "AnyContentAsFormUrlEncoded(ListMap(payload->List({\"type\": \"block_actions\", \"api_app_id\": \"appId\", \"team\": {\"id\": \"teamId\"}, \"actions\": [{\"type\": \"channels_select\", \"selected_channel\": \"channelId\"}]})))"
+
+            val resp = route(
+              app,
+              FakeRequest(POST, path).withJsonBody(
+                PJson.parse(
+                  body
+                    .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
+                    .replace("->List(", ":[")
+                    .replace("[payload", "[{\"payload\"")
+                    .dropRight(3) + "]}]"
                 )
               )
-            )
-
-            val resp = Request.post(path).withJsonBody(body).unsafeExec
+            ).get
 
             assert(status(resp) === INTERNAL_SERVER_ERROR)
             assert(
@@ -139,33 +82,20 @@ class ChannelSelectSpec extends ControllerSpec {
         "return Bad Request Error" in {
           when(uc.exec(*)).thenReturn(Future.unit)
 
-          val body = Json.fromJsonObject(
-            JsonObject(
-              "payload" -> Json.fromValues(
-                Seq(
-                  Json.fromJsonObject(
-                    JsonObject(
-                      "api_app_id" -> Json.fromString(""),
-                      "team"       -> Json.fromJsonObject(
-                        JsonObject("id" -> Json.fromString("teamId"))
-                      ),
-                      "actions"    -> Json.fromValues(
-                        Seq(
-                          Json.fromJsonObject(
-                            JsonObject(
-                              "type"             -> Json.fromString("channels_select"),
-                              "selected_channel" -> Json.fromString("channelId")
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
+          val body =
+            "AnyContentAsFormUrlEncoded(ListMap(payload->List({\"type\": \"block_actions\", \"api_app_id\": \"\", \"team\": {\"id\": \"teamId\"}, \"actions\": [{\"type\": \"channels_select\", \"selected_channel\": \"channelId\"}]})))"
+          val resp = route(
+            app,
+            FakeRequest(POST, path).withJsonBody(
+              PJson.parse(
+                body
+                  .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
+                  .replace("->List(", ":[")
+                  .replace("[payload", "[{\"payload\"")
+                  .dropRight(3) + "]}]"
               )
             )
-          )
-          val resp = Request.post(path).withJsonBody(body).unsafeExec
+          ).get
 
           val msg = """
               |BadRequestError
@@ -182,33 +112,20 @@ class ChannelSelectSpec extends ControllerSpec {
         "return Bad Request Error" in {
           when(uc.exec(*)).thenReturn(Future.unit)
 
-          val body = Json.fromJsonObject(
-            JsonObject(
-              "payload" -> Json.fromValues(
-                Seq(
-                  Json.fromJsonObject(
-                    JsonObject(
-                      "api_app_id" -> Json.fromString("appId"),
-                      "team"       -> Json.fromJsonObject(
-                        JsonObject("id" -> Json.fromString(""))
-                      ),
-                      "actions"    -> Json.fromValues(
-                        Seq(
-                          Json.fromJsonObject(
-                            JsonObject(
-                              "type"             -> Json.fromString("channels_select"),
-                              "selected_channel" -> Json.fromString("channelId")
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
+          val body =
+            "AnyContentAsFormUrlEncoded(ListMap(payload->List({\"type\": \"block_actions\", \"api_app_id\": \"appId\", \"team\": {\"id\": \"\"}, \"actions\": [{\"type\": \"channels_select\", \"selected_channel\": \"channelId\"}]})))"
+          val resp = route(
+            app,
+            FakeRequest(POST, path).withJsonBody(
+              PJson.parse(
+                body
+                  .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
+                  .replace("->List(", ":[")
+                  .replace("[payload", "[{\"payload\"")
+                  .dropRight(3) + "]}]"
               )
             )
-          )
-          val resp = Request.post(path).withJsonBody(body).unsafeExec
+          ).get
 
           val msg = """
               |BadRequestError
@@ -224,33 +141,20 @@ class ChannelSelectSpec extends ControllerSpec {
         "return Bad Request Error" in {
           when(uc.exec(*)).thenReturn(Future.unit)
 
-          val body = Json.fromJsonObject(
-            JsonObject(
-              "payload" -> Json.fromValues(
-                Seq(
-                  Json.fromJsonObject(
-                    JsonObject(
-                      "api_app_id" -> Json.fromString("appId"),
-                      "team"       -> Json.fromJsonObject(
-                        JsonObject("id" -> Json.fromString("teamId"))
-                      ),
-                      "actions"    -> Json.fromValues(
-                        Seq(
-                          Json.fromJsonObject(
-                            JsonObject(
-                              "type"             -> Json.fromString("channels_select"),
-                              "selected_channel" -> Json.fromString("")
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
+          val body =
+            "AnyContentAsFormUrlEncoded(ListMap(payload->List({\"type\": \"block_actions\", \"api_app_id\": \"appId\", \"team\": {\"id\": \"teamId\"}, \"actions\": [{\"type\": \"channels_select\", \"selected_channel\": \"\"}]})))"
+          val resp = route(
+            app,
+            FakeRequest(POST, path).withJsonBody(
+              PJson.parse(
+                body
+                  .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
+                  .replace("->List(", ":[")
+                  .replace("[payload", "[{\"payload\"")
+                  .dropRight(3) + "]}]"
               )
             )
-          )
-          val resp = Request.post(path).withJsonBody(body).unsafeExec
+          ).get
 
           val msg = """
                       |BadRequestError
@@ -266,33 +170,20 @@ class ChannelSelectSpec extends ControllerSpec {
         "return Bad Request Error" in {
           when(uc.exec(*)).thenReturn(Future.unit)
 
-          val body = Json.fromJsonObject(
-            JsonObject(
-              "payload" -> Json.fromValues(
-                Seq(
-                  Json.fromJsonObject(
-                    JsonObject(
-                      "api_app_id" -> Json.fromString(""),
-                      "team"       -> Json.fromJsonObject(
-                        JsonObject("id" -> Json.fromString(""))
-                      ),
-                      "actions"    -> Json.fromValues(
-                        Seq(
-                          Json.fromJsonObject(
-                            JsonObject(
-                              "type"             -> Json.fromString("channels_select"),
-                              "selected_channel" -> Json.fromString("")
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
+          val body =
+            "AnyContentAsFormUrlEncoded(ListMap(payload->List({\"type\": \"block_actions\", \"api_app_id\": \"\", \"team\": {\"id\": \"\"}, \"actions\": [{\"type\": \"channels_select\", \"selected_channel\": \"\"}]})))"
+          val resp = route(
+            app,
+            FakeRequest(POST, path).withJsonBody(
+              PJson.parse(
+                body
+                  .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
+                  .replace("->List(", ":[")
+                  .replace("[payload", "[{\"payload\"")
+                  .dropRight(3) + "]}]"
               )
             )
-          )
-          val resp = Request.post(path).withJsonBody(body).unsafeExec
+          ).get
 
           val msg = """
               |BadRequestError

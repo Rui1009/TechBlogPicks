@@ -171,49 +171,6 @@ class WorkSpaceDomainSpec extends ModelSpec {
         }
       }
     }
-
-    "given not exist channel id" should {
-      "return domain which message is right" in {
-        forAll(workSpaceGen, channelTypedChannelMessageGen, botGen) {
-          (_workSpace, channel, bot) =>
-            val workSpace = _workSpace.copy(
-              bots = _workSpace.bots :+ bot,
-              channels = _workSpace.channels.filter(_.id !== channel.id)
-            )
-
-            val result =
-              workSpace.addBotToChannel(bot.applicationId, channel.id)
-
-            assert(
-              result.unsafeLeftGet.errorMessage.trim === "NotExistError: ChannelId don't exist"
-            )
-        }
-      }
-    }
-
-    "given not exist application id and channel id" should {
-      "return domain error which has combined message" in {
-        forAll(workSpaceGen, channelTypedChannelMessageGen, botGen) {
-          (_workSpace, channel, bot) =>
-            val workSpace = _workSpace.copy(
-              bots =
-                _workSpace.bots.filter(_.applicationId !== bot.applicationId),
-              channels = _workSpace.channels.filter(_.id !== channel.id)
-            )
-
-            val result =
-              workSpace.addBotToChannel(bot.applicationId, channel.id)
-
-            assert(
-              result.unsafeLeftGet.errorMessage.trim ===
-                """
-                  |NotExistError: ApplicationId don't exist
-                  |NotExistError: ChannelId don't exist
-                  |""".stripMargin.trim
-            )
-        }
-      }
-    }
   }
 
   "WorkSpace.findChannel" when {

@@ -29,7 +29,8 @@ class InteractivityController @Inject() (
     ws.url("https://winkie.herokuapp.com/interactivity")
       .withBody(Json.parse(converted))
       .execute("POST")
-    Ok("ol")
+
+    Ok
   }
 
   def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
@@ -37,7 +38,6 @@ class InteractivityController @Inject() (
       request.body.fold(
         e => Future.successful(responseError(e)),
         { case command: ChannelSelectActionInteractivityCommand =>
-          println("command exec")
           channelSelect(command)
         }
       )

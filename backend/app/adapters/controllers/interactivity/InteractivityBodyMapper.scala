@@ -69,7 +69,6 @@ object ChannelSelectActionInteractivityCommand {
     WorkSpaceId.create(body.payload.head.team.id).toValidatedNec
   ).mapN(ChannelSelectActionInteractivityCommand.apply).toEither.leftMap {
     error =>
-      println(error)
       BadRequestError(
         error.foldLeft("")((acc, cur: DomainError) => acc + cur.errorMessage)
       )
@@ -84,7 +83,6 @@ trait InteractivityBodyMapper extends JsonRequestMapper {
     mapToValueObject[Seq[
       ChannelSelectActionInteractivityBody
     ], InteractivityCommand] { body =>
-      println("mapToVO matching ok!")
       ChannelSelectActionInteractivityCommand.validate(body.head)
     }
 }

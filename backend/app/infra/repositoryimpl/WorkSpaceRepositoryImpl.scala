@@ -151,9 +151,7 @@ class WorkSpaceRepositoryImpl @Inject() (
                   row.botId
                 )
               )
-            case Success(None)    =>
-              println("transform success none")
-              Future.successful(
+            case Success(None)    => Future.successful(
                 (
                   Channel(ChannelId(Refined.unsafeApply(channel.id)), Seq()),
                   row.botId
@@ -192,7 +190,6 @@ class WorkSpaceRepositoryImpl @Inject() (
     .sequence(for {
       channelId <- channelIds
       bot       <- model.bots.filter(_.applicationId == applicationId)
-      _          = println("join channels in")
     } yield for {
       _ <-
         conversationDao.join(bot.accessToken.value.value, channelId.value.value)

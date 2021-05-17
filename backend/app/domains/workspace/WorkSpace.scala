@@ -55,12 +55,10 @@ final case class WorkSpace(
   def addBotToChannel(
     appId: ApplicationId,
     channelId: ChannelId
-  ): Either[DomainError, WorkSpace] = findBotByApplicationId(appId)
-//    findChannel(channelId).toValidatedNec
-    .map { bot =>
-      val joinedBot = bot.joinTo(channelId)
-      this.copy(bots = this.bots.filter(_.id != joinedBot.id) :+ joinedBot)
-    }
+  ): Either[DomainError, WorkSpace] = findBotByApplicationId(appId).map { bot =>
+    val joinedBot = bot.joinTo(channelId)
+    this.copy(bots = this.bots.filter(_.id != joinedBot.id) :+ joinedBot)
+  }
 
   private def findBotByApplicationId(
     appId: ApplicationId
@@ -69,21 +67,11 @@ final case class WorkSpace(
     case None    => Left(NotExistError("ApplicationId"))
   }
 
-  def findChannel(channelId: ChannelId): Either[DomainError, Channel] = {
-    println("find channel")
-
+  def findChannel(channelId: ChannelId): Either[DomainError, Channel] =
     this.channels.find(_.id == channelId) match {
-      case Some(v) =>
-        println(v)
-        println("some match")
-        Right(v)
-      case None    =>
-        println("none match")
-        println(channelId)
-        println(this.channels)
-        Left(NotExistError("ChannelId"))
+      case Some(v) => Right(v)
+      case None    => Left(NotExistError("ChannelId"))
     }
-  }
 
   def botCreateOnboardingMessage(
     applicationId: ApplicationId

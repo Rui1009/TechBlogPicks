@@ -43,7 +43,6 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
                 .post(Json.Null.noSpaces)
                 .ifFailedThenToInfraError(s"error while posting $url")
                 .map(res => res.json.toString)
-      _     = println(resp)
     } yield decode[JoinResponse](resp)).ifLeftThenToInfraError(
       "error while converting conversation join api response"
     )
