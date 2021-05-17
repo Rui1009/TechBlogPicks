@@ -22,6 +22,38 @@ class ChannelSelectSpec extends ControllerSpec {
           forAll(nonEmptyStringGen) { str =>
             when(uc.exec(*)).thenReturn(Future.unit)
 
+            val body2 = Json.fromValues(
+              Seq(
+                Json.fromJsonObject(
+                  JsonObject(
+                    "payload" -> Json.fromValues(
+                      Seq(
+                        Json.fromJsonObject(
+                          JsonObject(
+                            "api_app_id" -> Json.fromString(str),
+                            "team"       -> Json.fromJsonObject(
+                              JsonObject("id" -> Json.fromString(str))
+                            ),
+                            "actions"    -> Json.fromValues(
+                              Seq(
+                                Json.fromJsonObject(
+                                  JsonObject(
+                                    "type"             -> Json
+                                      .fromString("channels_select"),
+                                    "selected_channel" -> Json.fromString(str)
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+
             val body = Json.fromJsonObject(
               JsonObject(
                 "payload" -> Json.fromValues(
@@ -49,9 +81,9 @@ class ChannelSelectSpec extends ControllerSpec {
               )
             )
 
-            println(body)
+            println(body2)
 
-            val resp = Request.post(path).withJsonBody(body).unsafeExec
+            val resp = Request.post(path).withJsonBody(body2).unsafeExec
 
             assert(status(resp) === CREATED)
             verify(uc).exec(*)

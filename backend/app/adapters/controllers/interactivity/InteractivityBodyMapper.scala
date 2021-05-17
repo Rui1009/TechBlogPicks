@@ -19,9 +19,9 @@ import scala.concurrent.ExecutionContext
 
 sealed trait InteractivityBody
 object InteractivityBody {
-  implicit val decodeInteractivity: Decoder[InteractivityBody] =
-    List[Decoder[InteractivityBody]](
-      Decoder[ChannelSelectActionInteractivityBody](
+  implicit val decodeInteractivity: Decoder[Seq[InteractivityBody]] =
+    List[Decoder[Seq[InteractivityBody]]](
+      Decoder[Seq[ChannelSelectActionInteractivityBody]](
         decodeChannelSelectActionInteractivityBody
       ).widen
     ).reduceLeft(_ or _)
@@ -46,8 +46,10 @@ final case class ChannelSelectActionInteractivityBody(
 
 object ChannelSelectActionInteractivityBody {
   implicit val decodeChannelSelectActionInteractivityBody
-    : Decoder[ChannelSelectActionInteractivityBody] =
-    deriveDecoder[ChannelSelectActionInteractivityBody].prepare(body => body)
+    : Decoder[Seq[ChannelSelectActionInteractivityBody]] =
+    deriveDecoder[Seq[ChannelSelectActionInteractivityBody]].prepare(body =>
+      body
+    )
 }
 
 sealed trait InteractivityCommand
@@ -79,8 +81,9 @@ trait InteractivityBodyMapper extends JsonRequestMapper {
   def mapToInteractivityCommand(implicit
     ec: ExecutionContext
   ): BodyParser[Either[AdapterError, InteractivityCommand]] =
-    mapToValueObject[InteractivityBody, InteractivityCommand] {
-      case body: ChannelSelectActionInteractivityBody =>
-        ChannelSelectActionInteractivityCommand.validate(body)
+    mapToValueObject[Seq[InteractivityBody], InteractivityCommand] {
+      case body: Seq[ChannelSelectActionInteractivityBody] =>
+        println("success case match in mapToVO")
+        ChannelSelectActionInteractivityCommand.validate(body.head)
     }(decodeInteractivity, ec)
 }
