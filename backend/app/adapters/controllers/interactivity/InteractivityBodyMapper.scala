@@ -42,7 +42,7 @@ final case class ChannelSelectActionInteractivityBodyItem(
 
 final case class ChannelSelectActionInteractivityBody(
 //  payload: Seq[ChannelSelectActionInteractivityBodyItem],
-  payload: ListMap[String, ChannelSelectActionInteractivityBodyItem]
+  payload: ListMap[String, Seq[ChannelSelectActionInteractivityBodyItem]]
 ) extends InteractivityBody
 
 object ChannelSelectActionInteractivityBody {
@@ -62,10 +62,10 @@ object ChannelSelectActionInteractivityCommand {
     body: ChannelSelectActionInteractivityBody
   ): Either[BadRequestError, InteractivityCommand] = (
     ChannelId
-      .create(body.payload.head.actions.head.selected_channel)
+      .create(body.payload.head._2.head.actions.head.selected_channel)
       .toValidatedNec,
-    ApplicationId.create(body.payload.head.api_app_id).toValidatedNec,
-    WorkSpaceId.create(body.payload.head.team.id).toValidatedNec
+    ApplicationId.create(body.payload.head._2.head.api_app_id).toValidatedNec,
+    WorkSpaceId.create(body.payload.head._2.head.team.id).toValidatedNec
   ).mapN(ChannelSelectActionInteractivityCommand.apply)
     .toEither
     .leftMap(error =>
