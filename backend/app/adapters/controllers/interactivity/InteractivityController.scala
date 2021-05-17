@@ -19,19 +19,22 @@ class InteractivityController @Inject() (
     extends BaseController with JsonHelper with AllSyntax
     with InteractivityBodyMapper {
 
-  def convertRequest      = Action { implicit request =>
+  def convertRequest = Action { implicit request =>
     val converted = request.body.toString
       .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
       .replace("-> List(", ":[")
       .replace("[payload", "[{\"payload\"")
       .dropRight(3) + "]}]"
 
-    println(Json.parse(converted))
-    ws.url("https://winkie.herokuapp.com/events").post(Json.parse(converted))
-    Ok("ok")
+    ws.url("https://winkie.herokuapp.com/events")
+      .withBody(Json.parse(converted))
+      .execute("POST")
+    Ok("ol")
   }
+
   def handleInteractivity = Action { implicit request =>
-    println("aaaa")
+    println("debug")
+    println(request)
     println(request.body.toString)
     Ok("ok")
   }
