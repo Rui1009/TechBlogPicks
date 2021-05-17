@@ -2,8 +2,6 @@ package usecases
 
 import com.google.inject.Inject
 import domains.application.Application.ApplicationId
-import domains.application.ApplicationRepository
-import domains.bot.Bot.BotId
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace.WorkSpaceId
 import domains.workspace.WorkSpaceRepository
@@ -24,8 +22,7 @@ object GreetInInvitedChannelUseCase {
 }
 
 final class GreetInInvitedChannelUseCaseImpl @Inject() (
-  workSpaceRepository: WorkSpaceRepository,
-  applicationRepository: ApplicationRepository
+  workSpaceRepository: WorkSpaceRepository
 )(implicit val ec: ExecutionContext)
     extends GreetInInvitedChannelUseCase {
   override def exec(params: Params): Future[Unit] = for {
