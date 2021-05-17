@@ -27,12 +27,11 @@ class InteractivityController @Inject() (
       .dropRight(3) + "]}]"
 
     println(Json.parse(converted))
-    ws.url("https://winkie.herokuapp.com/events")
-      .withHttpHeaders("Content-Type" -> "application/json")
-      .post(Json.parse(converted))
+    ws.url("https://winkie.herokuapp.com/events").post(Json.parse(converted))
     Ok("ok")
   }
   def handleInteractivity = Action { implicit request =>
+    println("aaaa")
     println(request.body.toString)
     Ok("ok")
   }
