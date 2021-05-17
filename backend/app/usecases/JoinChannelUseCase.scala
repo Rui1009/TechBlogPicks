@@ -39,15 +39,16 @@ final class JoinChannelUseCaseImpl @Inject() (
         .ifLeftThenToUseCaseError(
           "error while WorkSpace.addBotToChannel in join channel use case"
         )
-
-    _ <- workSpaceRepository
-           .joinChannels(
-             updatedWorkSpace,
-             params.applicationId,
-             Seq(params.channelId)
-           )
-           .ifFailThenToUseCaseError(
-             "error while workSpaceRepository.joinChannels in join channel use case"
-           )
+    _                 = println("after add bot to channel")
+    _                <- workSpaceRepository
+                          .joinChannels(
+                            updatedWorkSpace,
+                            params.applicationId,
+                            Seq(params.channelId)
+                          )
+                          .ifFailThenToUseCaseError(
+                            "error while workSpaceRepository.joinChannels in join channel use case"
+                          )
+    _                 = println("after join channels")
   } yield ()
 }

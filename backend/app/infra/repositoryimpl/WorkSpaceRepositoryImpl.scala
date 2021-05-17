@@ -118,55 +118,48 @@ class WorkSpaceRepositoryImpl @Inject() (
   private def findChannels(rows: Seq[WorkSpacesRow]) = Future
     .sequence(for {
       row <- rows
-      _    = println("rows")
     } yield for {
       r <- usersDao
              .conversations(row.token)
              .ifFailedThenToInfraError(
                "error while usersDao.conversations in findChannels"
              )
-      _  = println("userDao")
     } yield for {
       channel <- r.channels
-      _        = println("channel")
     } yield for {
-      info <- conversationDao
-                .info(row.token, channel.id)
-                .ifFailedThenToInfraError(
-                  "error while conversationDao.info in findChannels"
+      info <-
+        conversationDao
+          .info(row.token, channel.id)
+          .ifFailedThenToInfraError(
+            "error while conversationDao.info in findChannels"
+          )
+          .transformWith { //　上のエラー処理とまとめる
+            case Success(Some(v)) => Future.successful(
+                (
+                  Channel(
+                    ChannelId(Refined.unsafeApply(channel.id)),
+                    Seq(
+                      ChannelMessage(
+                        ChannelMessageSentAt(Refined.unsafeApply(v.ts)),
+                        ChannelMessageSenderUserId(
+                          Refined.unsafeApply(v.senderUserId)
+                        ),
+                        v.text
+                      )
+                    )
+                  ),
+                  row.botId
                 )
-                .transformWith { //　上のエラー処理とまとめる
-                  case Success(Some(v)) =>
-                    println("transform success some")
-                    Future.successful(
-                      (
-                        Channel(
-                          ChannelId(Refined.unsafeApply(channel.id)),
-                          Seq(
-                            ChannelMessage(
-                              ChannelMessageSentAt(Refined.unsafeApply(v.ts)),
-                              ChannelMessageSenderUserId(
-                                Refined.unsafeApply(v.senderUserId)
-                              ),
-                              v.text
-                            )
-                          )
-                        ),
-                        row.botId
-                      )
-                    )
-                  case Success(None)    =>
-                    println("transform success none")
-                    Future.successful(
-                      (
-                        Channel(
-                          ChannelId(Refined.unsafeApply(channel.id)),
-                          Seq()
-                        ),
-                        row.botId
-                      )
-                    )
-                }
+              )
+            case Success(None)    =>
+              println("transform success none")
+              Future.successful(
+                (
+                  Channel(ChannelId(Refined.unsafeApply(channel.id)), Seq()),
+                  row.botId
+                )
+              )
+          }
     } yield info)
     .map(_.flatten)
     .map(v => Future.sequence(v))
@@ -199,6 +192,7 @@ class WorkSpaceRepositoryImpl @Inject() (
     .sequence(for {
       channelId <- channelIds
       bot       <- model.bots.filter(_.applicationId == applicationId)
+      _          = println("join channels in")
     } yield for {
       _ <-
         conversationDao.join(bot.accessToken.value.value, channelId.value.value)

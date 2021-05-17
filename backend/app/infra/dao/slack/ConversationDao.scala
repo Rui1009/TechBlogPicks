@@ -22,7 +22,6 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
 ) extends ApiDao(ws) with ConversationDao {
   def info(token: String, channelId: String): Future[Option[InfoResponse]] = {
     val url = "https://slack.com/api/conversations.info"
-    println(channelId)
     (for {
       resp <- ws.url(url)
                 .withHttpHeaders("Authorization" -> s"Bearer $token")
@@ -30,7 +29,6 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
                 .get()
                 .ifFailedThenToInfraError(s"error while getting $url")
                 .map(res => res.json.toString)
-      _     = println(resp)
     } yield decode[Option[InfoResponse]](resp)).ifLeftThenToInfraError(
       "error while converting conversation info api response"
     )
@@ -45,6 +43,7 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
                 .post(Json.Null.noSpaces)
                 .ifFailedThenToInfraError(s"error while posting $url")
                 .map(res => res.json.toString)
+      _     = println(resp)
     } yield decode[JoinResponse](resp)).ifLeftThenToInfraError(
       "error while converting conversation join api response"
     )
@@ -55,14 +54,6 @@ object ConversationDaoImpl {
   case class InfoResponse(senderUserId: String, text: String, ts: Float)
   implicit val conversationDecoder: Decoder[Option[InfoResponse]] =
     Decoder.instance { cursor =>
-      println(
-        "tests" + cursor
-          .downField("channel")
-          .downField("latest")
-          .as[Json]
-          .toString
-      )
-
       cursor.downField("channel").downField("latest").as[Json] match {
         case Right(v) if v.isNull =>
           for {
@@ -79,7 +70,6 @@ object ConversationDaoImpl {
                               .downField("latest")
                               .downField("user")
                               .as[String]
-            _             = println("some enter")
             text         <- cursor
                               .downField("channel")
                               .downField("latest")
