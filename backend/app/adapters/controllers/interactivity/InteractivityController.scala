@@ -15,19 +15,15 @@ class InteractivityController @Inject() (
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with AllSyntax
     with InteractivityBodyMapper {
-  def handleInteractivity = Action { implicit request =>
-    println(request.body)
-    Ok("ok")
-  }
-//  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
-//    Action.async(mapToInteractivityCommand) { implicit request =>
-//      request.body.fold(
-//        e => Future.successful(responseError(e)),
-//        { case command: ChannelSelectActionInteractivityCommand =>
-//          channelSelect(command)
-//        }
-//      )
-//    }
+  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
+    Action.async(mapToInteractivityCommand) { implicit request =>
+      request.body.fold(
+        e => Future.successful(responseError(e)),
+        { case command: ChannelSelectActionInteractivityCommand =>
+          channelSelect(command)
+        }
+      )
+    }
 
   private def channelSelect(command: ChannelSelectActionInteractivityCommand) =
     joinChannelUseCase
