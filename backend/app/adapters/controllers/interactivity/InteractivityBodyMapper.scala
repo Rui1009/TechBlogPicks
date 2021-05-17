@@ -47,10 +47,7 @@ final case class ChannelSelectActionInteractivityBody(
 object ChannelSelectActionInteractivityBody {
   implicit val decodeChannelSelectActionInteractivityBody
     : Decoder[ChannelSelectActionInteractivityBody] =
-    deriveDecoder[ChannelSelectActionInteractivityBody].prepare { body =>
-      println(body.as[Json])
-      body
-    }
+    deriveDecoder[ChannelSelectActionInteractivityBody].prepare(body => body)
 }
 
 sealed trait InteractivityCommand
