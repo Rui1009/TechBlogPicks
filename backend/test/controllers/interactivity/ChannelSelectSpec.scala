@@ -80,9 +80,6 @@ class ChannelSelectSpec extends ControllerSpec {
                 )
               )
             )
-
-            println(body2)
-
             val resp = Request.post(path).withJsonBody(body2).unsafeExec
 
             assert(status(resp) === CREATED)

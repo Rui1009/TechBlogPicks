@@ -85,6 +85,7 @@ trait InteractivityBodyMapper extends JsonRequestMapper {
       ChannelSelectActionInteractivityBody
     ], InteractivityCommand] { body =>
       println("before maptoVO")
+      println(body)
       ChannelSelectActionInteractivityCommand.validate(body.head)
     }
 }
