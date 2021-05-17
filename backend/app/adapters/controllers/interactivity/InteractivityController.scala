@@ -19,7 +19,7 @@ class InteractivityController @Inject() (
     extends BaseController with JsonHelper with AllSyntax
     with InteractivityBodyMapper {
 
-  def convertRequest                                                          = Action { implicit request =>
+  def convertRequest      = Action { implicit request =>
     val converted = request.body.toString
       .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
       .replace("-> List(", ":[")
@@ -32,16 +32,20 @@ class InteractivityController @Inject() (
       .post(Json.parse(converted))
     Ok("ok")
   }
-  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
-    Action.async(mapToInteractivityCommand) { implicit request =>
-      request.body.fold(
-        e => Future.successful(responseError(e)),
-        { case command: ChannelSelectActionInteractivityCommand =>
-          println("command exec")
-          channelSelect(command)
-        }
-      )
-    }
+  def handleInteractivity = Action { implicit request =>
+    println(request.body.toString)
+    Ok("ok")
+  }
+
+//    Action.async(mapToInteractivityCommand) { implicit request =>
+//      request.body.fold(
+//        e => Future.successful(responseError(e)),
+//        { case command: ChannelSelectActionInteractivityCommand =>
+//          println("command exec")
+//          channelSelect(command)
+//        }
+//      )
+//    }
 
   private def channelSelect(command: ChannelSelectActionInteractivityCommand) =
     joinChannelUseCase
