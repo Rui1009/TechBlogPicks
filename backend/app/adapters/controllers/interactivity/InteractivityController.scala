@@ -4,6 +4,7 @@ import adapters.AdapterError
 import adapters.controllers.helpers.JsonHelper
 import com.google.inject.Inject
 import adapters.controllers.syntax.AllSyntax
+import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, BaseController, ControllerComponents}
 import usecases.JoinChannelUseCase
 
@@ -11,20 +12,25 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class InteractivityController @Inject() (
   val controllerComponents: ControllerComponents,
-  joinChannelUseCase: JoinChannelUseCase
+  joinChannelUseCase: JoinChannelUseCase,
+  ws: WSClient
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with AllSyntax
     with InteractivityBodyMapper {
-  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
-    Action.async(mapToInteractivityCommand) { implicit request =>
-      request.body.fold(
-        e => Future.successful(responseError(e)),
-        { case command: ChannelSelectActionInteractivityCommand =>
-          println(command)
-          channelSelect(command)
-        }
-      )
-    }
+
+  def handleInteractivity = Action { implicit request =>
+    println(request.body.asJson)
+    Ok("ok")
+  }
+//  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
+//    Action.async(mapToInteractivityCommand) { implicit request =>
+//      request.body.fold(
+//        e => Future.successful(responseError(e)),
+//        { case command: ChannelSelectActionInteractivityCommand =>
+//          channelSelect(command)
+//        }
+//      )
+//    }
 
   private def channelSelect(command: ChannelSelectActionInteractivityCommand) =
     joinChannelUseCase
