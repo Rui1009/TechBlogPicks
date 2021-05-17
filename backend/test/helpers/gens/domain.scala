@@ -11,23 +11,43 @@ import helpers.gens.string._
 import helpers.gens.number._
 import domain._
 import domains.post.Post
-import cats.syntax.option._
-import domains.message.Message
-import domains.message.Message.{
-  MessageChannelId,
-  MessageId,
-  MessageSentAt,
-  MessageUserId
+import domains.application.Application
+import domains.application.Application._
+import domains.channel.{Channel, ChannelMessage, Message}
+import domains.channel.Channel._
+import domains.channel.ChannelMessage.{
+  ChannelMessageSenderUserId,
+  ChannelMessageSentAt
 }
 
 object domain extends DomainGen
 
-trait DomainGen extends WorkSpaceGen with BotGen with PostGen with MessageGen
+trait DomainGen
+    extends WorkSpaceGen with BotGen with PostGen with ApplicationGen
+    with ChannelGen
+
+trait ChannelGen {
+  val channelIdGen: Gen[ChannelId] = stringRefinedNonEmptyGen.map(ChannelId(_))
+
+  val sentAtGen: Gen[ChannelMessageSentAt] =
+    floatRefinedPositiveGen.map(ChannelMessageSentAt(_))
+
+  val senderUserIdGen: Gen[ChannelMessageSenderUserId] =
+    stringRefinedNonEmptyGen.map(ChannelMessageSenderUserId(_))
+
+  val channelMessageGen: Gen[ChannelMessage] = for {
+    sentAt       <- sentAtGen
+    senderUserId <- senderUserIdGen
+    text         <- Gen.alphaStr
+  } yield ChannelMessage(sentAt, senderUserId, text)
+
+  val channelTypedChannelMessageGen: Gen[Channel] = for {
+    id      <- channelIdGen
+    history <- Gen.listOf(channelMessageGen)
+  } yield Channel(id, history)
+}
 
 trait WorkSpaceGen {
-  val accessTokenGen: Gen[WorkSpaceToken] =
-    stringRefinedNonEmptyGen.map(WorkSpaceToken(_))
-
   val temporaryOauthCodeGen: Gen[WorkSpaceTemporaryOauthCode] =
     stringRefinedNonEmptyGen.map(WorkSpaceTemporaryOauthCode(_))
 
@@ -36,16 +56,11 @@ trait WorkSpaceGen {
 
   val workSpaceGen: Gen[WorkSpace] = for {
     id                 <- workSpaceIdGen
-    accessTokens       <- Gen.listOf(accessTokenGen)
     temporaryOauthCode <- Gen.option(temporaryOauthCodeGen)
-    botIds             <- Gen.listOf(botIdGen)
-  } yield WorkSpace(id, accessTokens, temporaryOauthCode, botIds)
-
-  val newWorkSpaceGen: Gen[WorkSpace] = for {
-    workSpace   <- workSpaceGen
-    accessToken <- accessTokenGen
-    botId       <- botIdGen
-  } yield workSpace.copy(tokens = Seq(accessToken), botIds = Seq(botId))
+    bots               <- Gen.listOf(botGen)
+    channels           <- Gen.listOf(channelTypedChannelMessageGen)
+    token              <- Gen.option(accessTokensGen)
+  } yield WorkSpace(id, temporaryOauthCode, bots, channels, token)
 }
 
 trait PostGen {
@@ -67,61 +82,44 @@ trait PostGen {
     title    <- postTitleGen
     author   <- postAuthorGen
     postedAt <- postPostedAtGen
-  } yield Post(id.some, url, title, author, postedAt)
+  } yield Post(id, url, title, author, postedAt)
+}
+
+trait ApplicationGen {
+  val applicationIdGen: Gen[ApplicationId] =
+    stringRefinedNonEmptyGen.map(ApplicationId(_))
+
+  val applicationNameGen: Gen[ApplicationName] =
+    stringRefinedNonEmptyGen.map(ApplicationName(_))
+
+  val applicationClientIdGen: Gen[ApplicationClientId] =
+    stringRefinedNonEmptyGen.map(ApplicationClientId(_))
+
+  val applicationClientSecretGen: Gen[ApplicationClientSecret] =
+    stringRefinedNonEmptyGen.map(ApplicationClientSecret(_))
+
+  val applicationGen: Gen[Application] = for {
+    id       <- applicationIdGen
+    name     <- applicationNameGen
+    clientId <- Gen.option(applicationClientIdGen)
+    secret   <- Gen.option(applicationClientSecretGen)
+    post     <- Gen.listOf(postIdGen)
+  } yield Application(id, name, clientId, secret, post)
 }
 
 trait BotGen {
-
   val botIdGen: Gen[BotId] = stringRefinedNonEmptyGen.map(BotId(_))
 
   val botNameGen: Gen[BotName] = stringRefinedNonEmptyGen.map(BotName(_))
 
-  val accessTokensGen: Gen[Seq[WorkSpaceToken]] =
-    Gen.listOf(domain.accessTokenGen)
-
-  val channelIdGen: Gen[BotChannelId] =
-    stringRefinedNonEmptyGen.map(BotChannelId(_))
-
-  val botClientIdGen: Gen[BotClientId] =
-    stringRefinedNonEmptyGen.map(BotClientId(_))
-
-  val botClientSecretGen: Gen[BotClientSecret] =
-    stringRefinedNonEmptyGen.map(BotClientSecret(_))
+  val accessTokensGen: Gen[BotAccessToken] =
+    stringRefinedNonEmptyGen.map(BotAccessToken(_))
 
   val botGen: Gen[Bot] = for {
-    botId        <- botIdGen
+    botId        <- Gen.option(botIdGen)
     botName      <- botNameGen
+    appId        <- applicationIdGen
     accessTokens <- accessTokensGen
-    posts        <- Gen.listOf(postIdGen)
     channels     <- Gen.listOf(channelIdGen)
-    clientId     <- Gen.option(botClientIdGen)
-    clientSecret <- Gen.option(botClientSecretGen)
-  } yield Bot(botId, botName, accessTokens, posts, channels, clientId, clientSecret)
-
-  val joinedBotGen: Gen[Bot] = for {
-    botId        <- botIdGen
-    botName      <- botNameGen
-    accessTokens <- Gen.nonEmptyListOf(domain.accessTokenGen)
-    channels     <- Gen.nonEmptyListOf(channelIdGen)
-  } yield Bot(botId, botName, accessTokens, Seq(), channels, None, None)
-
-  val nonOptionBotGen: Gen[Bot] =
-    botGen.suchThat(bot => bot.clientId.isDefined && bot.clientSecret.isDefined)
-}
-
-trait MessageGen {
-  val messageIdGen: Gen[MessageId]               = stringRefinedNonEmptyGen.map(MessageId(_))
-  val messageSentAtGen: Gen[MessageSentAt]       =
-    refinedValidFloatGen.map(MessageSentAt(_))
-  val messageUserIdGen: Gen[MessageUserId]       =
-    stringRefinedNonEmptyGen.map(MessageUserId(_))
-  val messageChannelIdGen: Gen[MessageChannelId] =
-    stringRefinedNonEmptyGen.map(MessageChannelId(_))
-
-  val messageGen: Gen[Message] = for {
-    id        <- messageIdGen
-    sentAt    <- messageSentAtGen
-    userId    <- messageUserIdGen
-    channelId <- messageChannelIdGen
-  } yield Message(Some(id), Some(sentAt), userId, channelId, Seq())
+  } yield Bot(botId, botName, appId, accessTokens, channels, None) // todo draft messageのgenをちゃんと作る
 }

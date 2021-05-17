@@ -1,181 +1,172 @@
 package usecases
 
-import domains.message.{Message, MessageRepository}
-import domains.workspace.WorkSpace.WorkSpaceToken
 import domains.workspace.WorkSpaceRepository
 import helpers.traits.UseCaseSpec
 import usecases.PostOnboardingMessageUseCase.Params
 import eu.timepit.refined.auto._
-import infra.DBError
-import org.scalatest.time.{Seconds, Span}
+import infra.{APIError, DBError}
 
 import scala.concurrent.Future
 
 class PostOnboardingMessageUseCaseSpec extends UseCaseSpec {
   "exec" when {
     val workSpaceRepo = mock[WorkSpaceRepository]
-    val messageRepo   = mock[MessageRepository]
 
-    "succeed" should {
-      "invoke workSpaceRepository.find & messageRepository.isEmpty & messageRepository.add once" in {
-        forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params =
-            Params(bot.id, workSpace.id, message.channelId, message.userId)
-
-          val targetToken = WorkSpaceToken("mockToken")
-          when(workSpaceRepo.find(params.workSpaceId, params.botId)).thenReturn(
-            Future.successful(Some(workSpace.copy(tokens = Seq(targetToken))))
+    "succeed when no channel messages exist" should {
+      "invoke workSpaceRepository.find & workSpaceRepository.sendMessage once" in {
+        forAll(
+          workSpaceGen,
+          applicationIdGen,
+          botGen,
+          channelTypedChannelMessageGen
+        ) { (workSpace, appId, bot, channel) =>
+          val params            = Params(appId, workSpace.id, channel.id)
+          val returnedWorkSpace = workSpace.copy(
+            channels = Seq(channel.copy(id = channel.id, history = Seq())),
+            bots = Seq(bot.copy(applicationId = appId))
           )
-          when(messageRepo.isEmpty(targetToken, params.channelId))
-            .thenReturn(Future.successful(true))
-          when(
-            messageRepo.add(
-              targetToken,
-              params.channelId,
-              Message.onboardingMessage(params.userId, params.channelId).blocks
-            )
-          ).thenReturn(Future.successful(()))
+          val targetChannel     =
+            returnedWorkSpace.findChannel(params.channelId).unsafeGet
 
-          new PostOnboardingMessageUseCaseImpl(workSpaceRepo, messageRepo)
+          when(workSpaceRepo.find(params.workSpaceId))
+            .thenReturn(Future.successful(Some(returnedWorkSpace)))
+
+          val workSpaceWithUpdatedBots     = returnedWorkSpace
+            .botCreateOnboardingMessage(params.applicationId)
+            .unsafeGet
+          val workSpaceWithUpdatedChannels = workSpaceWithUpdatedBots
+            .botPostMessage(params.applicationId, targetChannel.id)
+            .unsafeGet
+
+          when(
+            workSpaceRepo.sendMessage(
+              workSpaceWithUpdatedChannels,
+              params.applicationId,
+              params.channelId
+            )
+          ).thenReturn(Future.successful(Some()))
+
+          new PostOnboardingMessageUseCaseImpl(workSpaceRepo)
             .exec(params)
             .futureValue
 
-          verify(workSpaceRepo).find(params.workSpaceId, params.botId)
-          verify(messageRepo).isEmpty(targetToken, params.channelId)
-          verify(messageRepo).add(
-            targetToken,
-            params.channelId,
-            Message.onboardingMessage(params.userId, params.channelId).blocks
+          verify(workSpaceRepo).find(params.workSpaceId)
+          verify(workSpaceRepo).sendMessage(
+            workSpaceWithUpdatedChannels,
+            params.applicationId,
+            params.channelId
           )
+
           reset(workSpaceRepo)
-          reset(messageRepo)
+        }
+      }
+    }
+
+    "succeed when any channel message exists" should {
+      "invoke workSpaceRepository.find & workSpaceRepository.sendMessage never invokes" in {
+        forAll(
+          workSpaceGen,
+          applicationIdGen,
+          botGen,
+          channelTypedChannelMessageGen.suchThat(chan =>
+            chan.history.length !== 0
+          )
+        ) { (workSpace, appId, bot, channel) =>
+          val params            = Params(appId, workSpace.id, channel.id)
+          val returnedWorkSpace = workSpace.copy(
+            channels = Seq(channel.copy(id = channel.id)),
+            bots = Seq(bot.copy(applicationId = appId))
+          )
+          val targetChannel     =
+            returnedWorkSpace.findChannel(params.channelId).unsafeGet
+
+          when(workSpaceRepo.find(params.workSpaceId))
+            .thenReturn(Future.successful(Some(returnedWorkSpace)))
+
+          new PostOnboardingMessageUseCaseImpl(workSpaceRepo)
+            .exec(params)
+            .futureValue
+
+          verify(workSpaceRepo).find(params.workSpaceId)
+          verify(workSpaceRepo, times(0)).sendMessage(*, *, *)
+
+          reset(workSpaceRepo)
         }
       }
     }
 
     "return None in workSpaceRepository.find" should {
-      "throw use case error" in {
-        forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params =
-            Params(bot.id, workSpace.id, message.channelId, message.userId)
+      "throw use case error & workSpaceRepository.sendMessage never invokes" in {
+        forAll(workSpaceGen, applicationIdGen, channelTypedChannelMessageGen) {
+          (workSpace, appId, channel) =>
+            val params = Params(appId, workSpace.id, channel.id)
 
-          when(workSpaceRepo.find(params.workSpaceId, params.botId))
-            .thenReturn(Future.successful(None))
+            when(workSpaceRepo.find(params.workSpaceId))
+              .thenReturn(Future.successful(None))
 
-          val result =
-            new PostOnboardingMessageUseCaseImpl(workSpaceRepo, messageRepo)
-              .exec(params)
+            val result =
+              new PostOnboardingMessageUseCaseImpl(workSpaceRepo).exec(params)
 
-          whenReady(result.failed) { e =>
-            assert(
-              e === NotFoundError(
-                "error while workSpaceRepository.find in post onboarding message use case"
+            whenReady(result.failed) { e =>
+              assert(
+                e === NotFoundError(
+                  "error while workSpaceRepository.find in post onboarding message use case"
+                )
               )
-            )
-          }
-          reset(workSpaceRepo)
-          reset(messageRepo)
+              verify(workSpaceRepo).find(params.workSpaceId)
+              verify(workSpaceRepo, times(0)).sendMessage(*, *, *)
+
+              reset(workSpaceRepo)
+            }
         }
       }
     }
 
-    "failed in messageRepository.isEmpty" should {
+    "failed in workSpaceRepository.sendMessage" should {
       "throw use case error" in {
-        forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params =
-            Params(bot.id, workSpace.id, message.channelId, message.userId)
-
-          val targetToken = WorkSpaceToken("mockToken")
-          when(workSpaceRepo.find(params.workSpaceId, params.botId)).thenReturn(
-            Future.successful(Some(workSpace.copy(tokens = Seq(targetToken))))
+        forAll(
+          workSpaceGen,
+          applicationIdGen,
+          botGen,
+          channelTypedChannelMessageGen
+        ) { (workSpace, appId, bot, channel) =>
+          val params            = Params(appId, workSpace.id, channel.id)
+          val returnedWorkSpace = workSpace.copy(
+            channels = Seq(channel.copy(id = channel.id, history = Seq())),
+            bots = Seq(bot.copy(applicationId = appId))
           )
-          when(messageRepo.isEmpty(targetToken, params.channelId))
-            .thenReturn(Future.failed(DBError("error")))
+          val targetChannel     =
+            returnedWorkSpace.findChannel(params.channelId).unsafeGet
 
-          val result =
-            new PostOnboardingMessageUseCaseImpl(workSpaceRepo, messageRepo)
-              .exec(params)
+          when(workSpaceRepo.find(params.workSpaceId))
+            .thenReturn(Future.successful(Some(returnedWorkSpace)))
+          val workSpaceWithUpdatedBots     = returnedWorkSpace
+            .botCreateOnboardingMessage(params.applicationId)
+            .unsafeGet
+          val workSpaceWithUpdatedChannels = workSpaceWithUpdatedBots
+            .botPostMessage(params.applicationId, targetChannel.id)
+            .unsafeGet
 
-          whenReady(result.failed) { e =>
-            assert(
-              e === SystemError(
-                "error while messageRepository.isEmpty in post onboarding message use case" + "\n" + DBError(
-                  "error"
-                ).getMessage
-              )
-            )
-          }
-          reset(workSpaceRepo)
-          reset(messageRepo)
-        }
-      }
-    }
-
-    "failed in messageRepository.add" should {
-      "throw use case error" in {
-        forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params =
-            Params(bot.id, workSpace.id, message.channelId, message.userId)
-
-          val targetToken = WorkSpaceToken("mockToken")
-          when(workSpaceRepo.find(params.workSpaceId, params.botId)).thenReturn(
-            Future.successful(Some(workSpace.copy(tokens = Seq(targetToken))))
-          )
-          when(messageRepo.isEmpty(targetToken, params.channelId))
-            .thenReturn(Future.successful(true))
           when(
-            messageRepo.add(
-              targetToken,
-              params.channelId,
-              Message.onboardingMessage(params.userId, params.channelId).blocks
+            workSpaceRepo.sendMessage(
+              workSpaceWithUpdatedChannels,
+              params.applicationId,
+              params.channelId
             )
-          ).thenReturn(Future.failed(DBError("error")))
+          ).thenReturn(Future.failed(APIError("error")))
 
           val result =
-            new PostOnboardingMessageUseCaseImpl(workSpaceRepo, messageRepo)
-              .exec(params)
+            new PostOnboardingMessageUseCaseImpl(workSpaceRepo).exec(params)
 
           whenReady(result.failed) { e =>
             assert(
               e === SystemError(
-                "error while messageRepository.add in post onboarding message use case" + "\n" + DBError(
-                  "error"
-                ).getMessage
+                "error while workSpaceRepository.sendMessage in post onboarding message use case" +
+                  APIError("error").getMessage
               )
             )
+            reset(workSpaceRepo)
           }
-        }
-      }
-    }
-
-    "return false in messageRepository.isEmpty" should {
-      "return future unit without exec messageRepository.add" in {
-        forAll(workSpaceGen, botGen, messageGen) { (workSpace, bot, message) =>
-          val params =
-            Params(bot.id, workSpace.id, message.channelId, message.userId)
-
-          val targetToken = WorkSpaceToken("mockToken")
-          when(workSpaceRepo.find(params.workSpaceId, params.botId)).thenReturn(
-            Future.successful(Some(workSpace.copy(tokens = Seq(targetToken))))
-          )
-          when(messageRepo.isEmpty(targetToken, params.channelId))
-            .thenReturn(Future.successful(false))
-
-          val result: Unit = new PostOnboardingMessageUseCaseImpl(
-            workSpaceRepo,
-            messageRepo
-          ).exec(params).futureValue
-
-          verify(workSpaceRepo).find(params.workSpaceId, params.botId)
-          verify(messageRepo).isEmpty(targetToken, params.channelId)
-          verify(messageRepo, times(0)).add(
-            targetToken,
-            params.channelId,
-            Message.onboardingMessage(params.userId, params.channelId).blocks
-          )
-          assert(result === ())
-          reset(workSpaceRepo)
-          reset(messageRepo)
         }
       }
     }

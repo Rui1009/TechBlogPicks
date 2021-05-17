@@ -1,5 +1,7 @@
 package domains.post
 
+import domains.application.Application
+import domains.application.Application.ApplicationId
 import domains.{EmptyStringError, NegativeNumberError, RegexError}
 import domains.post.Post._
 import eu.timepit.refined.api.Refined
@@ -10,12 +12,15 @@ import eu.timepit.refined.refineV
 import eu.timepit.refined.string.Url
 
 final case class Post(
-  id: Option[PostId],
+  id: PostId,
   url: PostUrl,
   title: PostTitle,
   author: PostAuthor,
   postedAt: PostPostedAt
-)
+) {
+  def assign(applications: Seq[Application]): Seq[Application] =
+    applications.map(app => app.copy(posts = app.posts :+ this.id))
+}
 
 object Post {
   @newtype case class PostId(value: Long Refined Positive)
@@ -63,3 +68,10 @@ object Post {
       }
   }
 }
+
+final case class UnsavedPost(
+  url: PostUrl,
+  title: PostTitle,
+  author: PostAuthor,
+  postedAt: PostPostedAt
+)

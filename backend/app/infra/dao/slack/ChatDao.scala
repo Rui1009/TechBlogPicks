@@ -1,13 +1,8 @@
 package infra.dao.slack
 
 import com.google.inject.Inject
-import domains.message.Message.{
-  AccessoryImage,
-  ActionBlock,
-  ActionSelect,
-  MessageBlock,
-  SectionBlock
-}
+import domains.channel.DraftMessage
+import domains.channel.DraftMessage._
 import infra.APIError
 import infra.dao.ApiDao
 import infra.dao.slack.ChatDaoImpl.PostMessageResponse
@@ -30,7 +25,7 @@ trait ChatDao {
   def postMessage(
     token: String,
     channel: String,
-    blocks: Seq[MessageBlock]
+    blocks: DraftMessage
   ): Future[PostMessageResponse]
 }
 
@@ -60,26 +55,44 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
   def postMessage(
     token: String,
     channel: String,
-    blocks: Seq[MessageBlock]
+    blocks: DraftMessage
   ): Future[PostMessageResponse] = {
     val url                                                = "https://slack.com/api/chat.postMessage"
     implicit val encodeSectionBlock: Encoder[MessageBlock] = Encoder.instance {
-      case section: SectionBlock => Json.obj(
-          "type" -> Json.fromString("section"),
-          "text" -> Json.obj(
-            "type" -> Json.fromString("mrkdwn"),
-            "text" -> Json.fromString(section.blockText.text.value)
-          ),
-          section.blockAccessory match {
-            case Some(blockAccessory: AccessoryImage) =>
-              "accessory" -> Json.obj(
-                "type"      -> Json.fromString("image"),
-                "image_url" -> Json.fromString(blockAccessory.imageUrl.value),
-                "alt_text"  -> Json.fromString(blockAccessory.imageAltText)
+      case section: SectionBlock =>
+        val commonJson = JsonObject.empty
+          .add("type", Json.fromString("section"))
+          .add(
+            "text",
+            Json.fromJsonObject(
+              JsonObject.empty
+                .add("type", Json.fromString("mrkdwn"))
+                .add("text", Json.fromString(section.blockText.text.value))
+            )
+          )
+
+        section.blockAccessory match {
+          case Some(blockAccessory: AccessoryImage) => Json.fromJsonObject(
+              commonJson.add(
+                "accessory",
+                Json.fromJsonObject(
+                  JsonObject.empty
+                    .add("type", Json.fromString("image"))
+                    .add(
+                      "image_url",
+                      Json.fromString(blockAccessory.imageUrl.value)
+                    )
+                    .add(
+                      "alt_text",
+                      Json.fromString(blockAccessory.imageAltText)
+                    )
+                )
               )
-          }
-        )
-      case action: ActionBlock   => Json.obj(
+            )
+          case None                                 => Json.fromJsonObject(commonJson)
+        }
+
+      case action: ActionBlock => Json.obj(
           "type"     -> Json.fromString("actions"),
           "elements" -> Json.fromValues(action.actionBlockElements.map {
             case elem: ActionSelect => Json.obj(
@@ -96,14 +109,19 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     }
 
     (for {
-      res <- ws.url(url)
-               .withHttpHeaders("Authorization" -> s"Bearer $token")
-               .withQueryStringParameters(
-                 "channel" -> channel,
-                 "blocks"  -> blocks.asJson.toString
-               )
-               .post(Json.Null.noSpaces)
-               .ifFailedThenToInfraError(s"error while posting $url")
+      res <-
+        ws.url(url)
+          .withHttpHeaders("Authorization" -> s"Bearer $token")
+          .withQueryStringParameters(
+            "channel" -> channel,
+            "blocks"  -> blocks.blocks
+              .map(_.asJson)
+              .toString
+              .patch(blocks.blocks.map(_.asJson).toString.length - 1, "]", 1)
+              .patch(0, "[", 5)
+          )
+          .post(Json.Null.noSpaces)
+          .ifFailedThenToInfraError(s"error while posting $url")
     } yield decode[PostMessageResponse](res.json.toString))
       .ifLeftThenToInfraError("error while converting list api response")
   }

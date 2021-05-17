@@ -1,11 +1,11 @@
 package usecases
 
 import com.google.inject.Inject
+import domains.application.Application.ApplicationId
 import domains.bot.Bot.BotId
-import domains.message.Message.{MessageChannelId, MessageUserId}
-import domains.message.{Message, MessageRepository}
+import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace.WorkSpaceId
-import domains.workspace.{WorkSpace, WorkSpaceRepository}
+import domains.workspace.WorkSpaceRepository
 import usecases.PostOnboardingMessageUseCase.Params
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,41 +16,53 @@ trait PostOnboardingMessageUseCase {
 
 object PostOnboardingMessageUseCase {
   final case class Params(
-    botId: BotId,
+    applicationId: ApplicationId,
     workSpaceId: WorkSpaceId,
-    channelId: MessageChannelId,
-    userId: MessageUserId
+    channelId: ChannelId
   )
 }
 
 final class PostOnboardingMessageUseCaseImpl @Inject() (
-  workSpaceRepository: WorkSpaceRepository,
-  messageRepository: MessageRepository
+  workSpaceRepository: WorkSpaceRepository
 )(implicit val ec: ExecutionContext)
     extends PostOnboardingMessageUseCase {
-  override def exec(params: Params): Future[Unit] = (for {
+  override def exec(params: Params) = (for {
     targetWorkSpace <-
       workSpaceRepository
-        .find(params.workSpaceId, params.botId)
+        .find(params.workSpaceId)
         .ifNotExistsToUseCaseError(
           "error while workSpaceRepository.find in post onboarding message use case"
         )
-    targetToken      = targetWorkSpace.tokens.head
-    isEmpty         <-
-      messageRepository
-        .isEmpty(targetToken, params.channelId)
-        .ifFailThenToUseCaseError(
-          "error while messageRepository.isEmpty in post onboarding message use case"
+
+    targetChannel <-
+      targetWorkSpace
+        .findChannel(params.channelId)
+        .ifLeftThenToUseCaseError(
+          "error while WorkSpace.findChannel in post onboarding message use case"
         )
   } yield
-    if (isEmpty) messageRepository
-      .add(
-        targetToken,
-        params.channelId,
-        Message.onboardingMessage(params.userId, params.channelId).blocks
-      )
-      .ifFailThenToUseCaseError(
-        "error while messageRepository.add in post onboarding message use case"
-      )
-    else Future.unit).flatten
+    if (targetChannel.isMessageExists) Future.unit
+    else for {
+      workSpaceWithUpdatedBots     <-
+        targetWorkSpace
+          .botCreateOnboardingMessage(params.applicationId)
+          .ifLeftThenToUseCaseError(
+            "error while WorkSpace.botCreateOnboardingMessage in post onboarding message use case"
+          )
+      workSpaceWithUpdatedChannels <-
+        workSpaceWithUpdatedBots
+          .botPostMessage(params.applicationId, targetChannel.id)
+          .ifLeftThenToUseCaseError(
+            "error while WorkSpace.botPostMessage in post onboarding message use case"
+          )
+      _                            <- workSpaceRepository
+                                        .sendMessage(
+                                          workSpaceWithUpdatedChannels,
+                                          params.applicationId,
+                                          params.channelId
+                                        )
+                                        .ifNotExistsToUseCaseError(
+                                          "error while workSpaceRepository.sendMessage in post onboarding message use case"
+                                        )
+    } yield ()).flatten
 }

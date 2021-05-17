@@ -115,4 +115,23 @@ class PostDomainSpec extends ModelSpec {
       }
     }
   }
+
+  "Post.assign" when {
+    "given application list" should {
+      "return applications which have registered post" in {
+        forAll(Gen.nonEmptyListOf(applicationGen), postGen) {
+          (_appList, post) =>
+            val appList = _appList.map(app =>
+              app.copy(posts = app.posts.filter(_ === post.id))
+            )
+
+            val result   = post.assign(appList)
+            val expected =
+              appList.map(app => app.copy(posts = app.posts :+ post.id))
+
+            assert(result === expected)
+        }
+      }
+    }
+  }
 }

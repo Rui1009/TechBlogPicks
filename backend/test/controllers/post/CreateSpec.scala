@@ -124,7 +124,7 @@ class PostControllerCreateSpec extends ControllerSpec with CreateSpecContext {
         }
       }
 
-      "botIds is invalid" should {
+      "applicationIds is invalid" should {
         "return BadRequest Error" in {
           forAll(createPostBodyGen) { body =>
             val req = body.copy(botIds = Seq(""))
@@ -135,7 +135,7 @@ class PostControllerCreateSpec extends ControllerSpec with CreateSpecContext {
               decodeERes(
                 res
               ).unsafeGet.message === badRequestError + emptyStringError(
-                "BotId"
+                "ApplicationId"
               ).trim
             )
           }
@@ -153,7 +153,7 @@ class PostControllerCreateSpec extends ControllerSpec with CreateSpecContext {
               urlError + emptyStringError("PostTitle") + emptyStringError(
                 "PostAuthor"
               ) + negativeNumberError("PostPostedAt") + emptyStringError(
-                "BotId"
+                "ApplicationId"
               )).trim
           )
         }

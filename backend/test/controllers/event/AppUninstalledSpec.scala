@@ -3,18 +3,18 @@ package controllers.event
 import helpers.traits.ControllerSpec
 import io.circe.{Json, JsonObject}
 import play.api.inject.bind
-import usecases.{SystemError, UninstallBotUseCase}
+import usecases.{SystemError, UninstallApplicationUseCase}
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
 trait AppUninstalledSpecContext { this: ControllerSpec =>
-  val uc = mock[UninstallBotUseCase]
+  val uc = mock[UninstallApplicationUseCase]
 
   val path = "/events"
 
   override val app =
-    builder.overrides(bind[UninstallBotUseCase].toInstance(uc)).build()
+    builder.overrides(bind[UninstallApplicationUseCase].toInstance(uc)).build()
 }
 
 class AppUninstalledSpec extends ControllerSpec with AppUninstalledSpecContext {
@@ -68,7 +68,7 @@ class AppUninstalledSpec extends ControllerSpec with AppUninstalledSpecContext {
     }
 
     "given body which is invalid".which {
-      "teamId is invalid" should {
+      "teamId & applicationId are invalid" should {
         "return Bad Request Error" in {
           when(uc.exec(*)).thenReturn(Future.unit)
 
@@ -85,8 +85,8 @@ class AppUninstalledSpec extends ControllerSpec with AppUninstalledSpecContext {
 
           val msg = """
                 |BadRequestError
-                |domains.EmptyStringError: WorkSpaceId is empty string
-                |domains.EmptyStringError: BotId is empty string
+                |EmptyStringError: WorkSpaceId is empty string
+                |EmptyStringError: ApplicationId is empty string
                 |""".stripMargin.trim
 
           assert(status(res) === BAD_REQUEST)

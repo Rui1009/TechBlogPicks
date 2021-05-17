@@ -1,14 +1,13 @@
 package usecases
 
 import com.google.inject.Inject
-import domains.bot.Bot.BotId
-import domains.post.PostRepository
-import domains.post.Post
-import domains.post.Post._
+import domains.application.Application.ApplicationId
+import domains.application.ApplicationRepository
+import domains.post.Post.{PostAuthor, PostPostedAt, PostTitle, PostUrl}
+import domains.post.{PostRepository, UnsavedPost}
 import usecases.RegisterPostUseCase.Params
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 trait RegisterPostUseCase {
   def exec(params: Params): Future[Unit]
@@ -20,20 +19,38 @@ object RegisterPostUseCase {
     title: PostTitle,
     author: PostAuthor,
     postedAt: PostPostedAt,
-    botIds: Seq[BotId]
+    applicationIds: Seq[ApplicationId]
   )
 }
 
-final class RegisterPostUseCaseImpl @Inject() (postRepository: PostRepository)(
-  implicit val ec: ExecutionContext
-) extends RegisterPostUseCase {
+final class RegisterPostUseCaseImpl @Inject() (
+  postRepository: PostRepository,
+  applicationRepository: ApplicationRepository
+)(implicit val ec: ExecutionContext)
+    extends RegisterPostUseCase {
   override def exec(params: Params): Future[Unit] = {
     val post =
-      Post(None, params.url, params.title, params.author, params.postedAt)
-    postRepository
-      .add(post, params.botIds)
-      .ifFailThenToUseCaseError(
-        "error while postRepository.add in register post use case"
-      )
+      UnsavedPost(params.url, params.title, params.author, params.postedAt)
+
+    for {
+      savedPost           <-
+        postRepository
+          .save(post)
+          .ifFailThenToUseCaseError(
+            "error while postRepository.save in register post use case"
+          )
+      targetApplications  <-
+        applicationRepository
+          .filter(params.applicationIds)
+          .ifNotExistsToUseCaseError(
+            "error while get applications in register post use case"
+          )
+      assignedApplications = savedPost.assign(targetApplications)
+      _                   <- applicationRepository
+                               .save(assignedApplications, savedPost.id)
+                               .ifFailThenToUseCaseError(
+                                 "error while applicationRepository.add in register post use case"
+                               )
+    } yield ()
   }
 }

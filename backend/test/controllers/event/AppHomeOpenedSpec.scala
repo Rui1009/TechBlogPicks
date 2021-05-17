@@ -84,7 +84,7 @@ class AppHomeOpenedSpec extends ControllerSpec {
 
           val msg = """
               |BadRequestError
-              |domains.EmptyStringError: MessageChannelId is empty string
+              |EmptyStringError: ChannelId is empty string
               |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)
@@ -92,7 +92,7 @@ class AppHomeOpenedSpec extends ControllerSpec {
         }
       }
 
-      "botId is invalid" should {
+      "ApplicationId is invalid" should {
         "return Bad Request Error" in {
           when(uc.exec(*)).thenReturn(Future.unit)
 
@@ -109,7 +109,7 @@ class AppHomeOpenedSpec extends ControllerSpec {
 
           val msg = """
                       |BadRequestError
-                      |domains.EmptyStringError: BotId is empty string
+                      |EmptyStringError: ApplicationId is empty string
                       |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)
@@ -134,32 +134,7 @@ class AppHomeOpenedSpec extends ControllerSpec {
 
           val msg = """
                       |BadRequestError
-                      |domains.EmptyStringError: WorkSpaceId is empty string
-                      |""".stripMargin.trim
-
-          assert(status(resp) === BAD_REQUEST)
-          assert(decodeERes(resp).unsafeGet.message === msg)
-        }
-      }
-
-      "userId is invalid" should {
-        "return Bad Request Error" in {
-          when(uc.exec(*)).thenReturn(Future.unit)
-
-          val body = Json.obj(
-            "team_id"    -> Json.fromString("teamId"),
-            "api_app_id" -> Json.fromString("appId"),
-            "event"      -> Json.obj(
-              "channel" -> Json.fromString("channel"),
-              "user"    -> Json.fromString(""),
-              "type"    -> Json.fromString("app_home_opened")
-            )
-          )
-          val resp = Request.post(path).withJsonBody(body).unsafeExec
-
-          val msg = """
-                      |BadRequestError
-                      |domains.EmptyStringError: MessageUserId is empty string
+                      |EmptyStringError: WorkSpaceId is empty string
                       |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)
@@ -184,10 +159,9 @@ class AppHomeOpenedSpec extends ControllerSpec {
 
           val msg = """
                       |BadRequestError
-                      |domains.EmptyStringError: MessageChannelId is empty string
-                      |domains.EmptyStringError: BotId is empty string
-                      |domains.EmptyStringError: WorkSpaceId is empty string
-                      |domains.EmptyStringError: MessageUserId is empty string
+                      |EmptyStringError: ChannelId is empty string
+                      |EmptyStringError: ApplicationId is empty string
+                      |EmptyStringError: WorkSpaceId is empty string
                       |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)

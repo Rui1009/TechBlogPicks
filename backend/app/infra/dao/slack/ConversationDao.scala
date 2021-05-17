@@ -1,26 +1,26 @@
 package infra.dao.slack
 
 import com.google.inject.Inject
-import domains.workspace.WorkSpace.WorkSpaceToken
 import infra.dao.ApiDao
 import infra.dao.slack.ConversationDaoImpl.{InfoResponse, JoinResponse}
-import io.circe.{Decoder, Json}
+import io.circe.{ACursor, Decoder, Json}
 import io.circe.Decoder.Result
 import play.api.libs.ws.WSClient
 import infra.syntax.all._
 import io.circe.parser._
+import io.circe.Decoder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ConversationDao {
-  def info(token: String, channelId: String): Future[InfoResponse]
+  def info(token: String, channelId: String): Future[Option[InfoResponse]]
   def join(token: String, channelId: String): Future[JoinResponse]
 }
 
 class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
   ec: ExecutionContext
 ) extends ApiDao(ws) with ConversationDao {
-  def info(token: String, channelId: String): Future[InfoResponse] = {
+  def info(token: String, channelId: String): Future[Option[InfoResponse]] = {
     val url = "https://slack.com/api/conversations.info"
     (for {
       resp <- ws.url(url)
@@ -29,7 +29,7 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
                 .get()
                 .ifFailedThenToInfraError(s"error while getting $url")
                 .map(res => res.json.toString)
-    } yield decode[InfoResponse](resp)).ifLeftThenToInfraError(
+    } yield decode[Option[InfoResponse]](resp)).ifLeftThenToInfraError(
       "error while converting conversation info api response"
     )
   }
@@ -50,16 +50,38 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
 }
 
 object ConversationDaoImpl {
-  case class InfoResponse(latest: Json) {
-    def isFirst: Boolean = this.latest.isNull
-  }
-  implicit val conversationDecoder: Decoder[InfoResponse] =
+  case class InfoResponse(senderUserId: String, text: String, ts: Float)
+  implicit val conversationDecoder: Decoder[Option[InfoResponse]] =
     Decoder.instance { cursor =>
-      cursor
-        .downField("channel")
-        .downField("latest")
-        .as[Json]
-        .map(v => InfoResponse(v))
+      cursor.downField("channel").downField("latest").as[Json] match {
+        case Right(v) if v.isNull =>
+          for {
+            _ <-
+              cursor
+                .downField("channel")
+                .downField("id")
+                .as[String] // もっとスマートな方法はないか
+          } yield None
+
+        case Right(_) => for {
+            senderUserId <- cursor
+                              .downField("channel")
+                              .downField("latest")
+                              .downField("user")
+                              .as[String]
+            text         <- cursor
+                              .downField("channel")
+                              .downField("latest")
+                              .downField("text")
+                              .as[String]
+
+            ts <- cursor
+                    .downField("channel")
+                    .downField("latest")
+                    .downField("ts")
+                    .as[String]
+          } yield Some(InfoResponse(senderUserId, text, ts.toFloat))
+      }
     }
 
   case class JoinResponse(channel: String)

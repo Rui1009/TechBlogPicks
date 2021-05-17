@@ -7,27 +7,30 @@ import infra.syntax.all._
 import infra.dto.Tables._
 import cats.syntax.option._
 import domains.post.Post.PostId
+import domains.post.UnsavedPost
 import eu.timepit.refined.auto._
 
 class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
-  "add" when {
+  "save" when {
     "succeed" should {
       "add new data".which {
         "length is right" in {
           forAll(postGen, Gen.listOf(botIdGen)) { (post, botIds) =>
-            repository.add(post, botIds).futureValue
-            val postLen      = db.run(Posts.length.result).futureValue
-            val botsPostsLen = db.run(BotsPosts.length.result).futureValue
+            val unsavedPost =
+              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+            repository.save(unsavedPost).futureValue
+            val postLen     = db.run(Posts.length.result).futureValue
             assert(postLen === 1)
-            assert(botsPostsLen === botIds.length)
-            db.run(BotsPosts.delete >> Posts.delete).futureValue
+            db.run(Posts.delete).futureValue
           }
         }
 
         "values are right" in {
-          forAll(postGen, Gen.listOf(botIdGen)) { (post, botIds) =>
-            repository.add(post, botIds).futureValue
-            val postsRow      = db
+          forAll(postGen) { post =>
+            val unsavedPost =
+              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+            repository.save(unsavedPost).futureValue
+            val postsRow    = db
               .run(Posts.result.head)
               .map(r =>
                 PostsRow(
@@ -40,12 +43,8 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
                 )
               )
               .futureValue
-            val botsPostsRows = db.run(BotsPosts.result).futureValue
-            post.toRow(1).shouldPartiallyEq(0, 5)(postsRow)
-            botsPostsRows.foreach { row =>
-              assert(botIds.map(_.value.value).contains(row.botId))
-            }
-            db.run(BotsPosts.delete >> Posts.delete).futureValue
+            unsavedPost.toRow(1).shouldPartiallyEq(0, 5)(postsRow)
+            db.run(Posts.delete).futureValue
           }
         }
       }

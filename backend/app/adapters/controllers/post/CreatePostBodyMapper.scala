@@ -4,7 +4,7 @@ import adapters.controllers.helpers.JsonRequestMapper
 import adapters.{AdapterError, BadRequestError}
 import cats.implicits._
 import domains.DomainError
-import domains.bot.Bot.BotId
+import domains.application.Application.ApplicationId
 import domains.post.Post._
 import play.api.mvc.{BaseController, BodyParser}
 import io.circe.generic.auto._
@@ -24,7 +24,7 @@ final case class CreatePostCommand(
   title: PostTitle,
   author: PostAuthor,
   postedAt: PostPostedAt,
-  botIds: Seq[BotId]
+  botIds: Seq[ApplicationId] // ここはfileld名をapplicationIdsにしてフロントからの値を修正する
 )
 
 trait PostCreateBodyMapper extends JsonRequestMapper {
@@ -38,7 +38,7 @@ trait PostCreateBodyMapper extends JsonRequestMapper {
         PostTitle.create(body.title).toValidatedNec,
         PostAuthor.create(body.author).toValidatedNec,
         PostPostedAt.create(body.postedAt).toValidatedNec,
-        body.botIds.map(BotId.create(_).toValidatedNec).sequence
+        body.botIds.map(ApplicationId.create(_).toValidatedNec).sequence
       ).mapN(CreatePostCommand.apply)
         .toEither
         .leftMap(errors =>

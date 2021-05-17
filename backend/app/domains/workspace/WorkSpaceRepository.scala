@@ -1,19 +1,38 @@
 package domains.workspace
 
-import domains.workspace.WorkSpace.{WorkSpaceId, WorkSpaceTemporaryOauthCode}
-import domains.bot.Bot.{BotClientId, BotClientSecret, BotId}
+import domains.application.Application._
+import domains.workspace.WorkSpace._
+import domains.channel.Channel.ChannelId
+import domains.bot.Bot
+import domains.bot.Bot.BotId
+import domains.channel.{Channel, DraftMessage}
 
 import scala.concurrent.Future
 
 trait WorkSpaceRepository {
   def find(
     code: WorkSpaceTemporaryOauthCode,
-    clientId: BotClientId,
-    clientSecret: BotClientSecret
-  ): Future[Option[WorkSpace]]
+    clientId: ApplicationClientId,
+    clientSecret: ApplicationClientSecret
+  ): Future[WorkSpace]
 
-  def add(model: WorkSpace): Future[Unit]
-  def update(model: WorkSpace): Future[Unit]
+  def update(
+    model: WorkSpace,
+    applicationId: ApplicationId
+  ): Future[Option[Unit]]
+
+  def joinChannels(
+    model: WorkSpace,
+    applicationId: ApplicationId,
+    channelIds: Seq[ChannelId]
+  ): Future[Unit]
+
+  def removeBot(model: WorkSpace): Future[Unit]
+
   def find(id: WorkSpaceId): Future[Option[WorkSpace]]
-  def find(id: WorkSpaceId, botId: BotId): Future[Option[WorkSpace]]
+  def sendMessage(
+    workSpace: WorkSpace,
+    applicationId: ApplicationId,
+    channelId: ChannelId
+  ): Future[Option[Unit]]
 }

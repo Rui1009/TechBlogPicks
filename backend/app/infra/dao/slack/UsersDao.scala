@@ -24,14 +24,15 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     (for {
       res <- ws.url(url)
                .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
+               .withQueryStringParameters("types" -> "public_channel,im")
                .get()
                .ifFailedThenToInfraError(s"error while getting $url")
                .map(_.json.toString)
-    } yield decode[ConversationResponse](res).left.map(e =>
+    } yield decode[ConversationResponse](res).left.map { e =>
       APIError(
         s"error while converting conversations api response -> token: $accessToken" + "\n" + e.getMessage + "\n" + res
       )
-    )).anywaySuccess(ConversationResponse.empty)
+    }).anywaySuccess(ConversationResponse.empty)
   }
 
   def list(accessToken: String): Future[ListResponse] = {
@@ -50,21 +51,23 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
 }
 
 object UsersDaoImpl {
-  case class ConversationResponse(channels: Seq[Channels])
+  final case class ConversationResponse(channels: Seq[Channels])
   object ConversationResponse {
     def empty: ConversationResponse = ConversationResponse(Seq.empty)
   }
-  case class Channels(id: String)
 
-  case class ListResponse(members: Seq[Member])
+  final case class Channels(id: String)
 
-  case class Member(
+  final case class ListResponse(members: Seq[Member])
+
+  final case class Member(
     id: String,
     name: String,
     isBot: Boolean,
     deleted: Boolean,
-    botId: Option[String]
+    apiAppId: Option[String]
   )
+
   implicit val membersEncoder: Decoder[Member] = Decoder.instance { cursor =>
     for {
       id      <- cursor.downField("id").as[String]

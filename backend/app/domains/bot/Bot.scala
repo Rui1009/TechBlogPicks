@@ -1,36 +1,62 @@
 package domains.bot
 
-import domains.EmptyStringError
-import domains.workspace.WorkSpace.WorkSpaceToken
-import domains.bot.Bot.{
-  BotChannelId,
-  BotClientId,
-  BotClientSecret,
-  BotId,
-  BotName
+import domains.{EmptyStringError, NotExistError}
+import domains.application.Application.ApplicationId
+import domains.bot.Bot.{BotAccessToken, BotId, BotName}
+import domains.channel.{Channel, DraftMessage}
+import domains.channel.Channel.ChannelId
+import domains.channel.DraftMessage.{
+  ActionBlock,
+  ActionSelect,
+  BlockText,
+  SectionBlock,
+  SelectPlaceHolder
 }
-import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.refineV
+import eu.timepit.refined.auto._
 import io.estatico.newtype.macros.newtype
 
 final case class Bot(
-  id: BotId,
+  id: Option[BotId],
   name: BotName,
-  accessTokens: Seq[WorkSpaceToken],
-  posts: Seq[PostId],
-  channels: Seq[BotChannelId],
-  clientId: Option[BotClientId],
-  clientSecret: Option[BotClientSecret]
+  applicationId: ApplicationId,
+  accessToken: BotAccessToken,
+  channelIds: Seq[ChannelId],
+  draftMessage: Option[DraftMessage]
 ) {
-  def updateClientInfo(
-    clientId: Option[BotClientId],
-    clientSecret: Option[BotClientSecret]
-  ): Bot = this.copy(clientId = clientId, clientSecret = clientSecret)
+  def joinTo(channelId: ChannelId): Bot =
+    this.copy(channelIds = channelIds.filter(_ != channelId) :+ channelId)
 
-  def joinTo(channelId: BotChannelId): Bot =
-    this.copy(channels = channels :+ channelId)
+  def createOnboardingMessage: Bot = {
+    val draft = DraftMessage(
+      Seq(
+        SectionBlock(
+          BlockText(
+            Refined.unsafeApply(
+              "インストールありがとうございます🤗\nWinkieはあなたの関心のある分野に関する最新の技術記事を自動でslack上に定期配信するアプリです。\nご利用いただくために、初めにアプリを追加するチャンネルを選択してください。"
+            )
+          ),
+          None
+        ),
+        ActionBlock(
+          Seq(
+            ActionSelect(
+              "channels_select",
+              SelectPlaceHolder("Select a channel", false),
+              "actionId-0"
+            )
+          )
+        )
+      )
+    )
+    this.copy(draftMessage = Some(draft))
+  }
+
+  def postMessage(channel: Channel): Either[NotExistError, Channel] = for {
+    message <- this.draftMessage.toRight(NotExistError("DraftMessage"))
+  } yield channel.receiveMessage(message)
 }
 
 object Bot {
@@ -52,30 +78,12 @@ object Bot {
       }
   }
 
-  @newtype case class BotClientId(value: String Refined NonEmpty)
-  object BotClientId {
-    def create(value: String): Either[EmptyStringError, BotClientId] =
+  @newtype case class BotAccessToken(value: String Refined NonEmpty)
+  object BotAccessToken {
+    def create(value: String): Either[EmptyStringError, BotAccessToken] =
       refineV[NonEmpty](value) match {
-        case Left(_)  => Left(EmptyStringError("BotClientId"))
-        case Right(v) => Right(BotClientId(v))
-      }
-  }
-
-  @newtype case class BotClientSecret(value: String Refined NonEmpty)
-  object BotClientSecret {
-    def create(value: String): Either[EmptyStringError, BotClientSecret] =
-      refineV[NonEmpty](value) match {
-        case Left(_)  => Left(EmptyStringError("BotClientSecret"))
-        case Right(v) => Right(BotClientSecret(v))
-      }
-  }
-
-  @newtype case class BotChannelId(value: String Refined NonEmpty)
-  object BotChannelId {
-    def create(value: String): Either[EmptyStringError, BotChannelId] =
-      refineV[NonEmpty](value) match {
-        case Left(_)  => Left(EmptyStringError("BotChannelId"))
-        case Right(v) => Right(BotChannelId(v))
+        case Right(v) => Right(BotAccessToken(v))
+        case Left(_)  => Left(EmptyStringError("BotAccessToken"))
       }
   }
 }

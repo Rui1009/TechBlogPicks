@@ -15,4 +15,6 @@ final class EitherOps[R, L](private val e: Either[L, R]) extends AnyVal {
     throw new Exception(s"can't get right value from ${e.toString}")
   )
 
+  def unsafeLeftGet: L = e.left
+    .getOrElse(throw new Exception(s"can't get left value from ${e.toString}"))
 }

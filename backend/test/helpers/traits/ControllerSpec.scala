@@ -16,13 +16,13 @@ trait ControllerSpec extends UnitSpec with HasApplication {
 
   val internalServerError = "InternalServerError\n"
 
-  val urlError = "domains.RegexError: PostUrl don't match pattern\n"
+  val urlError = "RegexError: PostUrl don't match pattern\n"
 
   def emptyStringError(className: String) =
-    s"domains.EmptyStringError: $className is empty string\n"
+    s"EmptyStringError: $className is empty string\n"
 
   def negativeNumberError(className: String) =
-    s"domains.NegativeNumberError: $className is negative number\n"
+    s"NegativeNumberError: $className is negative number\n"
 
   case class Response[T](data: T)
   case class ErrorResponse(message: String)

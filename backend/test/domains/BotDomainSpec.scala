@@ -1,8 +1,17 @@
 package domains
 
 import domains.bot.Bot._
+import domains.channel.DraftMessage
+import domains.channel.DraftMessage.{
+  ActionBlock,
+  ActionSelect,
+  BlockText,
+  SectionBlock,
+  SelectPlaceHolder
+}
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.auto._
 import helpers.traits.ModelSpec
-import org.scalacheck.Gen
 
 class BotDomainSpec extends ModelSpec {
   "BotId.create" when {
@@ -41,11 +50,11 @@ class BotDomainSpec extends ModelSpec {
     }
   }
 
-  "BotClientId.create" when {
+  "BotAccessToken.create" when {
     "given non-empty string" should {
       "return Right value which equals given arg value" in {
         forAll(stringRefinedNonEmptyGen) { str =>
-          val result = BotClientId.create(str.value)
+          val result = BotAccessToken.create(str.value)
           assert(result.map(_.value) === Right(str))
         }
       }
@@ -53,59 +62,79 @@ class BotDomainSpec extends ModelSpec {
 
     "given empty string" should {
       "return Left value which values equals DomainError" in {
-        val result = BotClientId.create("")
-        assert(result.leftSide === Left(EmptyStringError("BotClientId")))
+        val result = BotAccessToken.create("")
+        assert(result.leftSide === Left(EmptyStringError("BotAccessToken")))
       }
     }
   }
 
-  "BotClientSecret.create" when {
-    "given non-empty string" should {
-      "return Right value which equals given arg value" in {
-        forAll(stringRefinedNonEmptyGen) { str =>
-          val result = BotClientSecret.create(str.value)
-          assert(result.map(_.value) === Right(str))
+  "Bot.joinTo" should {
+    "return Bot which channelIds is updated" in {
+      forAll(botGen, channelIdGen) { (bot, channelId) =>
+        val result = bot.joinTo(channelId)
+        assert(result.channelIds.contains(channelId))
+        assert(result.channelIds.length === bot.channelIds.length + 1)
+      }
+    }
+  }
+
+  "Bot.postMessage" when {
+    "bot has draft message" should {
+      "return channel which messages is updated" in {
+        forAll(botGen, channelTypedChannelMessageGen) { (_bot, channel) =>
+          val bot = _bot.createOnboardingMessage
+
+          val result   = bot.postMessage(channel)
+          val expected = Right(
+            channel.copy(history = channel.history :+ bot.draftMessage.get)
+          )
+
+          assert(result === expected)
         }
       }
     }
 
-    "given empty string" should {
-      "return Left value which values equals DomainError" in {
-        val result = BotClientSecret.create("")
-        assert(result.leftSide === Left(EmptyStringError("BotClientSecret")))
-      }
-    }
-  }
+    "bot does not have draft message" should {
+      "return domain error" in {
+        forAll(botGen, channelTypedChannelMessageGen) { (bot, channel) =>
+          val result   = bot.postMessage(channel)
+          val expected = Left(NotExistError("DraftMessage"))
 
-  "BotChannelId.create" when {
-    "given non-empty string" should {
-      "return Right value which equals given arg value" in {
-        forAll(stringRefinedNonEmptyGen) { str =>
-          val result = BotChannelId.create(str.value)
-          assert(result.map(_.value) === Right(str))
+          assert(result === expected)
         }
       }
     }
-
-    "given empty string" should {
-      "return Left value which values equals DomainError" in {
-        val result = BotChannelId.create("")
-        assert(result.leftSide === Left(EmptyStringError("BotChannelId")))
-      }
-    }
   }
 
-  "Bot.updateClientInfo" should {
-    "return Bot model which client info updated" in {
-      forAll(
-        botGen,
-        Gen.option(botClientIdGen),
-        Gen.option(botClientSecretGen)
-      ) { (model, id, secret) =>
-        val result = model.updateClientInfo(id, secret)
+  "Bot.createOnboardingMessage" should {
+    "return bot which draft message is Defined" in {
+      forAll(botGen) { bot =>
+        val result = bot.createOnboardingMessage
+        val draft  = DraftMessage(
+          Seq(
+            SectionBlock(
+              BlockText(
+                Refined.unsafeApply(
+                  "インストールありがとうございます🤗\nWinkieはあなたの関心のある分野に関する最新の技術記事を自動でslack上に定期配信するアプリです。\nご利用いただくために、初めにアプリを追加するチャンネルを選択してください。"
+                )
+              ),
+              None
+            ),
+            ActionBlock(
+              Seq(
+                ActionSelect(
+                  "channels_select",
+                  SelectPlaceHolder("Select a channel", false),
+                  "actionId-0"
+                )
+              )
+            )
+          )
+        )
 
-        assert(result.clientId === id)
-        assert(result.clientSecret === secret)
+        val expected = bot.copy(draftMessage = Some(draft))
+
+        assert(result === expected)
       }
     }
   }
