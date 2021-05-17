@@ -75,14 +75,18 @@ object ChannelSelectActionInteractivityCommand {
 
 trait InteractivityBodyMapper extends JsonRequestMapper {
   this: BaseController =>
-  def mapToInteractivityCommand(implicit
-    ec: ExecutionContext
-  ): BodyParser[Either[AdapterError, InteractivityCommand]] = {
+  def mapToInteractivityCommand(implicit ec: ExecutionContext) = {
     println("mapToInteractive")
     mapToValueObject[InteractivityBody, InteractivityCommand] {
       case body: ChannelSelectActionInteractivityBody =>
         println("body case match")
         ChannelSelectActionInteractivityCommand.validate(body)
+      case _                                          =>
+        println("sss")
+        println(_)
+        ChannelSelectActionInteractivityCommand.validate(
+          ChannelSelectActionInteractivityBody(Seq())
+        )
     }(decodeInteractivity, ec)
   }
 }
