@@ -85,6 +85,19 @@ final case class WorkSpace(
       case None    => Left(NotExistError("Bot"))
     }
 
+  def botCreateGreetingInInvitedChannel(
+    applicationId: ApplicationId
+  ): Either[DomainError, WorkSpace] =
+    this.bots.find(bot => bot.applicationId == applicationId) match {
+      case Some(v) => Right(
+          this.copy(bots =
+            bots
+              .filter(bot => bot.id != v.id) :+ v.createGreetingInInvitedChannel
+          )
+        )
+      case None    => Left(NotExistError("Bot"))
+    }
+
   def botPostMessage(
     applicationId: ApplicationId,
     channelId: ChannelId

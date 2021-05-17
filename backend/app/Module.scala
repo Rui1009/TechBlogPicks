@@ -29,6 +29,8 @@ class Module extends AbstractModule {
     bind(classOf[PostOnboardingMessageUseCase])
       .to(classOf[PostOnboardingMessageUseCaseImpl])
     bind(classOf[JoinChannelUseCase]).to(classOf[JoinChannelUseCaseImpl])
+    bind(classOf[GreetInInvitedChannelUseCase])
+      .to(classOf[GreetInInvitedChannelUseCaseImpl])
 
     // query processor impl
     bind(classOf[PublishPostsQueryProcessor])
