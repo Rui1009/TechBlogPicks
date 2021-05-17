@@ -2,8 +2,8 @@ package adapters.controllers.interactivity
 
 import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonRequestMapper
-import adapters.controllers.interactivity.ChannelSelectActionInteractivityBody._
-import adapters.controllers.interactivity.InteractivityBody._
+//import adapters.controllers.interactivity.ChannelSelectActionInteractivityBody._
+//import adapters.controllers.interactivity.InteractivityBody._
 import domains.channel.Channel.ChannelId
 import io.circe.{Decoder, Json}
 import cats.implicits._
@@ -18,14 +18,14 @@ import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext
 
 sealed trait InteractivityBody
-object InteractivityBody {
-  implicit val decodeInteractivity: Decoder[Seq[InteractivityBody]] =
-    List[Decoder[Seq[InteractivityBody]]](
-      Decoder[Seq[ChannelSelectActionInteractivityBody]](
-        decodeChannelSelectActionInteractivityBody
-      ).widen
-    ).reduceLeft(_ or _)
-}
+//object InteractivityBody {
+//  implicit val decodeInteractivity: Decoder[InteractivityBody] =
+//    List[Decoder[InteractivityBody]](
+//      Decoder[ChannelSelectActionInteractivityBody](
+//        decodeChannelSelectActionInteractivityBody
+//      ).widen
+//    ).reduceLeft(_ or _)
+//}
 
 final case class ChannelSelectActionWorkSpaceInfo(id: String)
 
@@ -44,13 +44,13 @@ final case class ChannelSelectActionInteractivityBody(
   payload: Seq[ChannelSelectActionInteractivityBodyItem]
 ) extends InteractivityBody
 
-object ChannelSelectActionInteractivityBody {
-  implicit val decodeChannelSelectActionInteractivityBody
-    : Decoder[Seq[ChannelSelectActionInteractivityBody]] =
-    deriveDecoder[Seq[ChannelSelectActionInteractivityBody]].prepare(body =>
-      body
-    )
-}
+//object ChannelSelectActionInteractivityBody {
+//  implicit val decodeChannelSelectActionInteractivityBody
+//    : Decoder[Seq[ChannelSelectActionInteractivityBody]] =
+//    deriveDecoder[Seq[ChannelSelectActionInteractivityBody]].prepare(body =>
+//      body
+//    )
+//}
 
 sealed trait InteractivityCommand
 final case class ChannelSelectActionInteractivityCommand(
@@ -81,9 +81,10 @@ trait InteractivityBodyMapper extends JsonRequestMapper {
   def mapToInteractivityCommand(implicit
     ec: ExecutionContext
   ): BodyParser[Either[AdapterError, InteractivityCommand]] =
-    mapToValueObject[Seq[InteractivityBody], InteractivityCommand] {
-      case body: Seq[ChannelSelectActionInteractivityBody] =>
-        println("success case match in mapToVO")
-        ChannelSelectActionInteractivityCommand.validate(body.head)
-    }(decodeInteractivity, ec)
+    mapToValueObject[Seq[
+      ChannelSelectActionInteractivityBody
+    ], InteractivityCommand] { body =>
+      println("before maptoVO")
+      ChannelSelectActionInteractivityCommand.validate(body.head)
+    }
 }

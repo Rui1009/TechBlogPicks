@@ -20,6 +20,7 @@ class InteractivityController @Inject() (
       request.body.fold(
         e => Future.successful(responseError(e)),
         { case command: ChannelSelectActionInteractivityCommand =>
+          println(command)
           channelSelect(command)
         }
       )
