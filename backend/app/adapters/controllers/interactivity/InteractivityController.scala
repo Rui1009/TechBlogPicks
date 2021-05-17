@@ -24,7 +24,7 @@ class InteractivityController @Inject() (
       .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
       .replace("-> List(", ":[")
       .replace("[payload", "[\"payload\"")
-      .dropRight(3) + "]])"
+      .dropRight(3) + "]]"
     println(converted)
     println(Json.parse(converted))
 //    ws.url("https://")
