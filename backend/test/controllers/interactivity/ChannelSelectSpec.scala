@@ -24,21 +24,32 @@ class ChannelSelectSpec extends ControllerSpec {
 
             val body = Json.fromJsonObject(
               JsonObject(
-                "api_app_id" -> Json.fromString(str),
-                "team"       -> Json
-                  .fromJsonObject(JsonObject("id" -> Json.fromString(str))),
-                "actions"    -> Json.fromValues(
+                "payload" -> Json.fromValues(
                   Seq(
                     Json.fromJsonObject(
                       JsonObject(
-                        "type"             -> Json.fromString("channels_select"),
-                        "selected_channel" -> Json.fromString(str)
+                        "api_app_id" -> Json.fromString(str),
+                        "team"       -> Json.fromJsonObject(
+                          JsonObject("id" -> Json.fromString(str))
+                        ),
+                        "actions"    -> Json.fromValues(
+                          Seq(
+                            Json.fromJsonObject(
+                              JsonObject(
+                                "type"             -> Json.fromString("channels_select"),
+                                "selected_channel" -> Json.fromString(str)
+                              )
+                            )
+                          )
+                        )
                       )
                     )
                   )
                 )
               )
             )
+
+            println(body)
 
             val resp = Request.post(path).withJsonBody(body).unsafeExec
 
@@ -56,15 +67,24 @@ class ChannelSelectSpec extends ControllerSpec {
 
             val body = Json.fromJsonObject(
               JsonObject(
-                "api_app_id" -> Json.fromString(str),
-                "team"       -> Json
-                  .fromJsonObject(JsonObject("id" -> Json.fromString(str))),
-                "actions"    -> Json.fromValues(
+                "payload" -> Json.fromValues(
                   Seq(
                     Json.fromJsonObject(
                       JsonObject(
-                        "type"             -> Json.fromString("channels_select"),
-                        "selected_channel" -> Json.fromString(str)
+                        "api_app_id" -> Json.fromString(str),
+                        "team"       -> Json.fromJsonObject(
+                          JsonObject("id" -> Json.fromString(str))
+                        ),
+                        "actions"    -> Json.fromValues(
+                          Seq(
+                            Json.fromJsonObject(
+                              JsonObject(
+                                "type"             -> Json.fromString("channels_select"),
+                                "selected_channel" -> Json.fromString(str)
+                              )
+                            )
+                          )
+                        )
                       )
                     )
                   )
@@ -90,15 +110,24 @@ class ChannelSelectSpec extends ControllerSpec {
 
           val body = Json.fromJsonObject(
             JsonObject(
-              "api_app_id" -> Json.fromString(""),
-              "team"       -> Json
-                .fromJsonObject(JsonObject("id" -> Json.fromString("teamId"))),
-              "actions"    -> Json.fromValues(
+              "payload" -> Json.fromValues(
                 Seq(
                   Json.fromJsonObject(
                     JsonObject(
-                      "type"             -> Json.fromString("channels_select"),
-                      "selected_channel" -> Json.fromString("channelId")
+                      "api_app_id" -> Json.fromString(""),
+                      "team"       -> Json.fromJsonObject(
+                        JsonObject("id" -> Json.fromString("teamId"))
+                      ),
+                      "actions"    -> Json.fromValues(
+                        Seq(
+                          Json.fromJsonObject(
+                            JsonObject(
+                              "type"             -> Json.fromString("channels_select"),
+                              "selected_channel" -> Json.fromString("channelId")
+                            )
+                          )
+                        )
+                      )
                     )
                   )
                 )
@@ -124,15 +153,24 @@ class ChannelSelectSpec extends ControllerSpec {
 
           val body = Json.fromJsonObject(
             JsonObject(
-              "api_app_id" -> Json.fromString("appId"),
-              "team"       -> Json
-                .fromJsonObject(JsonObject("id" -> Json.fromString(""))),
-              "actions"    -> Json.fromValues(
+              "payload" -> Json.fromValues(
                 Seq(
                   Json.fromJsonObject(
                     JsonObject(
-                      "type"             -> Json.fromString("channels_select"),
-                      "selected_channel" -> Json.fromString("channelId")
+                      "api_app_id" -> Json.fromString("appId"),
+                      "team"       -> Json.fromJsonObject(
+                        JsonObject("id" -> Json.fromString(""))
+                      ),
+                      "actions"    -> Json.fromValues(
+                        Seq(
+                          Json.fromJsonObject(
+                            JsonObject(
+                              "type"             -> Json.fromString("channels_select"),
+                              "selected_channel" -> Json.fromString("channelId")
+                            )
+                          )
+                        )
+                      )
                     )
                   )
                 )
@@ -157,15 +195,24 @@ class ChannelSelectSpec extends ControllerSpec {
 
           val body = Json.fromJsonObject(
             JsonObject(
-              "api_app_id" -> Json.fromString("appId"),
-              "team"       -> Json
-                .fromJsonObject(JsonObject("id" -> Json.fromString("teamId"))),
-              "actions"    -> Json.fromValues(
+              "payload" -> Json.fromValues(
                 Seq(
                   Json.fromJsonObject(
                     JsonObject(
-                      "type"             -> Json.fromString("channels_select"),
-                      "selected_channel" -> Json.fromString("")
+                      "api_app_id" -> Json.fromString("appId"),
+                      "team"       -> Json.fromJsonObject(
+                        JsonObject("id" -> Json.fromString("teamId"))
+                      ),
+                      "actions"    -> Json.fromValues(
+                        Seq(
+                          Json.fromJsonObject(
+                            JsonObject(
+                              "type"             -> Json.fromString("channels_select"),
+                              "selected_channel" -> Json.fromString("")
+                            )
+                          )
+                        )
+                      )
                     )
                   )
                 )
@@ -190,15 +237,24 @@ class ChannelSelectSpec extends ControllerSpec {
 
           val body = Json.fromJsonObject(
             JsonObject(
-              "api_app_id" -> Json.fromString(""),
-              "team"       -> Json
-                .fromJsonObject(JsonObject("id" -> Json.fromString(""))),
-              "actions"    -> Json.fromValues(
+              "payload" -> Json.fromValues(
                 Seq(
                   Json.fromJsonObject(
                     JsonObject(
-                      "type"             -> Json.fromString("channels_select"),
-                      "selected_channel" -> Json.fromString("")
+                      "api_app_id" -> Json.fromString(""),
+                      "team"       -> Json.fromJsonObject(
+                        JsonObject("id" -> Json.fromString(""))
+                      ),
+                      "actions"    -> Json.fromValues(
+                        Seq(
+                          Json.fromJsonObject(
+                            JsonObject(
+                              "type"             -> Json.fromString("channels_select"),
+                              "selected_channel" -> Json.fromString("")
+                            )
+                          )
+                        )
+                      )
                     )
                   )
                 )

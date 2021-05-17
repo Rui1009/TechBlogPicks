@@ -33,10 +33,14 @@ final case class ChannelSelectActionBodyItem(
   `type`: "channels_select"
 )
 
-final case class ChannelSelectActionInteractivityBody(
+final case class ChannelSelectActionInteractivityBodyItem(
   api_app_id: String,
   team: ChannelSelectActionWorkSpaceInfo,
   actions: Seq[ChannelSelectActionBodyItem]
+)
+
+final case class ChannelSelectActionInteractivityBody(
+  payload: Seq[ChannelSelectActionInteractivityBodyItem]
 ) extends InteractivityBody
 
 object ChannelSelectActionInteractivityBody {
@@ -55,9 +59,11 @@ object ChannelSelectActionInteractivityCommand {
   def validate(
     body: ChannelSelectActionInteractivityBody
   ): Either[BadRequestError, InteractivityCommand] = (
-    ChannelId.create(body.actions.head.selected_channel).toValidatedNec,
-    ApplicationId.create(body.api_app_id).toValidatedNec,
-    WorkSpaceId.create(body.team.id).toValidatedNec
+    ChannelId
+      .create(body.payload.head.actions.head.selected_channel)
+      .toValidatedNec,
+    ApplicationId.create(body.payload.head.api_app_id).toValidatedNec,
+    WorkSpaceId.create(body.payload.head.team.id).toValidatedNec
   ).mapN(ChannelSelectActionInteractivityCommand.apply)
     .toEither
     .leftMap(error =>
