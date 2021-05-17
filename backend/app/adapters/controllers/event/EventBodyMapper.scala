@@ -10,6 +10,7 @@ import io.circe.generic.auto._
 import play.api.mvc.{BaseController, BodyParser}
 import adapters.controllers.event.AppUninstalledEventBody._
 import adapters.controllers.event.AppHomeOpenedEventBody._
+import adapters.controllers.event.MemberJoinedChannelEventBody._
 import adapters.controllers.event.EventBody._
 import domains.application.Application.ApplicationId
 import domains.channel.Channel.ChannelId
@@ -22,7 +23,10 @@ object EventBody {
   implicit val decodeEvent: Decoder[EventBody] = List[Decoder[EventBody]](
     Decoder[AppUninstalledEventBody](decodeAppUninstalledEventBody).widen,
     Decoder[UrlVerificationEventBody].widen,
-    Decoder[AppHomeOpenedEventBody](decodeAppHomeOpenedEventBody).widen
+    Decoder[AppHomeOpenedEventBody](decodeAppHomeOpenedEventBody).widen,
+    Decoder[MemberJoinedChannelEventBody](
+      decodeMemberJoinedChannelEventBody
+    ).widen
   ).reduceLeft(_ or _)
 }
 
@@ -51,7 +55,6 @@ final case class AppUninstalledEventCommand(
   applicationId: ApplicationId
 ) extends EventCommand
 object AppUninstalledEventCommand {
-  private lazy val logger                  = Logger(this.getClass)
   def validate(
     body: AppUninstalledEventBody
   ): Either[BadRequestError, EventCommand] = (
@@ -99,14 +102,53 @@ object AppHomeOpenedEventCommand {
     ChannelId.create(body.channel).toValidatedNec,
     ApplicationId.create(body.appId).toValidatedNec,
     WorkSpaceId.create(body.teamId).toValidatedNec
-  ).mapN(AppHomeOpenedEventCommand.apply).toEither match { // leftMapになおす
-    case Right(v) => Right(v)
-    case Left(e)  => Left(
-        BadRequestError(
-          e.foldLeft("")((acc, curr: DomainError) => acc + curr.errorMessage)
-        )
+  ).mapN(AppHomeOpenedEventCommand.apply)
+    .toEither
+    .leftMap(errors =>
+      BadRequestError(
+        errors.foldLeft("")((acc, cur: DomainError) => acc + cur.errorMessage)
       )
+    )
+}
+
+final case class MemberJoinedChannelEventBody(
+  channel: String,
+  appId: String,
+  teamId: String,
+  eventType: "member_joined_channel"
+) extends EventBody
+object MemberJoinedChannelEventBody {
+  implicit val decodeMemberJoinedChannelEventBody
+    : Decoder[MemberJoinedChannelEventBody] = Decoder.instance { cursor =>
+    for {
+      channel   <- cursor.downField("event").downField("channel").as[String]
+      appId     <- cursor.downField("api_app_id").as[String]
+      teamId    <- cursor.downField("team_id").as[String]
+      eventType <-
+        cursor.downField("event").downField("type").as["member_joined_channel"]
+    } yield MemberJoinedChannelEventBody(channel, appId, teamId, eventType)
   }
+}
+
+final case class MemberJoinedChannelEventCommand(
+  channelId: ChannelId,
+  applicationId: ApplicationId,
+  workSpaceId: WorkSpaceId
+) extends EventCommand
+object MemberJoinedChannelEventCommand {
+  def validate(
+    body: MemberJoinedChannelEventBody
+  ): Either[BadRequestError, EventCommand] = (
+    ChannelId.create(body.channel).toValidatedNec,
+    ApplicationId.create(body.appId).toValidatedNec,
+    WorkSpaceId.create(body.teamId).toValidatedNec
+  ).mapN(MemberJoinedChannelEventCommand.apply)
+    .toEither
+    .leftMap(errors =>
+      BadRequestError(
+        errors.foldLeft("")((acc, cur: DomainError) => acc + cur.errorMessage)
+      )
+    )
 }
 
 final case class UrlVerificationEventBody(challenge: String) extends EventBody
@@ -118,11 +160,13 @@ trait EventBodyMapper extends JsonRequestMapper { this: BaseController =>
     ec: ExecutionContext
   ): BodyParser[Either[AdapterError, EventCommand]] =
     mapToValueObject[EventBody, EventCommand] {
-      case body: AppUninstalledEventBody  =>
+      case body: AppUninstalledEventBody      =>
         AppUninstalledEventCommand.validate(body)
-      case body: UrlVerificationEventBody =>
+      case body: UrlVerificationEventBody     =>
         Right(UrlVerificationEventCommand(body.challenge))
-      case body: AppHomeOpenedEventBody   =>
+      case body: AppHomeOpenedEventBody       =>
         AppHomeOpenedEventCommand.validate(body)
+      case body: MemberJoinedChannelEventBody =>
+        MemberJoinedChannelEventCommand.validate(body)
     }(decodeEvent, ec)
 }
