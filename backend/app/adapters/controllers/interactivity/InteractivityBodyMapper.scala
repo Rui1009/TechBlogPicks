@@ -5,7 +5,7 @@ import adapters.controllers.helpers.JsonRequestMapper
 import adapters.controllers.interactivity.ChannelSelectActionInteractivityBody._
 import adapters.controllers.interactivity.InteractivityBody._
 import domains.channel.Channel.ChannelId
-import io.circe.Decoder
+import io.circe.{Decoder, Json}
 import cats.implicits._
 import domains.application.Application.ApplicationId
 import domains.workspace.WorkSpace.WorkSpaceId
@@ -41,14 +41,16 @@ final case class ChannelSelectActionInteractivityBodyItem(
 )
 
 final case class ChannelSelectActionInteractivityBody(
-//  payload: Seq[ChannelSelectActionInteractivityBodyItem],
-  payload: ListMap[String, Seq[ChannelSelectActionInteractivityBodyItem]]
+  payload: Seq[ChannelSelectActionInteractivityBodyItem]
 ) extends InteractivityBody
 
 object ChannelSelectActionInteractivityBody {
   implicit val decodeChannelSelectActionInteractivityBody
     : Decoder[ChannelSelectActionInteractivityBody] =
-    deriveDecoder[ChannelSelectActionInteractivityBody].prepare(a => a)
+    deriveDecoder[ChannelSelectActionInteractivityBody].prepare { body =>
+      println(body.as[Json])
+      body
+    }
 }
 
 sealed trait InteractivityCommand
@@ -62,10 +64,10 @@ object ChannelSelectActionInteractivityCommand {
     body: ChannelSelectActionInteractivityBody
   ): Either[BadRequestError, InteractivityCommand] = (
     ChannelId
-      .create(body.payload.head._2.head.actions.head.selected_channel)
+      .create(body.payload.head.actions.head.selected_channel)
       .toValidatedNec,
-    ApplicationId.create(body.payload.head._2.head.api_app_id).toValidatedNec,
-    WorkSpaceId.create(body.payload.head._2.head.team.id).toValidatedNec
+    ApplicationId.create(body.payload.head.api_app_id).toValidatedNec,
+    WorkSpaceId.create(body.payload.head.team.id).toValidatedNec
   ).mapN(ChannelSelectActionInteractivityCommand.apply)
     .toEither
     .leftMap(error =>
