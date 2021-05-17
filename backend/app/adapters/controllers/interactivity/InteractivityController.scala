@@ -16,7 +16,7 @@ class InteractivityController @Inject() (
     extends BaseController with JsonHelper with AllSyntax
     with InteractivityBodyMapper {
   def handleInteractivity = Action { implicit request =>
-    println(request.body.toString)
+    println(request.body)
     Ok("ok")
   }
 //  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
