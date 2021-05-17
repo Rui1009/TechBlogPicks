@@ -23,8 +23,9 @@ class InteractivityController @Inject() (
     val converted = request.body.toString
       .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
       .replace("-> List(", ":[")
-      .replace("[payload", "[\"payload\"")
-      .dropRight(3) + "]]"
+      .replace("[payload", "[{\"payload\"")
+      .dropRight(3) + "]}]"
+    println("ret")
     println(converted)
     println(Json.parse(converted))
 //    ws.url("https://")
