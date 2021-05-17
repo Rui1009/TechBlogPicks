@@ -81,9 +81,9 @@ trait InteractivityBodyMapper extends JsonRequestMapper {
       case body: ChannelSelectActionInteractivityBody =>
         println("body case match")
         ChannelSelectActionInteractivityCommand.validate(body)
-      case _                                          =>
+      case b                                          =>
         println("sss")
-        println(_)
+        println(b)
         ChannelSelectActionInteractivityCommand.validate(
           ChannelSelectActionInteractivityBody(Seq())
         )
