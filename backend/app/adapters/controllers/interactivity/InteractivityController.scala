@@ -4,6 +4,7 @@ import adapters.AdapterError
 import adapters.controllers.helpers.JsonHelper
 import com.google.inject.Inject
 import adapters.controllers.syntax.AllSyntax
+import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, BaseController, ControllerComponents}
 import usecases.JoinChannelUseCase
@@ -24,7 +25,10 @@ class InteractivityController @Inject() (
       .replace("-> List(", ":[")
       .dropRight(2) + "]]"
     println(converted)
-    println(request.body.toString)
+    println(Json.parse(converted))
+//    ws.url("https://")
+//      .withHttpHeaders("Content-Type" -> "application/json")
+//      .post(converted)
     Ok("ok")
   }
 //  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
