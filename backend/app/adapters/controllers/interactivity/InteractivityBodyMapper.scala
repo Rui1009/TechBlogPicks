@@ -14,6 +14,7 @@ import io.circe.generic.semiauto.deriveDecoder
 import io.circe.generic.auto._
 import play.api.mvc.{BaseController, BodyParser}
 
+import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext
 
 sealed trait InteractivityBody
@@ -40,7 +41,8 @@ final case class ChannelSelectActionInteractivityBodyItem(
 )
 
 final case class ChannelSelectActionInteractivityBody(
-  payload: Seq[ChannelSelectActionInteractivityBodyItem]
+//  payload: Seq[ChannelSelectActionInteractivityBodyItem],
+  payload: ListMap[String, ChannelSelectActionInteractivityBodyItem]
 ) extends InteractivityBody
 
 object ChannelSelectActionInteractivityBody {
@@ -75,18 +77,11 @@ object ChannelSelectActionInteractivityCommand {
 
 trait InteractivityBodyMapper extends JsonRequestMapper {
   this: BaseController =>
-  def mapToInteractivityCommand(implicit ec: ExecutionContext) = {
-    println("mapToInteractive")
+  def mapToInteractivityCommand(implicit
+    ec: ExecutionContext
+  ): BodyParser[Either[AdapterError, InteractivityCommand]] =
     mapToValueObject[InteractivityBody, InteractivityCommand] {
       case body: ChannelSelectActionInteractivityBody =>
-        println("body case match")
         ChannelSelectActionInteractivityCommand.validate(body)
-      case b                                          =>
-        println("sss")
-        println(b)
-        ChannelSelectActionInteractivityCommand.validate(
-          ChannelSelectActionInteractivityBody(Seq())
-        )
     }(decodeInteractivity, ec)
-  }
 }
