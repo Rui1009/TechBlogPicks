@@ -55,13 +55,12 @@ final case class WorkSpace(
   def addBotToChannel(
     appId: ApplicationId,
     channelId: ChannelId
-  ): Either[DomainError, WorkSpace] = (
-    findBotByApplicationId(appId).toValidatedNec,
-    findChannel(channelId).toValidatedNec
-  ).mapN { (bot, channel) =>
-    val joinedBot = bot.joinTo(channelId)
-    this.copy(bots = this.bots.filter(_.id != joinedBot.id) :+ joinedBot)
-  }.toEither.leftMap(errors => DomainError.combine(errors.toList))
+  ): Either[DomainError, WorkSpace] = findBotByApplicationId(appId)
+//    findChannel(channelId).toValidatedNec
+    .map { bot =>
+      val joinedBot = bot.joinTo(channelId)
+      this.copy(bots = this.bots.filter(_.id != joinedBot.id) :+ joinedBot)
+    }
 
   private def findBotByApplicationId(
     appId: ApplicationId
