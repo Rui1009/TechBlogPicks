@@ -19,29 +19,29 @@ class InteractivityController @Inject() (
     extends BaseController with JsonHelper with AllSyntax
     with InteractivityBodyMapper {
 
-  def handleInteractivity = Action { implicit request =>
+  def convertRequest                                                          = Action { implicit request =>
     val converted = request.body.toString
       .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
       .replace("-> List(", ":[")
       .replace("[payload", "[{\"payload\"")
       .dropRight(3) + "]}]"
-    println("ret")
-    println(converted)
+
     println(Json.parse(converted))
-//    ws.url("https://")
-//      .withHttpHeaders("Content-Type" -> "application/json")
-//      .post(converted)
+    ws.url("https://winkie.herokuapp.com/events")
+      .withHttpHeaders("Content-Type" -> "application/json")
+      .post(Json.parse(converted))
     Ok("ok")
   }
-//  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
-//    Action.async(mapToInteractivityCommand) { implicit request =>
-//      request.body.fold(
-//        e => Future.successful(responseError(e)),
-//        { case command: ChannelSelectActionInteractivityCommand =>
-//          channelSelect(command)
-//        }
-//      )
-//    }
+  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
+    Action.async(mapToInteractivityCommand) { implicit request =>
+      request.body.fold(
+        e => Future.successful(responseError(e)),
+        { case command: ChannelSelectActionInteractivityCommand =>
+          println("command exec")
+          channelSelect(command)
+        }
+      )
+    }
 
   private def channelSelect(command: ChannelSelectActionInteractivityCommand) =
     joinChannelUseCase
