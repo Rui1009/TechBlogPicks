@@ -32,22 +32,16 @@ class InteractivityController @Inject() (
     Ok("ol")
   }
 
-  def handleInteractivity = Action { implicit request =>
-    println("debug")
-    println(request)
-    println(request.body.toString)
-    Ok("ok")
-  }
-
-//    Action.async(mapToInteractivityCommand) { implicit request =>
-//      request.body.fold(
-//        e => Future.successful(responseError(e)),
-//        { case command: ChannelSelectActionInteractivityCommand =>
-//          println("command exec")
-//          channelSelect(command)
-//        }
-//      )
-//    }
+  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
+    Action.async(mapToInteractivityCommand) { implicit request =>
+      request.body.fold(
+        e => Future.successful(responseError(e)),
+        { case command: ChannelSelectActionInteractivityCommand =>
+          println("command exec")
+          channelSelect(command)
+        }
+      )
+    }
 
   private def channelSelect(command: ChannelSelectActionInteractivityCommand) =
     joinChannelUseCase
