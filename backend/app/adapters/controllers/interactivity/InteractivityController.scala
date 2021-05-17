@@ -27,7 +27,7 @@ class InteractivityController @Inject() (
       .dropRight(3) + "]}]"
 
     ws.url("https://winkie.herokuapp.com/events")
-      .withBody(Json.parse(converted))
+      .withBody(Json.obj("body" -> Json.parse(converted)))
       .execute("POST")
     Ok("ol")
   }
