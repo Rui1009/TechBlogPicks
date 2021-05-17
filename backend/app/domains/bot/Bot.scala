@@ -54,6 +54,22 @@ final case class Bot(
     this.copy(draftMessage = Some(draft))
   }
 
+  def createGreetingInInvitedChannel: Bot = {
+    val draft = DraftMessage(
+      Seq(
+        SectionBlock(
+          BlockText(
+            Refined.unsafeApply(
+              "<!channel>招待ありがとうございます!🤗\nWinkieは最新の技術記事をジャンル別で自動配信するslackアプリです。\nこれから毎日コンテンツを配信していくのでお楽しみに！"
+            )
+          ),
+          None
+        )
+      )
+    )
+    this.copy(draftMessage = Some(draft))
+  }
+
   def postMessage(channel: Channel): Either[NotExistError, Channel] = for {
     message <- this.draftMessage.toRight(NotExistError("DraftMessage"))
   } yield channel.receiveMessage(message)
