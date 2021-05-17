@@ -59,7 +59,7 @@ final case class WorkSpace(
     findBotByApplicationId(appId).toValidatedNec,
     findChannel(channelId).toValidatedNec
   ).mapN { (bot, channel) =>
-    val joinedBot = bot.joinTo(channel.id)
+    val joinedBot = bot.joinTo(channelId)
     this.copy(bots = this.bots.filter(_.id != joinedBot.id) :+ joinedBot)
   }.toEither.leftMap(errors => DomainError.combine(errors.toList))
 
