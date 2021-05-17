@@ -19,7 +19,10 @@ class InteractivityController @Inject() (
     with InteractivityBodyMapper {
 
   def handleInteractivity = Action { implicit request =>
-    println(request.body.asJson)
+    val converted =
+      request.body.toString.patch(15, "[", 7).patch(0, "[", 8).drop(2) + "]]"
+    println(converted)
+    println(request.body.toString)
     Ok("ok")
   }
 //  def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
