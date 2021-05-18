@@ -187,6 +187,45 @@ class InstallApplicationUseCaseSpec extends UseCaseSpec {
                 )
               )
             }
+            reset(workSpaceRepo)
+        }
+      }
+    }
+
+    "return Left in WorkSpace.installApplication" should {
+      "return unit & never invoke workSpaceRepository.update" in {
+        forAll(temporaryOauthCodeGen, applicationGen, workSpaceGen, botGen) {
+          (code, _application, workSpace, bot) =>
+            val application = _application.updateClientInfo(
+              Some(ApplicationClientId("cid")),
+              Some(ApplicationClientSecret("cs"))
+            )
+            val params      = Params(code, application.id)
+
+            val targetWorkSpace = workSpace.copy(
+              unallocatedToken = Some(BotAccessToken("token")),
+              bots = Seq(bot.copy(applicationId = application.id))
+            )
+
+            when(applicationRepo.find(params.applicationId))
+              .thenReturn(Future.successful(Some(application)))
+            when(
+              workSpaceRepo.find(
+                params.temporaryOauthCode,
+                ApplicationClientId("cid"),
+                ApplicationClientSecret("cs")
+              )
+            ).thenReturn(Future.successful(targetWorkSpace))
+
+            val result = new InstallApplicationUseCaseImpl(
+              workSpaceRepo,
+              applicationRepo
+            ).exec(params).futureValue
+
+            assert(result === ())
+            verify(workSpaceRepo, times(0)).update(*, *)
+
+            reset(workSpaceRepo)
         }
       }
     }
