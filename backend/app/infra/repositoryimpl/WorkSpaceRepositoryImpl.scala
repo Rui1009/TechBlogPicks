@@ -79,7 +79,7 @@ class WorkSpaceRepositoryImpl @Inject() (
 
   override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = (for {
     rows      <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
-    responses <- findBotUser(rows.map(_.botId))
+    responses <- findBotUser(rows.map(row => (row.botId, row.token)))
     channels  <- findChannels(rows)
 
     bots = responses.flatMap { res =>
@@ -107,13 +107,30 @@ class WorkSpaceRepositoryImpl @Inject() (
     else Some(WorkSpace(id, None, bots, channels.map(_._1).distinct, None)))
     .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
 
-  private def findBotUser(botIds: Seq[String]) = usersDao
-    .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-    .map(
-      _.members.filter(m =>
-        m.isBot && Set(m.apiAppId).subsetOf(botIds.map(id => Some(id)).toSet)
-      )
-    )
+  private def findBotUser(botIdTokens: Seq[(String, String)]) = Future
+    .sequence(for {
+      botIdToken <- botIdTokens
+    } yield for {
+      botUser: Seq[UsersDaoImpl.Member] <-
+        usersDao
+          .list(botIdToken._2)
+          .map(
+            _.members.filter(m =>
+              m.isBot && Set(m.apiAppId)
+                .subsetOf(botIdTokens.map(bit => Some(bit._1)).toSet)
+            )
+          )
+    } yield botUser)
+    .map(_.flatten.distinct)
+//  private def findBotUser(botIds: Seq[String]) = usersDao
+//    .list(
+//      sys.env.getOrElse("ACCESS_TOKEN", "")
+//    ) //ここは各WorkSpaceの情報(token等)をもとにfetchしないと正確でない
+//    .map(
+//      _.members.filter(m =>
+//        m.isBot && Set(m.apiAppId).subsetOf(botIds.map(id => Some(id)).toSet)
+//      )
+//    )
 
   private def findChannels(rows: Seq[WorkSpacesRow]) = Future
     .sequence(for {
