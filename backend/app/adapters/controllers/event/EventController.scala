@@ -66,8 +66,12 @@ class EventController @Inject() (
   private def memberJoinedChannel(command: MemberJoinedChannelEventCommand) =
     greetInInvitedChannelUseCase
       .exec(
-        GreetInInvitedChannelUseCase
-          .Params(command.workSpaceId, command.channelId, command.applicationId)
+        GreetInInvitedChannelUseCase.Params(
+          command.workSpaceId,
+          command.channelId,
+          command.applicationId,
+          command.botId
+        )
       )
       .ifFailedThenToAdapterError(
         "error in EventController.memberJoinedChannel"

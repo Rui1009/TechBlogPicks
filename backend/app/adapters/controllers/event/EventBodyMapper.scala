@@ -13,6 +13,7 @@ import adapters.controllers.event.AppHomeOpenedEventBody._
 import adapters.controllers.event.MemberJoinedChannelEventBody._
 import adapters.controllers.event.EventBody._
 import domains.application.Application.ApplicationId
+import domains.bot.Bot.BotId
 import domains.channel.Channel.ChannelId
 import play.api.Logger
 
@@ -115,6 +116,7 @@ final case class MemberJoinedChannelEventBody(
   channel: String,
   appId: String,
   teamId: String,
+  botId: String,
   eventType: "member_joined_channel"
 ) extends EventBody
 object MemberJoinedChannelEventBody {
@@ -124,16 +126,24 @@ object MemberJoinedChannelEventBody {
       channel   <- cursor.downField("event").downField("channel").as[String]
       appId     <- cursor.downField("api_app_id").as[String]
       teamId    <- cursor.downField("team_id").as[String]
+      botId     <- cursor.downField("event").downField("user").as[String]
       eventType <-
         cursor.downField("event").downField("type").as["member_joined_channel"]
-    } yield MemberJoinedChannelEventBody(channel, appId, teamId, eventType)
+    } yield MemberJoinedChannelEventBody(
+      channel,
+      appId,
+      teamId,
+      botId,
+      eventType
+    )
   }
 }
 
 final case class MemberJoinedChannelEventCommand(
   channelId: ChannelId,
   applicationId: ApplicationId,
-  workSpaceId: WorkSpaceId
+  workSpaceId: WorkSpaceId,
+  botId: BotId
 ) extends EventCommand
 object MemberJoinedChannelEventCommand {
   def validate(
@@ -141,7 +151,8 @@ object MemberJoinedChannelEventCommand {
   ): Either[BadRequestError, EventCommand] = (
     ChannelId.create(body.channel).toValidatedNec,
     ApplicationId.create(body.appId).toValidatedNec,
-    WorkSpaceId.create(body.teamId).toValidatedNec
+    WorkSpaceId.create(body.teamId).toValidatedNec,
+    BotId.create(body.botId).toValidatedNec
   ).mapN(MemberJoinedChannelEventCommand.apply)
     .toEither
     .leftMap(errors =>
