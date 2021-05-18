@@ -28,7 +28,8 @@ class MemberJoinedChannelSpec extends ControllerSpec {
               "api_app_id" -> Json.fromString(str),
               "event"      -> Json.obj(
                 "type"    -> Json.fromString("member_joined_channel"),
-                "channel" -> Json.fromString(str)
+                "channel" -> Json.fromString(str),
+                "user"    -> Json.fromString(str)
               )
             )
             val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -50,7 +51,8 @@ class MemberJoinedChannelSpec extends ControllerSpec {
               "api_app_id" -> Json.fromString(str),
               "event"      -> Json.obj(
                 "type"    -> Json.fromString("member_joined_channel"),
-                "channel" -> Json.fromString(str)
+                "channel" -> Json.fromString(str),
+                "user"    -> Json.fromString(str)
               )
             )
             val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -75,7 +77,8 @@ class MemberJoinedChannelSpec extends ControllerSpec {
             "api_app_id" -> Json.fromString("app_id"),
             "event"      -> Json.obj(
               "type"    -> Json.fromString("member_joined_channel"),
-              "channel" -> Json.fromString("")
+              "channel" -> Json.fromString(""),
+              "user"    -> Json.fromString("user_id")
             )
           )
           val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -99,7 +102,8 @@ class MemberJoinedChannelSpec extends ControllerSpec {
             "api_app_id" -> Json.fromString(""),
             "event"      -> Json.obj(
               "type"    -> Json.fromString("member_joined_channel"),
-              "channel" -> Json.fromString("channel_id")
+              "channel" -> Json.fromString("channel_id"),
+              "user"    -> Json.fromString("user_id")
             )
           )
           val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -123,7 +127,8 @@ class MemberJoinedChannelSpec extends ControllerSpec {
             "api_app_id" -> Json.fromString("app_id"),
             "event"      -> Json.obj(
               "type"    -> Json.fromString("member_joined_channel"),
-              "channel" -> Json.fromString("channel_id")
+              "channel" -> Json.fromString("channel_id"),
+              "user"    -> Json.fromString("user_id")
             )
           )
           val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -131,6 +136,31 @@ class MemberJoinedChannelSpec extends ControllerSpec {
           val msg = """
                       |BadRequestError
                       |EmptyStringError: WorkSpaceId is empty string
+                      |""".stripMargin.trim
+
+          assert(status(resp) === BAD_REQUEST)
+          assert(decodeERes(resp).unsafeGet.message === msg)
+        }
+      }
+
+      "BotId is invalid" should {
+        "return Bad Request Error" in {
+          when(uc.exec(*)).thenReturn(Future.unit)
+
+          val body = Json.obj(
+            "team_id"    -> Json.fromString("team_id"),
+            "api_app_id" -> Json.fromString("app_id"),
+            "event"      -> Json.obj(
+              "type"    -> Json.fromString("member_joined_channel"),
+              "channel" -> Json.fromString("channel_id"),
+              "user"    -> Json.fromString("")
+            )
+          )
+          val resp = Request.post(path).withJsonBody(body).unsafeExec
+
+          val msg = """
+                      |BadRequestError
+                      |EmptyStringError: BotId is empty string
                       |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)
@@ -147,7 +177,8 @@ class MemberJoinedChannelSpec extends ControllerSpec {
             "api_app_id" -> Json.fromString(""),
             "event"      -> Json.obj(
               "type"    -> Json.fromString("member_joined_channel"),
-              "channel" -> Json.fromString("")
+              "channel" -> Json.fromString(""),
+              "user"    -> Json.fromString("")
             )
           )
           val resp = Request.post(path).withJsonBody(body).unsafeExec
@@ -157,6 +188,7 @@ class MemberJoinedChannelSpec extends ControllerSpec {
                       |EmptyStringError: ChannelId is empty string
                       |EmptyStringError: ApplicationId is empty string
                       |EmptyStringError: WorkSpaceId is empty string
+                      |EmptyStringError: BotId is empty string
                       |""".stripMargin.trim
 
           assert(status(resp) === BAD_REQUEST)
