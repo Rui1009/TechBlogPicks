@@ -129,40 +129,48 @@ class WorkSpaceRepositoryImpl @Inject() (
                .ifFailedThenToInfraError(
                  "error while usersDao.conversations in findChannels"
                )
+        _  = println("after user conversation")
       } yield for {
         channel <- r.channels
+        _        = println("after channel for")
       } yield for {
-        info <-
-          conversationDao
-            .info(row.token, channel.id)
-            .ifFailedThenToInfraError(
-              "error while conversationDao.info in findChannels"
-            )
-            .transformWith { //　上のエラー処理とまとめる
-              case Success(Some(v)) => Future.successful(
-                  (
-                    Channel(
-                      ChannelId(Refined.unsafeApply(channel.id)),
-                      Seq(
-                        ChannelMessage(
-                          ChannelMessageSentAt(Refined.unsafeApply(v.ts)),
-                          ChannelMessageSenderUserId(
-                            Refined.unsafeApply(v.senderUserId)
+        info <- conversationDao
+                  .info(row.token, channel.id)
+                  .ifFailedThenToInfraError(
+                    "error while conversationDao.info in findChannels"
+                  )
+                  .transformWith { //　上のエラー処理とまとめる
+                    case Success(Some(v)) =>
+                      println("success some")
+                      Future.successful(
+                        (
+                          Channel(
+                            ChannelId(Refined.unsafeApply(channel.id)),
+                            Seq(
+                              ChannelMessage(
+                                ChannelMessageSentAt(Refined.unsafeApply(v.ts)),
+                                ChannelMessageSenderUserId(
+                                  Refined.unsafeApply(v.senderUserId)
+                                ),
+                                v.text
+                              )
+                            )
                           ),
-                          v.text
+                          row.botId
                         )
                       )
-                    ),
-                    row.botId
-                  )
-                )
-              case Success(None)    => Future.successful(
-                  (
-                    Channel(ChannelId(Refined.unsafeApply(channel.id)), Seq()),
-                    row.botId
-                  )
-                )
-            }
+                    case Success(None)    =>
+                      println("success none")
+                      Future.successful(
+                        (
+                          Channel(
+                            ChannelId(Refined.unsafeApply(channel.id)),
+                            Seq()
+                          ),
+                          row.botId
+                        )
+                      )
+                  }
       } yield info)
       .map(_.flatten)
       .map(v => Future.sequence(v))
