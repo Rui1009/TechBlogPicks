@@ -105,6 +105,8 @@ final case class WorkSpace(
     targetBot      <- this.bots
                         .find(bot => bot.applicationId == applicationId)
                         .toRight(NotExistError("Bot"))
+    _               = println(this.channels)
+    _               = println(channelId)
     targetChannel  <- this.channels
                         .find(channel => channel.id == channelId)
                         .toRight(NotExistError("ChannelId"))

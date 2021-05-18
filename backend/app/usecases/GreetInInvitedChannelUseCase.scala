@@ -32,14 +32,13 @@ final class GreetInInvitedChannelUseCaseImpl @Inject() (
         .ifNotExistsToUseCaseError(
           "error while workSpaceRepository.find in greet in invited channel use case"
         )
-    _                            = println("after workspace find")
+    _                            = println(targetWorkSpace)
     workSpaceWithUpdatedBot     <-
       targetWorkSpace
         .botCreateGreetingInInvitedChannel(params.applicationId)
         .ifLeftThenToUseCaseError(
           "error while WorkSpace.botCreateGreetingInInvitedChannel in greet in invited channel use case"
         )
-    _                            = println("after bot create greet")
     workSpaceWithUpdatedChannel <-
       workSpaceWithUpdatedBot
         .botPostMessage(params.applicationId, params.channelId)
