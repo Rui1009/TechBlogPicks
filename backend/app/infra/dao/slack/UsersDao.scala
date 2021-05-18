@@ -45,7 +45,6 @@ class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
                .get()
                .ifFailedThenToInfraError(s"error while getting $url")
                .map(res => res.json.toString)
-      _    = println(res)
     } yield decode[ListResponse](res))
       .ifLeftThenToInfraError("error while converting list api response")
   }

@@ -30,7 +30,11 @@ trait WorkSpaceRepository {
   def removeBot(model: WorkSpace): Future[Unit]
 
   def find(id: WorkSpaceId): Future[Option[WorkSpace]]
-  def findByConstToken(id: WorkSpaceId): Future[Option[WorkSpace]]
+  def findByConstToken(
+    id: WorkSpaceId
+  ): Future[
+    Option[WorkSpace]
+  ] // 正確なWorkSpaceが返らないのでなくしたい。現状はUninstallApplicationUseCaseのみ
   def sendMessage(
     workSpace: WorkSpace,
     applicationId: ApplicationId,

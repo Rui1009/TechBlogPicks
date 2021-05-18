@@ -40,9 +40,7 @@ final class GreetInInvitedChannelUseCaseImpl @Inject() (
     workSpaceWithUpdatedBot <-
       targetWorkSpace.botCreateGreetingInInvitedChannel(params.botId) match {
         case Right(v) => Future.successful(v)
-        case Left(_)  =>
-          println("left enter")
-          throw BotNotFound
+        case Left(_)  => throw BotNotFound
       }
 
     workSpaceWithUpdatedChannel <-

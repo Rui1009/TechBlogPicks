@@ -20,7 +20,7 @@ class UninstallApplicationUseCaseSpec extends UseCaseSpec {
 
           when(applicationRepo.find(params.applicationId))
             .thenReturn(Future.successful(Some(application)))
-          when(workSpaceRepo.find(params.workSpaceId))
+          when(workSpaceRepo.findByConstToken(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
 
           val updatedWorkSpace = workSpace.uninstallApplication(application)
@@ -32,7 +32,7 @@ class UninstallApplicationUseCaseSpec extends UseCaseSpec {
             .futureValue
 
           verify(applicationRepo).find(params.applicationId)
-          verify(workSpaceRepo).find(params.workSpaceId)
+          verify(workSpaceRepo).findByConstToken(params.workSpaceId)
           verify(workSpaceRepo).removeBot(updatedWorkSpace)
           reset(applicationRepo)
           reset(workSpaceRepo)
@@ -72,7 +72,7 @@ class UninstallApplicationUseCaseSpec extends UseCaseSpec {
 
           when(applicationRepo.find(params.applicationId))
             .thenReturn(Future.successful(Some(application)))
-          when(workSpaceRepo.find(params.workSpaceId))
+          when(workSpaceRepo.findByConstToken(params.workSpaceId))
             .thenReturn(Future.successful(None))
 
           val result = new UninstallApplicationUseCaseImpl(
@@ -93,7 +93,7 @@ class UninstallApplicationUseCaseSpec extends UseCaseSpec {
 
           when(applicationRepo.find(params.applicationId))
             .thenReturn(Future.successful(Some(application)))
-          when(workSpaceRepo.find(params.workSpaceId))
+          when(workSpaceRepo.findByConstToken(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
 
           val updatedWorkSpace = workSpace.uninstallApplication(application)
