@@ -80,103 +80,89 @@ class WorkSpaceRepositoryImpl @Inject() (
   override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = (for {
     rows      <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
     responses <- findBotUser(rows.map(_.botId))
-    _          = println("find in 1")
     channels  <- findChannels(rows)
-    _          = println("find in 2")
-    bots       = responses.flatMap { res =>
-                   val maybeToken = rows
-                     .find(row => res.apiAppId.contains(row.botId))
-                     .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
 
-                   val joinedChannelsIds =
-                     channels.filter(id => res.apiAppId.contains(id._2)).map(_._1.id)
+    bots = responses.flatMap { res =>
+             val maybeToken = rows
+               .find(row => res.apiAppId.contains(row.botId))
+               .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
 
-                   (for {
-                     appId <- res.apiAppId
-                     token <- maybeToken
-                   } yield Bot(
-                     Some(BotId(Refined.unsafeApply(res.id))),
-                     BotName(Refined.unsafeApply(res.name)),
-                     ApplicationId(Refined.unsafeApply(appId)),
-                     token,
-                     joinedChannelsIds,
-                     None
-                   )).toSeq
-                 }
+             val joinedChannelsIds =
+               channels.filter(id => res.apiAppId.contains(id._2)).map(_._1.id)
+
+             (for {
+               appId <- res.apiAppId
+               token <- maybeToken
+             } yield Bot(
+               Some(BotId(Refined.unsafeApply(res.id))),
+               BotName(Refined.unsafeApply(res.name)),
+               ApplicationId(Refined.unsafeApply(appId)),
+               token,
+               joinedChannelsIds,
+               None
+             )).toSeq
+           }
   } yield
     if (rows.isEmpty) None
     else Some(WorkSpace(id, None, bots, channels.map(_._1).distinct, None)))
     .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
 
-  private def findBotUser(botIds: Seq[String]) = {
-    println("find bot user in")
-    usersDao
-      .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
-      .map(
-        _.members.filter(m =>
-          m.isBot && Set(m.apiAppId).subsetOf(botIds.map(id => Some(id)).toSet)
-        )
+  private def findBotUser(botIds: Seq[String]) = usersDao
+    .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+    .map(
+      _.members.filter(m =>
+        m.isBot && Set(m.apiAppId).subsetOf(botIds.map(id => Some(id)).toSet)
       )
-  }
+    )
 
-  private def findChannels(rows: Seq[WorkSpacesRow]) = {
-    println("find channels in")
-    Future
-      .sequence(for {
-        row <- rows
-      } yield for {
-        r <- usersDao
-               .conversations(row.token)
-               .ifFailedThenToInfraError(
-                 "error while usersDao.conversations in findChannels"
-               )
-        _  = println("after user conversation")
-      } yield for {
-        channel <- r.channels
-        _        = println("after channel for")
-      } yield for {
-        info <- conversationDao
-                  .info(row.token, channel.id)
-                  .ifFailedThenToInfraError(
-                    "error while conversationDao.info in findChannels"
-                  )
-                  .transformWith { //　上のエラー処理とまとめる
-                    case Success(Some(v)) =>
-                      println("success some")
-                      Future.successful(
-                        (
-                          Channel(
-                            ChannelId(Refined.unsafeApply(channel.id)),
-                            Seq(
-                              ChannelMessage(
-                                ChannelMessageSentAt(Refined.unsafeApply(v.ts)),
-                                ChannelMessageSenderUserId(
-                                  Refined.unsafeApply(v.senderUserId)
-                                ),
-                                v.text
-                              )
-                            )
-                          ),
-                          row.botId
-                        )
+  private def findChannels(rows: Seq[WorkSpacesRow]) = Future
+    .sequence(for {
+      row <- rows
+    } yield for {
+      r <- usersDao
+             .conversations(row.token)
+             .ifFailedThenToInfraError(
+               "error while usersDao.conversations in findChannels"
+             )
+
+    } yield for {
+      channel <- r.channels
+    } yield for {
+      info <-
+        conversationDao
+          .info(row.token, channel.id)
+          .ifFailedThenToInfraError(
+            "error while conversationDao.info in findChannels"
+          )
+          .transformWith { //　上のエラー処理とまとめる
+            case Success(Some(v)) => Future.successful(
+                (
+                  Channel(
+                    ChannelId(Refined.unsafeApply(channel.id)),
+                    Seq(
+                      ChannelMessage(
+                        ChannelMessageSentAt(Refined.unsafeApply(v.ts)),
+                        ChannelMessageSenderUserId(
+                          Refined.unsafeApply(v.senderUserId)
+                        ),
+                        v.text
                       )
-                    case Success(None)    =>
-                      println("success none")
-                      Future.successful(
-                        (
-                          Channel(
-                            ChannelId(Refined.unsafeApply(channel.id)),
-                            Seq()
-                          ),
-                          row.botId
-                        )
-                      )
-                  }
-      } yield info)
-      .map(_.flatten)
-      .map(v => Future.sequence(v))
-      .flatten
-  }
+                    )
+                  ),
+                  row.botId
+                )
+              )
+            case Success(None)    => Future.successful(
+                (
+                  Channel(ChannelId(Refined.unsafeApply(channel.id)), Seq()),
+                  row.botId
+                )
+              )
+          }
+    } yield info)
+    .map(_.flatten)
+    .map(v => Future.sequence(v))
+    .flatten
 
   override def update(
     model: WorkSpace,

@@ -86,9 +86,9 @@ final case class WorkSpace(
     }
 
   def botCreateGreetingInInvitedChannel(
-    applicationId: ApplicationId
+    botId: BotId
   ): Either[DomainError, WorkSpace] =
-    this.bots.find(bot => bot.applicationId == applicationId) match {
+    this.bots.find(bot => bot.id.contains(botId)) match {
       case Some(v) => Right(
           this.copy(bots =
             bots
