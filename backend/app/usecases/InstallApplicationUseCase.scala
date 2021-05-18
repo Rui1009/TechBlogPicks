@@ -25,7 +25,8 @@ final class InstallApplicationUseCaseImpl @Inject() (
   applicationRepository: ApplicationRepository
 )(implicit val ec: ExecutionContext)
     extends InstallApplicationUseCase {
-  override def exec(params: Params): Future[Unit] = for {
+  object DuplicateBot extends Exception
+  override def exec(params: Params): Future[Unit] = (for {
     targetApplication <-
       applicationRepository
         .find(params.applicationId)
@@ -54,17 +55,15 @@ final class InstallApplicationUseCaseImpl @Inject() (
           "error while workSpaceRepository.find in install application use case"
         )
 
-    updatedWorkSpace <-
-      workSpace
-        .installApplication(targetApplication) // ここで重複があるかどうかをみる。なければupdate
-        .ifLeftThenToUseCaseError(
-          "error while workSpace.installApplication in install application use case"
-        )
+    updatedWorkSpace <- workSpace.installApplication(targetApplication) match {
+                          case Right(v) => Future.successful(v)
+                          case Left(_)  => throw DuplicateBot
+                        } // ここで重複があるかどうかをみる。なければupdate。エラーの型でbot duplicateの時のみthrowすべき。そもそもthrowでいいのか
 
-    _ <- workSpaceRepository
-           .update(updatedWorkSpace, targetApplication.id)
-           .ifNotExistsToUseCaseError(
-             "error while workSpaceRepository.update in install application use case"
-           )
-  } yield ()
+    _                <- workSpaceRepository
+                          .update(updatedWorkSpace, targetApplication.id)
+                          .ifNotExistsToUseCaseError(
+                            "error while workSpaceRepository.update in install application use case"
+                          )
+  } yield ()).recoverWith { case DuplicateBot => Future.unit }
 }
