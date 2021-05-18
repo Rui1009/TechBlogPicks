@@ -102,11 +102,10 @@ final case class WorkSpace(
     applicationId: ApplicationId,
     channelId: ChannelId
   ): Either[DomainError, WorkSpace] = for {
-    targetBot      <- this.bots
-                        .find(bot => bot.applicationId == applicationId)
-                        .toRight(NotExistError("Bot"))
-    _               = println(this.channels)
-    _               = println(channelId)
+    targetBot <- this.bots
+                   .find(bot => bot.applicationId == applicationId)
+                   .toRight(NotExistError("Bot"))
+
     targetChannel  <- this.channels
                         .find(channel => channel.id == channelId)
                         .toRight(NotExistError("ChannelId"))
