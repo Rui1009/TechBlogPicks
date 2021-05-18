@@ -6,30 +6,34 @@ import adapters.controllers.syntax.AllSyntax
 import com.google.inject.Inject
 import io.circe.Json
 import play.api.mvc._
-import usecases.{PostOnboardingMessageUseCase, UninstallApplicationUseCase}
+import usecases.{
+  GreetInInvitedChannelUseCase,
+  PostOnboardingMessageUseCase,
+  UninstallApplicationUseCase
+}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class EventController @Inject() (
   val controllerComponents: ControllerComponents,
   uninstallApplicationUseCase: UninstallApplicationUseCase,
-  postOnboardingMessageUseCase: PostOnboardingMessageUseCase
+  postOnboardingMessageUseCase: PostOnboardingMessageUseCase,
+  greetInInvitedChannelUseCase: GreetInInvitedChannelUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
-  def handleEvent = Action { implicit request =>
-    println(request.body)
-    Ok("ol")
-  }
-//    Action.async(mapToEventCommand) { implicit request =>
-//      request.body.fold(
-//        e => Future.successful(responseError(e)),
-//        {
-//          case command: AppUninstalledEventCommand  => appUninstalled(command)
-//          case command: UrlVerificationEventCommand => urlVerification(command)
-//          case command: AppHomeOpenedEventCommand   => appHomeOpened(command)
-//        }
-//      )
-//    }
+  def handleEvent: Action[Either[AdapterError, EventCommand]] =
+    Action.async(mapToEventCommand) { implicit request =>
+      request.body.fold(
+        e => Future.successful(responseError(e)),
+        {
+          case command: AppUninstalledEventCommand      => appUninstalled(command)
+          case command: UrlVerificationEventCommand     => urlVerification(command)
+          case command: AppHomeOpenedEventCommand       => appHomeOpened(command)
+          case command: MemberJoinedChannelEventCommand =>
+            memberJoinedChannel(command)
+        }
+      )
+    }
 
   private def urlVerification(command: UrlVerificationEventCommand) = Future
     .successful(
@@ -56,6 +60,18 @@ class EventController @Inject() (
           .Params(command.applicationId, command.workSpaceId, command.channelId)
       )
       .ifFailedThenToAdapterError("error in EventController.appHomeOpened")
+      .toSuccessPostResponse
+      .recoverError
+
+  private def memberJoinedChannel(command: MemberJoinedChannelEventCommand) =
+    greetInInvitedChannelUseCase
+      .exec(
+        GreetInInvitedChannelUseCase
+          .Params(command.workSpaceId, command.channelId, command.applicationId)
+      )
+      .ifFailedThenToAdapterError(
+        "error in EventController.memberJoinedChannel"
+      )
       .toSuccessPostResponse
       .recoverError
 }
