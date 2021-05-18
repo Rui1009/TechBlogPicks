@@ -30,6 +30,7 @@ trait WorkSpaceRepository {
   def removeBot(model: WorkSpace): Future[Unit]
 
   def find(id: WorkSpaceId): Future[Option[WorkSpace]]
+  def findByConstToken(id: WorkSpaceId): Future[Option[WorkSpace]]
   def sendMessage(
     workSpace: WorkSpace,
     applicationId: ApplicationId,

@@ -77,6 +77,38 @@ class WorkSpaceRepositoryImpl @Inject() (
     }
   }
 
+  override def findByConstToken(id: WorkSpaceId): Future[Option[WorkSpace]] =
+    (for {
+      rows      <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
+      responses <- findBotUserByConstToken(rows.map(_.botId))
+      channels  <- findChannels(rows)
+
+      bots = responses.flatMap { res =>
+               val maybeToken = rows
+                 .find(row => res.apiAppId.contains(row.botId))
+                 .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
+
+               val joinedChannelsIds = channels
+                 .filter(id => res.apiAppId.contains(id._2))
+                 .map(_._1.id)
+
+               (for {
+                 appId <- res.apiAppId
+                 token <- maybeToken
+               } yield Bot(
+                 Some(BotId(Refined.unsafeApply(res.id))),
+                 BotName(Refined.unsafeApply(res.name)),
+                 ApplicationId(Refined.unsafeApply(appId)),
+                 token,
+                 joinedChannelsIds,
+                 None
+               )).toSeq
+             }
+    } yield
+      if (rows.isEmpty) None
+      else Some(WorkSpace(id, None, bots, channels.map(_._1).distinct, None)))
+      .ifFailedThenToInfraError("error while WorkSpaceRepository.find")
+
   override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = (for {
     rows      <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
     responses <- findBotUser(rows.map(row => (row.botId, row.token)))
@@ -122,15 +154,14 @@ class WorkSpaceRepositoryImpl @Inject() (
           )
     } yield botUser)
     .map(_.flatten.distinct)
-//  private def findBotUser(botIds: Seq[String]) = usersDao
-//    .list(
-//      sys.env.getOrElse("ACCESS_TOKEN", "")
-//    ) //ここは各WorkSpaceの情報(token等)をもとにfetchしないと正確でない
-//    .map(
-//      _.members.filter(m =>
-//        m.isBot && Set(m.apiAppId).subsetOf(botIds.map(id => Some(id)).toSet)
-//      )
-//    )
+
+  private def findBotUserByConstToken(botIds: Seq[String]) = usersDao
+    .list(sys.env.getOrElse("ACCESS_TOKEN", ""))
+    .map(
+      _.members.filter(m =>
+        m.isBot && Set(m.apiAppId).subsetOf(botIds.map(id => Some(id)).toSet)
+      )
+    )
 
   private def findChannels(rows: Seq[WorkSpacesRow]) = Future
     .sequence(for {

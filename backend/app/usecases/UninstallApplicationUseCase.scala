@@ -34,10 +34,11 @@ final class UninstallApplicationUseCaseImpl @Inject() (
         .ifNotExistsToUseCaseError(
           "error while applicationRepository.find in uninstall application use case"
         )
-    targetWorkSpace   <- workSpaceRepository.find(params.workSpaceId).map {
-                           case Some(v) => v
-                           case None    => throw WorkSpaceNotFound
-                         }
+    targetWorkSpace   <-
+      workSpaceRepository.findByConstToken(params.workSpaceId).map {
+        case Some(v) => v
+        case None    => throw WorkSpaceNotFound
+      }
     updatedWorkSpace   = targetWorkSpace.uninstallApplication(targetApplication)
     _                 <- workSpaceRepository
                            .removeBot(updatedWorkSpace)
