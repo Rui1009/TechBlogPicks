@@ -16,20 +16,20 @@ class GreetInInvitedChannelUseCaseSpec extends UseCaseSpec {
           workSpaceGen,
           applicationIdGen,
           botGen,
+          botIdGen,
           channelTypedChannelMessageGen
-        ) { (_workSpace, appId, bot, channel) =>
-          val params    = Params(_workSpace.id, channel.id, appId)
+        ) { (_workSpace, appId, bot, botId, channel) =>
+          val params    = Params(_workSpace.id, channel.id, appId, botId)
           val workSpace = _workSpace.copy(
             channels = Seq(channel.copy(id = channel.id)),
-            bots = Seq(bot.copy(applicationId = appId))
+            bots = Seq(bot.copy(applicationId = appId, id = Some(botId)))
           )
 
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
 
-          val workSpaceWithUpdatedBot     = workSpace
-            .botCreateGreetingInInvitedChannel(params.applicationId)
-            .unsafeGet
+          val workSpaceWithUpdatedBot     =
+            workSpace.botCreateGreetingInInvitedChannel(params.botId).unsafeGet
           val workSpaceWithUpdatedChannel = workSpaceWithUpdatedBot
             .botPostMessage(params.applicationId, params.channelId)
             .unsafeGet
@@ -58,29 +58,64 @@ class GreetInInvitedChannelUseCaseSpec extends UseCaseSpec {
       }
     }
 
+    "return Left in botCreateGreetingInInvitedChannel" should {
+      "retun unit & never invoke workSpaceRepository.sendMessage" in {
+        forAll(
+          workSpaceGen,
+          applicationIdGen,
+          botGen,
+          botIdGen,
+          channelTypedChannelMessageGen
+        ) { (_workSpace, appId, bot, botId, channel) =>
+          val params    = Params(_workSpace.id, channel.id, appId, botId)
+          val workSpace = _workSpace.copy(
+            channels = Seq(channel.copy(id = channel.id)),
+            bots = Seq(bot.copy(applicationId = appId))
+          )
+
+          when(workSpaceRepo.find(params.workSpaceId))
+            .thenReturn(Future.successful(Some(workSpace)))
+
+          val result = new GreetInInvitedChannelUseCaseImpl(workSpaceRepo)
+            .exec(params)
+            .futureValue
+
+          verify(workSpaceRepo).find(params.workSpaceId)
+          verify(workSpaceRepo, times(0)).sendMessage(*, *, *)
+          assert(result === ())
+
+          reset(workSpaceRepo)
+        }
+      }
+    }
+
     "return None in workSpaceRepository.find" should {
       "throw use case error & workSpaceRepository.sendMessage never invokes" in {
-        forAll(workSpaceGen, applicationIdGen, channelTypedChannelMessageGen) {
-          (workSpace, appId, channel) =>
-            val params = Params(workSpace.id, channel.id, appId)
+        forAll(
+          workSpaceGen,
+          applicationIdGen,
+          botIdGen,
+          channelTypedChannelMessageGen
+        ) { (workSpace, appId, botId, channel) =>
+          val params = Params(workSpace.id, channel.id, appId, botId)
 
-            when(workSpaceRepo.find(params.workSpaceId))
-              .thenReturn(Future.successful(None))
+          when(workSpaceRepo.find(params.workSpaceId))
+            .thenReturn(Future.successful(None))
 
-            val result =
-              new GreetInInvitedChannelUseCaseImpl(workSpaceRepo).exec(params)
+          val result =
+            new GreetInInvitedChannelUseCaseImpl(workSpaceRepo).exec(params)
 
-            whenReady(result.failed) { e =>
-              assert(
-                e === NotFoundError(
-                  "error while workSpaceRepository.find in greet in invited channel use case"
-                )
+          whenReady(result.failed) { e =>
+            assert(
+              e === NotFoundError(
+                "error while workSpaceRepository.find in greet in invited channel use case"
               )
-              verify(workSpaceRepo).find(params.workSpaceId)
-              verify(workSpaceRepo, times(0)).sendMessage(*, *, *)
+            )
+            verify(workSpaceRepo).find(params.workSpaceId)
+            verify(workSpaceRepo, times(0)).sendMessage(*, *, *)
 
-              reset(workSpaceRepo)
-            }
+            reset(workSpaceRepo)
+          }
         }
       }
     }
@@ -91,20 +126,20 @@ class GreetInInvitedChannelUseCaseSpec extends UseCaseSpec {
           workSpaceGen,
           applicationIdGen,
           botGen,
+          botIdGen,
           channelTypedChannelMessageGen
-        ) { (_workSpace, appId, bot, channel) =>
-          val params    = Params(_workSpace.id, channel.id, appId)
+        ) { (_workSpace, appId, bot, botId, channel) =>
+          val params    = Params(_workSpace.id, channel.id, appId, botId)
           val workSpace = _workSpace.copy(
             channels = Seq(channel.copy(id = channel.id)),
-            bots = Seq(bot.copy(applicationId = appId))
+            bots = Seq(bot.copy(applicationId = appId, id = Some(botId)))
           )
 
           when(workSpaceRepo.find(params.workSpaceId))
             .thenReturn(Future.successful(Some(workSpace)))
 
-          val workSpaceWithUpdatedBot     = workSpace
-            .botCreateGreetingInInvitedChannel(params.applicationId)
-            .unsafeGet
+          val workSpaceWithUpdatedBot     =
+            workSpace.botCreateGreetingInInvitedChannel(params.botId).unsafeGet
           val workSpaceWithUpdatedChannel = workSpaceWithUpdatedBot
             .botPostMessage(params.applicationId, params.channelId)
             .unsafeGet
