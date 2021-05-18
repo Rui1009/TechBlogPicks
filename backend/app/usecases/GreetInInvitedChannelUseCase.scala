@@ -26,19 +26,20 @@ final class GreetInInvitedChannelUseCaseImpl @Inject() (
 )(implicit val ec: ExecutionContext)
     extends GreetInInvitedChannelUseCase {
   override def exec(params: Params): Future[Unit] = for {
-    targetWorkSpace         <-
+    targetWorkSpace             <-
       workSpaceRepository
         .find(params.workSpaceId)
         .ifNotExistsToUseCaseError(
           "error while workSpaceRepository.find in greet in invited channel use case"
         )
-    workSpaceWithUpdatedBot <-
+    _                            = println("after workspace find")
+    workSpaceWithUpdatedBot     <-
       targetWorkSpace
         .botCreateGreetingInInvitedChannel(params.applicationId)
         .ifLeftThenToUseCaseError(
           "error while WorkSpace.botCreateGreetingInInvitedChannel in greet in invited channel use case"
         )
-
+    _                            = println("after bot create greet")
     workSpaceWithUpdatedChannel <-
       workSpaceWithUpdatedBot
         .botPostMessage(params.applicationId, params.channelId)
@@ -46,6 +47,7 @@ final class GreetInInvitedChannelUseCaseImpl @Inject() (
           "error while WorkSpace.botPostMessage in greet in invited channel use case"
         )
 
+    _  = println("after bot post message")
     _ <- workSpaceRepository
            .sendMessage(
              workSpaceWithUpdatedChannel,
@@ -55,5 +57,6 @@ final class GreetInInvitedChannelUseCaseImpl @Inject() (
            .ifNotExistsToUseCaseError(
              "error while workSpaceRepository.sendMessage in greet in invited channel use case"
            )
+    _  = println("exec finish")
   } yield ()
 }
