@@ -29,6 +29,7 @@ class ConversationDaoImpl @Inject() (ws: WSClient)(implicit
                 .get()
                 .ifFailedThenToInfraError(s"error while getting $url")
                 .map(res => res.json.toString)
+      _     = println(resp)
     } yield decode[Option[InfoResponse]](resp)).ifLeftThenToInfraError(
       "error while converting conversation info api response"
     )
