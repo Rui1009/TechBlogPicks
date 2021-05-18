@@ -31,17 +31,20 @@ final class GreetInInvitedChannelUseCaseImpl @Inject() (
   object BotNotFound extends Exception
 
   override def exec(params: Params) = (for {
-    targetWorkSpace <-
+    targetWorkSpace         <-
       workSpaceRepository
         .find(params.workSpaceId)
         .ifNotExistsToUseCaseError(
           "error while workSpaceRepository.find in greet in invited channel use case"
         )
-
+    _                        = params.botId
+    _                        = println(targetWorkSpace.bots)
     workSpaceWithUpdatedBot <-
       targetWorkSpace.botCreateGreetingInInvitedChannel(params.botId) match {
         case Right(v) => Future.successful(v)
-        case Left(_)  => throw BotNotFound
+        case Left(_)  =>
+          println("left enter")
+          throw BotNotFound
       }
 
     workSpaceWithUpdatedChannel <-
