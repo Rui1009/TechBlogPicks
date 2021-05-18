@@ -13,18 +13,24 @@ import io.circe._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait UsersDao {
-  def conversations(token: String): Future[ConversationResponse]
+  def conversations(
+    token: String,
+    channelTypes: String
+  ): Future[ConversationResponse]
   def list(accessToken: String): Future[ListResponse]
 }
 
 class UsersDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
     extends ApiDao(ws) with UsersDao {
-  def conversations(accessToken: String): Future[ConversationResponse] = {
+  def conversations(
+    accessToken: String,
+    channelTypes: String
+  ): Future[ConversationResponse] = {
     val url = "https://slack.com/api/users.conversations"
     (for {
       res <- ws.url(url)
                .withHttpHeaders("Authorization" -> s"Bearer $accessToken")
-               .withQueryStringParameters("types" -> "public_channel,im")
+               .withQueryStringParameters("types" -> channelTypes)
                .get()
                .ifFailedThenToInfraError(s"error while getting $url")
                .map(_.json.toString)

@@ -45,7 +45,8 @@ class PublishPostsQueryProcessorImpl @Inject() (
                                      .map(p => Post(p.url, p.title))
         tokenRow                <- tokens
       } yield for {
-        conversations <- usersDao.conversations(tokenRow.token)
+        conversations <-
+          usersDao.conversations(tokenRow.token, "public_channel")
       } yield PublishPostsView(
         postView,
         tokenRow.token,

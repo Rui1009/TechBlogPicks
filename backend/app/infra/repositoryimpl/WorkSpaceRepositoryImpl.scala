@@ -168,7 +168,7 @@ class WorkSpaceRepositoryImpl @Inject() (
       row <- rows
     } yield for {
       r <- usersDao
-             .conversations(row.token)
+             .conversations(row.token, "public_channel,im")
              .ifFailedThenToInfraError(
                "error while usersDao.conversations in findChannels"
              )
