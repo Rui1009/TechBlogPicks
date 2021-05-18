@@ -80,8 +80,9 @@ class WorkSpaceRepositoryImpl @Inject() (
   override def find(id: WorkSpaceId): Future[Option[WorkSpace]] = (for {
     rows      <- db.run(WorkSpaces.filter(_.teamId === id.value.value).result)
     responses <- findBotUser(rows.map(_.botId))
+    _          = println("find in 1")
     channels  <- findChannels(rows)
-    _          = println("find in")
+    _          = println("find in 2")
     bots       = responses.flatMap { res =>
                    val maybeToken = rows
                      .find(row => res.apiAppId.contains(row.botId))

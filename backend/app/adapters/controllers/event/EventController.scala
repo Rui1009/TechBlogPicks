@@ -21,19 +21,22 @@ class EventController @Inject() (
   greetInInvitedChannelUseCase: GreetInInvitedChannelUseCase
 )(implicit val ec: ExecutionContext)
     extends BaseController with JsonHelper with EventBodyMapper with AllSyntax {
-  def handleEvent: Action[Either[AdapterError, EventCommand]] =
-    Action.async(mapToEventCommand) { implicit request =>
-      request.body.fold(
-        e => Future.successful(responseError(e)),
-        {
-          case command: AppUninstalledEventCommand      => appUninstalled(command)
-          case command: UrlVerificationEventCommand     => urlVerification(command)
-          case command: AppHomeOpenedEventCommand       => appHomeOpened(command)
-          case command: MemberJoinedChannelEventCommand =>
-            memberJoinedChannel(command)
-        }
-      )
-    }
+  def handleEvent = Action { implicit request =>
+    println(request.body)
+    Ok("ok")
+  }
+//    Action.async(mapToEventCommand) { implicit request =>
+//      request.body.fold(
+//        e => Future.successful(responseError(e)),
+//        {
+//          case command: AppUninstalledEventCommand      => appUninstalled(command)
+//          case command: UrlVerificationEventCommand     => urlVerification(command)
+//          case command: AppHomeOpenedEventCommand       => appHomeOpened(command)
+//          case command: MemberJoinedChannelEventCommand =>
+//            memberJoinedChannel(command)
+//        }
+//      )
+//    }
 
   private def urlVerification(command: UrlVerificationEventCommand) = Future
     .successful(
