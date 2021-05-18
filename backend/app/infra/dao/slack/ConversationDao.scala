@@ -53,7 +53,14 @@ object ConversationDaoImpl {
   case class InfoResponse(senderUserId: String, text: String, ts: Float)
   implicit val conversationDecoder: Decoder[Option[InfoResponse]] =
     Decoder.instance { cursor =>
-      cursor.downField("channel").downField("latest").as[Json] match {
+      if (cursor.downField("channel").downField("latest").failed) for {
+        _ <-
+          cursor
+            .downField("channel")
+            .downField("id")
+            .as[String] // もっとスマートな方法はないか
+      } yield None
+      else cursor.downField("channel").downField("latest").as[Json] match {
         case Right(v) if v.isNull =>
           for {
             _ <-
