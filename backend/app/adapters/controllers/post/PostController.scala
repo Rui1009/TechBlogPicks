@@ -52,7 +52,7 @@ class PostController @Inject() (
     } yield for {
       publishPost: PublishPostsView <- publishPosts
       channel                       <- publishPost.channels
-//      text         = publishPost.posts.foldLeft("今日のWinkieおすすめの記事はこちら！")((acc, curr) =>
+//      text  a       = publishPost.posts.foldLeft("今日のWinkieおすすめの記事はこちら！")((acc, curr) =>
 //                       acc + "\n" + curr.url
 //                     )
       post                          <- publishPost.posts
