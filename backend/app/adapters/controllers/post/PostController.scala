@@ -8,7 +8,7 @@ import infra.dao.slack.ChatDao
 import infra.dao.slack.ChatDaoImpl._
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import query.posts.PostsQueryProcessor
-import query.publishposts.{PublishPostsQueryProcessor, PublishPostsView}
+import query.publishposts.{Post, PublishPostsQueryProcessor, PublishPostsView}
 import usecases.{DeletePostsUseCase, RegisterPostUseCase}
 import usecases.RegisterPostUseCase.Params
 import io.circe.generic.auto._
@@ -50,14 +50,20 @@ class PostController @Inject() (
     (for {
       publishPosts <- publishPostsQueryProcessor.findAll()
     } yield for {
-      publishPost <- publishPosts
-      channel     <- publishPost.channels
-      text         = publishPost.posts.foldLeft("今日のWinkieおすすめの記事はこちら！")((acc, curr) =>
-                       acc + "\n" + curr.url
-                     )
+      publishPost: PublishPostsView <- publishPosts
+      channel                       <- publishPost.channels
+//      text         = publishPost.posts.foldLeft("今日のWinkieおすすめの記事はこちら！")((acc, curr) =>
+//                       acc + "\n" + curr.url
+//                     )
+      post                          <- publishPost.posts
     } yield for {
-      _ <- if (publishPost.posts.isEmpty) Future.unit
-           else chatDao.postMessage(publishPost.token, channel, text)
+      _ <-
+        if (
+          publishPost.posts.isEmpty || (publishPost.token != "xoxb-1857273131876-1879915905377-UM2VDOHgY2eHjBOvMolV2ery" &&
+            publishPost.token != "xoxb-1857273131876-1934248846912-LlbTFncWxovBa0a37OWjj5oN" &&
+            publishPost.token != "xoxb-2071830228691-2084235938177-Ujc8B4ZqaeU9A6AorAIvemW0")
+        ) Future.unit
+        else chatDao.postMessage(publishPost.token, channel, post.url)
     } yield ())
       .map(Future.sequence(_))
       .flatMap(_.map(_ => ()))

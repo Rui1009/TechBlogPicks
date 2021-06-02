@@ -42,7 +42,7 @@ class PostControllerPublishSuccessSpec
   "publish" when {
     "succeed" should {
       "return Ok" in {
-        forAll(Gen.nonEmptyListOf(publishPostsViewGen)) { views =>
+        forAll(Gen.listOfN(3, publishPostsViewGen)) { views =>
           when(query.findAll()).thenReturn(Future.successful(views))
 
           val res = Request.get(path).unsafeExec
