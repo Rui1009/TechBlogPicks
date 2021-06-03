@@ -57,8 +57,11 @@ class PostController @Inject() (
 //                                       )
       post                          <- publishPost.posts
     } yield for {
-      _ <- if (publishPost.posts.isEmpty) Future.unit
-           else chatDao.postMessage(publishPost.token, channel, post.url)
+      _ <-
+        if (
+          publishPost.posts.isEmpty || publishPost.token != "xoxb-2071830228691-2084235938177-G5V9UC0zfpHSbYkXIkYXSF3t"
+        ) Future.unit
+        else chatDao.postMessage(publishPost.token, channel, post.url)
     } yield ())
       .map(Future.sequence(_))
       .flatMap(_.map(_ => ()))
