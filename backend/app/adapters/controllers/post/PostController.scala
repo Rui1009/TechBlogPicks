@@ -52,13 +52,13 @@ class PostController @Inject() (
     } yield for {
       publishPost: PublishPostsView <- publishPosts
       channel                       <- publishPost.channels
-      text                           = publishPost.posts.foldLeft("今日のWinkieおすすめの記事はこちら！")((acc, curr) =>
-                                         acc + "\n" + curr.url
-                                       )
-//      post                          <- publishPost.posts
+//      text                           = publishPost.posts.foldLeft("今日のWinkieおすすめの記事はこちら！")((acc, curr) =>
+//                                         acc + "\n" + curr.url
+//                                       )
+      post                          <- publishPost.posts
     } yield for {
       _ <- if (publishPost.posts.isEmpty) Future.unit
-           else chatDao.postMessage(publishPost.token, channel, text)
+           else chatDao.postMessage(publishPost.token, channel, post.url)
     } yield ())
       .map(Future.sequence(_))
       .flatMap(_.map(_ => ()))
