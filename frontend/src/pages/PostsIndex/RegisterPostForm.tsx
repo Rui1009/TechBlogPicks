@@ -28,6 +28,7 @@ type FormValues = {
   author: string;
   postedAt: string;
   botIds: string[];
+  testimonial: string;
 };
 
 type Props = {
@@ -45,7 +46,8 @@ const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
       title: "",
       author: "",
       postedAt: format(startOfToday(), "yyyy-MM-dd"),
-      botIds: []
+      botIds: [],
+      testimonial: ""
     },
     validationSchema: Yup.object({
       url: Yup.string()
@@ -112,6 +114,19 @@ const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
                 {formik.errors.url}
               </Typography>
             )}
+          </Grid>
+          <Grid item style={{ width: "100%", marginTop: "16px" }}>
+            <TextField
+              fullWidth
+              multiline
+              rows={5}
+              variant={"outlined"}
+              label={"おすすめポイント"}
+              name={"testimonial"}
+              type={"text"}
+              value={formik.values.testimonial}
+              onChange={formik.handleChange}
+            />
           </Grid>
           <Grid item style={{ width: "100%" }}>
             <FormControl fullWidth>
