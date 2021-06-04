@@ -49,7 +49,8 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
                   r.title,
                   r.author,
                   r.postedAt,
-                  r.createdAt
+                  r.createdAt,
+                  r.testimonial
                 )
               )
               .futureValue

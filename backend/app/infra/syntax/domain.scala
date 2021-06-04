@@ -22,7 +22,8 @@ final private[syntax] class UnsavedPostOps(private val model: UnsavedPost)
     model.title.value.value,
     model.author.value.value,
     model.postedAt.value.value,
-    unixSec
+    unixSec,
+    model.testimonial.map(_.value.value)
   )
 }
 
