@@ -23,10 +23,16 @@ class RegisterPostUseCaseSpec extends UseCaseSpec {
               post.title,
               post.author,
               post.postedAt,
-              applicationIds
+              applicationIds,
+              post.testimonial
             )
-            val unsavedPost =
-              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+            val unsavedPost = UnsavedPost(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              post.testimonial
+            )
 
             when(postRepo.save(unsavedPost)).thenReturn(Future.successful(post))
             when(applicationRepo.filter(params.applicationIds))
@@ -59,10 +65,16 @@ class RegisterPostUseCaseSpec extends UseCaseSpec {
               post.title,
               post.author,
               post.postedAt,
-              applicationIds
+              applicationIds,
+              post.testimonial
             )
-            val unsavedPost =
-              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+            val unsavedPost = UnsavedPost(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              post.testimonial
+            )
 
             when(postRepo.save(unsavedPost))
               .thenReturn(Future.failed(DBError("error")))
@@ -91,10 +103,16 @@ class RegisterPostUseCaseSpec extends UseCaseSpec {
               post.title,
               post.author,
               post.postedAt,
-              applicationIds
+              applicationIds,
+              post.testimonial
             )
-            val unsavedPost =
-              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+            val unsavedPost = UnsavedPost(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              post.testimonial
+            )
 
             when(postRepo.save(unsavedPost)).thenReturn(Future.successful(post))
             when(applicationRepo.filter(params.applicationIds))
@@ -124,10 +142,16 @@ class RegisterPostUseCaseSpec extends UseCaseSpec {
               post.title,
               post.author,
               post.postedAt,
-              applicationIds
+              applicationIds,
+              post.testimonial
             )
-            val unsavedPost =
-              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+            val unsavedPost = UnsavedPost(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              post.testimonial
+            )
 
             when(postRepo.save(unsavedPost)).thenReturn(Future.successful(post))
             when(applicationRepo.filter(params.applicationIds))

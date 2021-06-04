@@ -3,7 +3,13 @@ package usecases
 import com.google.inject.Inject
 import domains.application.Application.ApplicationId
 import domains.application.ApplicationRepository
-import domains.post.Post.{PostAuthor, PostPostedAt, PostTitle, PostUrl}
+import domains.post.Post.{
+  PostAuthor,
+  PostPostedAt,
+  PostTestimonial,
+  PostTitle,
+  PostUrl
+}
 import domains.post.{PostRepository, UnsavedPost}
 import usecases.RegisterPostUseCase.Params
 
@@ -19,7 +25,8 @@ object RegisterPostUseCase {
     title: PostTitle,
     author: PostAuthor,
     postedAt: PostPostedAt,
-    applicationIds: Seq[ApplicationId]
+    applicationIds: Seq[ApplicationId],
+    testimonial: Option[PostTestimonial]
   )
 }
 
@@ -29,8 +36,13 @@ final class RegisterPostUseCaseImpl @Inject() (
 )(implicit val ec: ExecutionContext)
     extends RegisterPostUseCase {
   override def exec(params: Params): Future[Unit] = {
-    val post =
-      UnsavedPost(params.url, params.title, params.author, params.postedAt)
+    val post = UnsavedPost(
+      params.url,
+      params.title,
+      params.author,
+      params.postedAt,
+      params.testimonial
+    )
 
     for {
       savedPost           <-
