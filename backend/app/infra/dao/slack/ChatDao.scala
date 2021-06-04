@@ -27,6 +27,12 @@ trait ChatDao {
     channel: String,
     blocks: DraftMessage
   ): Future[PostMessageResponse]
+
+  def publishMessage(
+    token: String,
+    channel: String,
+    blocks: DraftMessage
+  ): Future[PostMessageResponse]
 }
 
 class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
@@ -52,11 +58,11 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
       .anywaySuccess(PostMessageResponse.empty)
   }
 
-  def postMessage(
+  private def sendMessage(
     token: String,
     channel: String,
     blocks: DraftMessage
-  ): Future[PostMessageResponse] = {
+  ): Future[Either[APIError, PostMessageResponse]] = {
     val url                                                = "https://slack.com/api/chat.postMessage"
     implicit val encodeSectionBlock: Encoder[MessageBlock] = Encoder.instance {
       case section: SectionBlock =>
@@ -108,7 +114,7 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
         )
     }
 
-    (for {
+    for {
       res <-
         ws.url(url)
           .withHttpHeaders("Authorization" -> s"Bearer $token")
@@ -122,9 +128,29 @@ class ChatDaoImpl @Inject() (ws: WSClient)(implicit ec: ExecutionContext)
           )
           .post(Json.Null.noSpaces)
           .ifFailedThenToInfraError(s"error while posting $url")
-    } yield decode[PostMessageResponse](res.json.toString))
-      .ifLeftThenToInfraError("error while converting list api response")
+          .map(resp =>
+            decode[PostMessageResponse](resp.json.toString).left.map(e =>
+              APIError(
+                s"publish message failed -> token: $token" + "\n" + e.getMessage + "\n" + resp.json.toString
+              )
+            )
+          )
+    } yield res
   }
+
+  def postMessage(
+    token: String,
+    channel: String,
+    blocks: DraftMessage
+  ): Future[PostMessageResponse] = sendMessage(token, channel, blocks)
+    .ifLeftThenToInfraError("error while converting list api response")
+
+  def publishMessage(
+    token: String,
+    channel: String,
+    blocks: DraftMessage
+  ): Future[PostMessageResponse] =
+    sendMessage(token, channel, blocks).anywaySuccess(PostMessageResponse.empty)
 }
 
 object ChatDaoImpl {
