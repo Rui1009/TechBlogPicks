@@ -4,6 +4,9 @@ import adapters.AdapterError
 import adapters.controllers.helpers.JsonHelper
 import adapters.controllers.syntax.FutureSyntax
 import com.google.inject.Inject
+import domains.channel.DraftMessage
+import domains.channel.DraftMessage.{BlockText, SectionBlock}
+import eu.timepit.refined.api.Refined
 import infra.dao.slack.ChatDao
 import infra.dao.slack.ChatDaoImpl._
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
@@ -51,15 +54,31 @@ class PostController @Inject() (
     (for {
       publishPosts <- publishPostsQueryProcessor.findAll()
     } yield for {
-      publishPost: PublishPostsView <- publishPosts
-      channel                       <- publishPost.channels
-//      text                           = publishPost.posts.foldLeft("今日のWinkieおすすめの記事はこちら！")((acc, curr) =>
-//                                         acc + "\n" + curr.url
-//                                       )
-      post                          <- publishPost.posts
+      publishPost <- publishPosts
+      channel     <- publishPost.channels
+      post        <- publishPost.posts
     } yield for {
       _ <- if (publishPost.posts.isEmpty) Future.unit
-           else chatDao.postMessage(publishPost.token, channel, post.url)
+           else post.testimonial match {
+             case Some(v) => chatDao.publishMessage(
+                 publishPost.token,
+                 channel,
+                 DraftMessage(
+                   Seq(
+                     SectionBlock(
+                       BlockText(
+                         Refined.unsafeApply(
+                           s"*Winkie編集部おすすめポイント*👀\n$v\n${post.url}"
+                         )
+                       ),
+                       None
+                     )
+                   )
+                 ) // 本来はDraftMessageをnewするべきではない。workSpace経由でBotがメソッドで作成するべき
+               )
+             case None    =>
+               chatDao.postMessage(publishPost.token, channel, post.url)
+           }
     } yield ())
       .map(Future.sequence(_))
       .flatMap(_.map(_ => ()))

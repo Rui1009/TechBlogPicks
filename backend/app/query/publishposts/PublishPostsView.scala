@@ -6,4 +6,4 @@ final case class PublishPostsView(
   channels: Seq[String]
 )
 
-final case class Post(url: String, title: String)
+final case class Post(url: String, title: String, testimonial: Option[String])

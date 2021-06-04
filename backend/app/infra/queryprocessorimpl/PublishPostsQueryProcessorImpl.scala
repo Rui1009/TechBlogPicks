@@ -42,7 +42,7 @@ class PublishPostsQueryProcessorImpl @Inject() (
         postView                 = posts
                                      .filter(_._2.botId == applicationId)
                                      .map(_._1)
-                                     .map(p => Post(p.url, p.title))
+                                     .map(p => Post(p.url, p.title, p.testimonial))
         tokenRow                <- tokens
       } yield for {
         conversations <-

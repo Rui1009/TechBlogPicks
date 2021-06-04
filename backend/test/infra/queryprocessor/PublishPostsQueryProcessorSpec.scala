@@ -27,10 +27,34 @@ trait PublishPostsQueryProcessorSpecContext { this: HasDB =>
       ),
       Posts.forceInsertAll(
         Seq(
-          PostsRow(1, "url1", "title1", "rui1", 1, currUnix),
-          PostsRow(2, "url2", "title2", "rui1", 1, currUnix),
-          PostsRow(3, "url3", "title3", "rui1", 1, currUnix),
-          PostsRow(4, "url4", "title4", "rui1", 1, currUnix - 3600 * 24)
+          PostsRow(
+            1,
+            "url1",
+            "title1",
+            "rui1",
+            1,
+            currUnix,
+            Some("good article!!!")
+          ),
+          PostsRow(2, "url2", "title2", "rui1", 1, currUnix, None),
+          PostsRow(
+            3,
+            "url3",
+            "title3",
+            "rui1",
+            1,
+            currUnix,
+            Some("so-so article")
+          ),
+          PostsRow(
+            4,
+            "url4",
+            "title4",
+            "rui1",
+            1,
+            currUnix - 3600 * 24,
+            Some("bad article")
+          )
         )
       ),
       BotsPosts.forceInsertAll(
@@ -87,17 +111,26 @@ class PublishPostsQueryProcessorSpec
         val result   = queryProcessor.findAll().futureValue
         val expected = Seq(
           PublishPostsView(
-            Seq(Post("url1", "title1"), Post("url2", "title2")),
+            Seq(
+              Post("url1", "title1", Some("good article!!!")),
+              Post("url2", "title2", None)
+            ),
             "token1",
             channels
           ),
           PublishPostsView(
-            Seq(Post("url1", "title1"), Post("url2", "title2")),
+            Seq(
+              Post("url1", "title1", Some("good article!!!")),
+              Post("url2", "title2", None)
+            ),
             "token2",
             channels
           ),
           PublishPostsView(
-            Seq(Post("url1", "title1"), Post("url3", "title3")),
+            Seq(
+              Post("url1", "title1", Some("good article!!!")),
+              Post("url3", "title3", Some("so-so article"))
+            ),
             "token3",
             channels
           )
