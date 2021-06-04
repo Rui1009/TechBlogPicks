@@ -16,7 +16,8 @@ final case class Post(
   url: PostUrl,
   title: PostTitle,
   author: PostAuthor,
-  postedAt: PostPostedAt
+  postedAt: PostPostedAt,
+  testimonial: Option[PostTestimonial]
 ) {
   def assign(applications: Seq[Application]): Seq[Application] =
     applications.map(app => app.copy(posts = app.posts :+ this.id))
@@ -67,11 +68,21 @@ object Post {
         case Left(_)  => Left(NegativeNumberError("PostPostedAt"))
       }
   }
+
+  @newtype case class PostTestimonial(value: String Refined NonEmpty)
+  object PostTestimonial {
+    def create(value: String): Either[EmptyStringError, PostTestimonial] =
+      refineV[NonEmpty](value) match {
+        case Right(v) => Right(PostTestimonial(v))
+        case Left(_)  => Left(EmptyStringError("PostTestimonial"))
+      }
+  }
 }
 
 final case class UnsavedPost(
   url: PostUrl,
   title: PostTitle,
   author: PostAuthor,
-  postedAt: PostPostedAt
+  postedAt: PostPostedAt,
+  testimonial: Option[PostTestimonial]
 )
