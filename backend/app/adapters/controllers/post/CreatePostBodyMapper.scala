@@ -16,7 +16,8 @@ final case class CreatePostBody(
   title: String,
   author: String,
   postedAt: Long,
-  botIds: Seq[String]
+  botIds: Seq[String],
+  testimonial: Option[String]
 )
 
 final case class CreatePostCommand(
@@ -24,7 +25,8 @@ final case class CreatePostCommand(
   title: PostTitle,
   author: PostAuthor,
   postedAt: PostPostedAt,
-  botIds: Seq[ApplicationId] // ここはfileld名をapplicationIdsにしてフロントからの値を修正する
+  botIds: Seq[ApplicationId], // ここはfileld名をapplicationIdsにしてフロントからの値を修正する
+  testimonial: Option[PostTestimonial]
 )
 
 trait PostCreateBodyMapper extends JsonRequestMapper {
@@ -38,7 +40,8 @@ trait PostCreateBodyMapper extends JsonRequestMapper {
         PostTitle.create(body.title).toValidatedNec,
         PostAuthor.create(body.author).toValidatedNec,
         PostPostedAt.create(body.postedAt).toValidatedNec,
-        body.botIds.map(ApplicationId.create(_).toValidatedNec).sequence
+        body.botIds.map(ApplicationId.create(_).toValidatedNec).sequence,
+        body.testimonial.traverse(t => PostTestimonial.create(t).toValidatedNec)
       ).mapN(CreatePostCommand.apply)
         .toEither
         .leftMap(errors =>
