@@ -13,12 +13,13 @@ object request extends RequestGen
 
 trait RequestGen {
   val createPostBodyGen: Gen[CreatePostBody] = for {
-    url      <- urlGen
-    title    <- nonEmptyStringGen
-    author   <- nonEmptyStringGen
-    postedAt <- Gen.posNum[Long]
-    botIds   <- Gen.listOf(nonEmptyStringGen)
-  } yield CreatePostBody(url, title, author, postedAt, botIds)
+    url         <- urlGen
+    title       <- nonEmptyStringGen
+    author      <- nonEmptyStringGen
+    postedAt    <- Gen.posNum[Long]
+    botIds      <- Gen.listOf(nonEmptyStringGen)
+    testimonial <- Gen.option(nonEmptyStringGen)
+  } yield CreatePostBody(url, title, author, postedAt, botIds, testimonial)
 
   val deletePostsBodyGen: Gen[DeletePostsBody] = for {
     ids <- Gen.nonEmptyListOf(Gen.posNum[Long])

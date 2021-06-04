@@ -76,13 +76,17 @@ trait PostGen {
   val postPostedAtGen: Gen[PostPostedAt] =
     longRefinedPositiveGen.map(PostPostedAt(_))
 
+  val postTestimonial: Gen[PostTestimonial] =
+    stringRefinedNonEmptyGen.map(PostTestimonial(_))
+
   val postGen: Gen[Post] = for {
-    id       <- postIdGen
-    url      <- postUrlGen
-    title    <- postTitleGen
-    author   <- postAuthorGen
-    postedAt <- postPostedAtGen
-  } yield Post(id, url, title, author, postedAt)
+    id          <- postIdGen
+    url         <- postUrlGen
+    title       <- postTitleGen
+    author      <- postAuthorGen
+    postedAt    <- postPostedAtGen
+    testimonial <- Gen.option(postTestimonial)
+  } yield Post(id, url, title, author, postedAt, testimonial)
 }
 
 trait ApplicationGen {
