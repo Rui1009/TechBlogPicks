@@ -542,12 +542,15 @@ class WorkSpaceRepositoryImplFailSpec extends WorkSpaceRepositoryImplSpec {
 
             val result = repository.sendMessage(workSpace, appId, channelId)
 
-            val msg = """
+            val msg = s"""
                 |DBError
                 |error while WorkSpaceRepository.sendMessage
                 |APIError
                 |error while converting list api response
+                |APIError
+                |publish message failed -> token: ${bot.accessToken}
                 |Attempt to decode value on failed cursor: DownField(channel)
+                |{"ok":false,"error":"error"}
                 |""".stripMargin.trim
 
             whenReady(result.failed)(e => assert(e.getMessage.trim === msg))

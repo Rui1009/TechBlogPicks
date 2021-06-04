@@ -17,9 +17,10 @@ trait ViewGen
 
 trait PublishPostsViewGen {
   val postViewGen: Gen[Post] = for {
-    url   <- urlGen
-    title <- nonEmptyStringGen
-  } yield Post(url, title)
+    url         <- urlGen
+    title       <- nonEmptyStringGen
+    testimonial <- Gen.option(nonEmptyStringGen)
+  } yield Post(url, title, testimonial)
 
   val publishPostsViewGen: Gen[PublishPostsView] = for {
     token    <- nonEmptyStringGen
