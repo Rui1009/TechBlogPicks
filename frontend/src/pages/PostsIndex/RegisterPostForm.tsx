@@ -65,7 +65,8 @@ const RegisterPostForm: React.FC<Props> = ({ setPosts }) => {
     onSubmit: (values, submitProps) => {
       const req = {
         ...values,
-        postedAt: getUnixTime(new Date(values.postedAt))
+        postedAt: getUnixTime(new Date(values.postedAt)),
+        testimonial: values.testimonial === "" ? null : values.testimonial
       };
       api
         .post(Endpoints.posts(), req)
