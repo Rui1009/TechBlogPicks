@@ -142,9 +142,27 @@ class PostControllerCreateSpec extends ControllerSpec with CreateSpecContext {
         }
       }
 
+      "testimonial is invalid" should {
+        "return Bad Request Error" in {
+          forAll(createPostBodyGen) { body =>
+            val req = body.copy(testimonial = Some(""))
+            val res = Request.post(path).withJsonBody(req).unsafeExec
+
+            assert(status(res) === BAD_REQUEST)
+            assert(
+              decodeERes(
+                res
+              ).unsafeGet.message === badRequestError + emptyStringError(
+                "PostTestimonial"
+              ).trim
+            )
+          }
+        }
+      }
+
       "content is invalid at all" should {
         "return BadRequest Error" in {
-          val req = CreatePostBody("", "", "", -1, Seq(""))
+          val req = CreatePostBody("", "", "", -1, Seq(""), Some(""))
           val res = Request.post(path).withJsonBody(req).unsafeExec
 
           assert(status(res) === BAD_REQUEST)
@@ -154,7 +172,7 @@ class PostControllerCreateSpec extends ControllerSpec with CreateSpecContext {
                 "PostAuthor"
               ) + negativeNumberError("PostPostedAt") + emptyStringError(
                 "ApplicationId"
-              )).trim
+              ) + emptyStringError("PostTestimonial")).trim
           )
         }
       }

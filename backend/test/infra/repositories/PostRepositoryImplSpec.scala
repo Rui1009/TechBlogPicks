@@ -16,8 +16,13 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
       "add new data".which {
         "length is right" in {
           forAll(postGen, Gen.listOf(botIdGen)) { (post, botIds) =>
-            val unsavedPost =
-              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+            val unsavedPost = UnsavedPost(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              post.testimonial
+            )
             repository.save(unsavedPost).futureValue
             val postLen     = db.run(Posts.length.result).futureValue
             assert(postLen === 1)
@@ -27,8 +32,13 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
 
         "values are right" in {
           forAll(postGen) { post =>
-            val unsavedPost =
-              UnsavedPost(post.url, post.title, post.author, post.postedAt)
+            val unsavedPost = UnsavedPost(
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              post.testimonial
+            )
             repository.save(unsavedPost).futureValue
             val postsRow    = db
               .run(Posts.result.head)

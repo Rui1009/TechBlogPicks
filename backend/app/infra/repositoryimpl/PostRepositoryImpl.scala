@@ -1,7 +1,14 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.post.Post.{PostAuthor, PostId, PostPostedAt, PostTitle, PostUrl}
+import domains.post.Post.{
+  PostAuthor,
+  PostId,
+  PostPostedAt,
+  PostTestimonial,
+  PostTitle,
+  PostUrl
+}
 import domains.post.{Post, PostRepository, UnsavedPost}
 import eu.timepit.refined.api.Refined
 import infra.dto.Tables._
@@ -24,7 +31,14 @@ class PostRepositoryImpl @Inject() (
       Posts
         .returning(
           Posts.map(post =>
-            (post.id, post.url, post.title, post.author, post.postedAt)
+            (
+              post.id,
+              post.url,
+              post.title,
+              post.author,
+              post.postedAt,
+              post.testimonial
+            )
           )
         )
         .into((_, id) => id) += newPost
@@ -34,7 +48,8 @@ class PostRepositoryImpl @Inject() (
         PostUrl(Refined.unsafeApply(post._2)),
         PostTitle(Refined.unsafeApply(post._3)),
         PostAuthor(Refined.unsafeApply(post._4)),
-        PostPostedAt(Refined.unsafeApply(post._5))
+        PostPostedAt(Refined.unsafeApply(post._5)),
+        post._6.map(v => PostTestimonial(Refined.unsafeApply(v)))
       )
     ).ifFailedThenToInfraError("error while PostRepository.save")
   }

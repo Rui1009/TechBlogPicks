@@ -89,6 +89,24 @@ class PostDomainSpec extends ModelSpec {
     }
   }
 
+  "PostTestimonial.create" when {
+    "given non empty string" should {
+      "return Right value which equals given arg value" in {
+        forAll(stringRefinedNonEmptyGen) { str =>
+          val result = PostTestimonial.create(str.value)
+          assert(result.map(_.value) == str.asRight)
+        }
+      }
+    }
+
+    "given empty string" should {
+      "return Left value which equals DomainError" in {
+        val result = PostTestimonial.create("")
+        assert(result.leftSide == EmptyStringError("PostTestimonial").asLeft)
+      }
+    }
+  }
+
   "PostedAt.create" when {
     "given positive long " should {
       "return Right value which equals given arg value" in {
