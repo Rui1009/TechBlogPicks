@@ -2,6 +2,10 @@ name: Backend
 
 on: [push]
 
+defaults:
+  run:
+    working-directory: backend
+
 jobs:
   check-fmt:
     runs-on: ubuntu-latest
