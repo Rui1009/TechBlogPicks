@@ -1,35 +1,29 @@
 package infra.repositories
 
-import domains.application.Application
 import domains.application.Application.ApplicationId
 import domains.bot.Bot
 import domains.bot.Bot.{BotAccessToken, BotId, BotName}
-import domains.channel.{Channel, ChannelMessage}
 import domains.channel.Channel.ChannelId
 import domains.channel.ChannelMessage.{
   ChannelMessageSenderUserId,
   ChannelMessageSentAt
 }
+import domains.channel.{Channel, ChannelMessage}
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
+import eu.timepit.refined.auto._
 import helpers.traits.RepositorySpec
-import org.scalatest.time.{Millis, Seconds, Span}
+import infra.dao.slack.UsersDaoImpl.Member
+import infra.dto.Tables._
+import io.circe.syntax._
+import io.circe.{Json, JsonObject}
 import mockws.MockWS
 import mockws.MockWSHelpers.Action
+import org.scalacheck.Gen
+import org.scalatest.time.{Millis, Span}
 import play.api.inject.bind
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
-import eu.timepit.refined.auto._
-import infra.dao.slack.UsersDaoImpl.Member
-import infra.dto.Tables
-import infra.repositoryimpl.WorkSpaceRepositoryImpl
-import infra.dto.Tables._
-import io.circe.{Json, JsonObject}
-import io.circe.Json._
-import io.circe.syntax._
-import org.scalacheck.Gen
-
-import scala.concurrent.Future
 
 class WorkSpaceRepositoryImplSpec extends RepositorySpec[WorkSpaceRepository]
 
@@ -312,7 +306,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
                 )
               )
 
-              db.run(WorkSpaces.delete)
+              db.run(WorkSpaces.delete).futureValue
               val result =
                 repository.update(workSpace, application.id).futureValue
 
