@@ -6,7 +6,7 @@ import com.google.inject.Inject
 import adapters.controllers.syntax.AllSyntax
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
-import play.api.mvc.{Action, BaseController, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import usecases.JoinChannelUseCase
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,7 +19,7 @@ class InteractivityController @Inject() (
     extends BaseController with JsonHelper with AllSyntax
     with InteractivityBodyMapper {
 
-  def convertRequest = Action { implicit request =>
+  def convertRequest: Action[AnyContent] = Action.async { implicit request =>
     val converted = request.body.toString
       .replace("AnyContentAsFormUrlEncoded(ListMap(", "[")
       .replace("-> List(", ":[")
@@ -29,8 +29,7 @@ class InteractivityController @Inject() (
     ws.url("https://winkie.herokuapp.com/interactivity")
       .withBody(Json.parse(converted))
       .execute("POST")
-
-    Ok
+      .map(_ => Ok)
   }
 
   def handleInteractivity: Action[Either[AdapterError, InteractivityCommand]] =
