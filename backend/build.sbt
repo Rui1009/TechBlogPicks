@@ -23,7 +23,9 @@ logoColor := SConsole.CYAN
 
 usefulTasks := Seq(
   UsefulTask("fmt", "scalafmtAll", "Format code"),
-  UsefulTask("fmtCheck", "scalafmtCheckAll", "Check code format")
+  UsefulTask("fmtCheck", "scalafmtCheckAll", "Check code format"),
+  UsefulTask("c", "compile", "Check code format"),
+  UsefulTask("r", "reload", "Check code format")
 )
 
 lazy val codegen = taskKey[Unit]("generate slick table code")
