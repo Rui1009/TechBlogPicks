@@ -1,15 +1,17 @@
 package domains
 
-sealed trait DomainError {
+sealed trait DomainError extends Product with Serializable {
   val content: String
   val errorMessage: String = s"""${this.getClass.getSimpleName}: $content
        |""".stripMargin
 }
-object DomainError       {
-  def combine(errors: Seq[DomainError]): DomainError = new DomainError {
-    override lazy val content: String = errors.map(_.errorMessage).mkString
-    override val errorMessage: String = content
-  }
+object DomainError {
+  def combine(errors: Seq[DomainError]): DomainError = Combined(errors)
+}
+
+private case class Combined(errors: Seq[DomainError]) extends DomainError {
+  override val content: String      = errors.map(_.errorMessage).mkString
+  override val errorMessage: String = content
 }
 
 final case class EmptyStringError(className: String) extends DomainError {

@@ -40,8 +40,8 @@ trait PostCreateBodyMapper extends JsonRequestMapper {
         PostTitle.create(body.title).toValidatedNec,
         PostAuthor.create(body.author).toValidatedNec,
         PostPostedAt.create(body.postedAt).toValidatedNec,
-        body.botIds.map(ApplicationId.create(_).toValidatedNec).sequence,
-        body.testimonial.traverse(t => PostTestimonial.create(t).toValidatedNec)
+        body.botIds.traverse(ApplicationId.create(_).toValidatedNec),
+        body.testimonial.traverse(PostTestimonial.create(_).toValidatedNec)
       ).mapN(CreatePostCommand.apply)
         .toEither
         .leftMap(errors =>

@@ -1,19 +1,19 @@
 package domains.channel
 
-import domains.{EmptyStringError, RegexError}
-import domains.channel.Channel.ChannelId
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.collection.NonEmpty
-import eu.timepit.refined.refineV
-import eu.timepit.refined.string.{Url, ValidFloat}
-import io.estatico.newtype.macros.newtype
 import cats.implicits._
+import domains.channel.Channel.ChannelId
 import domains.channel.ChannelMessage.{
   ChannelMessageSenderUserId,
   ChannelMessageSentAt
 }
 import domains.channel.DraftMessage.MessageBlock
+import domains.{EmptyStringError, RegexError}
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.numeric.Positive
+import eu.timepit.refined.refineV
+import eu.timepit.refined.string.Url
+import io.estatico.newtype.macros.newtype
 
 final case class Channel(id: ChannelId, history: Seq[Message]) {
   def isMessageExists: Boolean = this.history.nonEmpty
