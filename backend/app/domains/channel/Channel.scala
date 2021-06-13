@@ -65,11 +65,11 @@ object ChannelMessage {
 final case class DraftMessage(blocks: Seq[MessageBlock]) extends Message
 
 object DraftMessage {
-  sealed trait MessageBlock
+  sealed trait MessageBlock extends Product with Serializable
   case class SectionBlock(
     blockText: BlockText,
     blockAccessory: Option[BlockAccessory]
-  ) extends MessageBlock
+  )                         extends MessageBlock
   case class BlockText(text: String Refined NonEmpty)
   object BlockText {
     def create(text: String): Either[EmptyStringError, BlockText] =
