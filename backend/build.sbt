@@ -38,7 +38,7 @@ lazy val settings = Seq(
     "-language:higherKinds"
   ),
   libraryDependencies ++= rootDeps,
-  wartremoverWarnings ++= Warts.unsafe
+  wartremoverErrors ++= Warts.unsafe
     .filterNot(Seq(Wart.Throw, Wart.Any).contains),
   wartremoverExcluded ++= routes.in(Compile).value,
   wartremoverExcluded += baseDirectory.value / "app" / "infra" / "dto",
