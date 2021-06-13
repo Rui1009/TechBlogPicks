@@ -19,6 +19,7 @@ jobs:
         run: sbt fmtCheck
   test:
     runs-on: ubuntu-latest
+    container: hseeberger/scala-sbt:8u265_1.4.3_2.13.3
     services:
       postgres:
         image: postgres
