@@ -21,6 +21,9 @@ logo :=
 
 logoColor := SConsole.CYAN
 
+import play.sbt.routes.RoutesKeys
+RoutesKeys.routesImport := Seq.empty
+
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 usefulTasks := Seq(
   UsefulTask("fmt", "scalafmtAll; scalafixAll;", "Format code"),
