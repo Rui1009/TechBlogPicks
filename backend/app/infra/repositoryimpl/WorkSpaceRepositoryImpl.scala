@@ -85,7 +85,7 @@ class WorkSpaceRepositoryImpl @Inject() (
       bots = responses.flatMap { res =>
                val maybeToken = rows
                  .find(row => res.apiAppId.contains(row.botId))
-                 .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
+                 .map(row => BotAccessToken.unsafeFrom(row.token))
 
                val joinedChannelsIds = channels
                  .filter(id => res.apiAppId.contains(id._2))
@@ -116,7 +116,7 @@ class WorkSpaceRepositoryImpl @Inject() (
     bots = responses.flatMap { res =>
              val maybeToken = rows
                .find(row => res.apiAppId.contains(row.botId))
-               .map(row => BotAccessToken(Refined.unsafeApply(row.token)))
+               .map(row => BotAccessToken.unsafeFrom(row.token))
 
              val joinedChannelsIds =
                channels.filter(id => res.apiAppId.contains(id._2)).map(_._1.id)

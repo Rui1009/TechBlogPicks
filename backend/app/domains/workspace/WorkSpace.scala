@@ -115,24 +115,16 @@ final case class WorkSpace(
 
 object WorkSpace {
   @newtype case class WorkSpaceId(value: String Refined NonEmpty)
-  object WorkSpaceId {
-    def create(value: String): Either[EmptyStringError, WorkSpaceId] =
-      refineV[NonEmpty](value) match {
-        case Right(v) => Right(WorkSpaceId(v))
-        case Left(_)  => Left(EmptyStringError("WorkSpaceId"))
-      }
+  object WorkSpaceId extends VOFactory[EmptyStringError] {
+    override def castError(e: ValidationError): EmptyStringError =
+      EmptyStringError("WorkSpaceId")
   }
 
   @newtype case class WorkSpaceTemporaryOauthCode(
     value: String Refined NonEmpty
   )
-  object WorkSpaceTemporaryOauthCode {
-    def create(
-      value: String
-    ): Either[EmptyStringError, WorkSpaceTemporaryOauthCode] =
-      refineV[NonEmpty](value) match {
-        case Right(v) => Right(WorkSpaceTemporaryOauthCode(v))
-        case Left(_)  => Left(EmptyStringError("WorkSpaceTemporaryOauthCode"))
-      }
+  object WorkSpaceTemporaryOauthCode extends VOFactory[EmptyStringError] {
+    override def castError(e: ValidationError): EmptyStringError =
+      EmptyStringError("WorkSpaceTemporaryOauthCode")
   }
 }

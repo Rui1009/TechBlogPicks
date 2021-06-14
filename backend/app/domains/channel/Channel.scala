@@ -1,13 +1,14 @@
 package domains.channel
 
-import cats.implicits._
+import cats.syntax.either._
+import cats.syntax.apply._
 import domains.channel.Channel.ChannelId
 import domains.channel.ChannelMessage.{
   ChannelMessageSenderUserId,
   ChannelMessageSentAt
 }
 import domains.channel.DraftMessage.MessageBlock
-import domains.{EmptyStringError, RegexError}
+import domains.{EmptyStringError, RegexError, VOFactory, ValidationError}
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.numeric.Positive
@@ -24,12 +25,9 @@ final case class Channel(id: ChannelId, history: Seq[Message]) {
 
 object Channel {
   @newtype case class ChannelId(value: String Refined NonEmpty)
-  object ChannelId {
-    def create(value: String): Either[EmptyStringError, ChannelId] =
-      refineV[NonEmpty](value) match {
-        case Left(_)  => Left(EmptyStringError("ChannelId"))
-        case Right(v) => Right(ChannelId(v))
-      }
+  object ChannelId extends VOFactory[EmptyStringError] {
+    override def castError(e: ValidationError): EmptyStringError =
+      EmptyStringError("ChannelId")
   }
 }
 
@@ -42,23 +40,15 @@ final case class ChannelMessage(
 
 object ChannelMessage {
   @newtype case class ChannelMessageSentAt(value: Float Refined Positive)
-  object ChannelMessageSentAt {
-    def create(value: Float): Either[RegexError, ChannelMessageSentAt] =
-      refineV[Positive](value) match {
-        case Right(v) => Right(ChannelMessageSentAt(v))
-        case Left(_)  => Left(RegexError("ChannelMessageSentAt"))
-      }
+  object ChannelMessageSentAt extends VOFactory[RegexError] {
+    override def castError(e: ValidationError): RegexError =
+      RegexError("ChannelMessageSentAt")
   }
 
   @newtype case class ChannelMessageSenderUserId(value: String Refined NonEmpty)
-  object ChannelMessageSenderUserId {
-    def create(
-      value: String
-    ): Either[EmptyStringError, ChannelMessageSenderUserId] =
-      refineV[NonEmpty](value) match {
-        case Right(v) => Right(ChannelMessageSenderUserId(v))
-        case Left(_)  => Left(EmptyStringError("ChannelMessageSenderUserId"))
-      }
+  object ChannelMessageSenderUserId extends VOFactory[EmptyStringError] {
+    override def castError(e: ValidationError): EmptyStringError =
+      EmptyStringError("ChannelMessageSenderUserId")
   }
 }
 

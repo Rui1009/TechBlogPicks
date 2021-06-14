@@ -1,14 +1,12 @@
 package infra.repositories
 
-import helpers.traits.RepositorySpec
-import infra.repositoryimpl.PostRepositoryImpl
-import org.scalacheck.Gen
-import infra.syntax.all._
-import infra.dto.Tables._
-import cats.syntax.option._
 import domains.post.Post.PostId
 import domains.post.UnsavedPost
-import eu.timepit.refined.auto._
+import helpers.traits.RepositorySpec
+import infra.dto.Tables._
+import infra.repositoryimpl.PostRepositoryImpl
+import infra.syntax.all._
+import org.scalacheck.Gen
 
 class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
   "save" when {
@@ -85,7 +83,11 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
 
         db.run(pre.transactionally).futureValue
 
-        val ids       = Seq(PostId(1L), PostId(2L), PostId(4L))
+        val ids       = Seq(
+          PostId.unsafeFrom(1L),
+          PostId.unsafeFrom(2L),
+          PostId.unsafeFrom(4L)
+        )
         repository.delete(ids).futureValue
         val posts     = db.run(Posts.result).futureValue
         val botsPosts = db.run(BotsPosts.result).futureValue

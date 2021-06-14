@@ -1,21 +1,14 @@
 package domains.bot
 
-import domains.{EmptyStringError, NotExistError}
 import domains.application.Application.ApplicationId
 import domains.bot.Bot.{BotAccessToken, BotId, BotName}
-import domains.channel.{Channel, DraftMessage}
 import domains.channel.Channel.ChannelId
-import domains.channel.DraftMessage.{
-  ActionBlock,
-  ActionSelect,
-  BlockText,
-  SectionBlock,
-  SelectPlaceHolder
-}
+import domains.channel.DraftMessage._
+import domains.channel.{Channel, DraftMessage}
+import domains.{EmptyStringError, NotExistError, VOFactory, ValidationError}
 import eu.timepit.refined.api.Refined
-import eu.timepit.refined.collection.NonEmpty
-import eu.timepit.refined.refineV
 import eu.timepit.refined.auto._
+import eu.timepit.refined.collection.NonEmpty
 import io.estatico.newtype.macros.newtype
 
 final case class Bot(
@@ -77,29 +70,20 @@ final case class Bot(
 
 object Bot {
   @newtype case class BotId(value: String Refined NonEmpty)
-  object BotId {
-    def create(value: String): Either[EmptyStringError, BotId] =
-      refineV[NonEmpty](value) match {
-        case Left(_)  => Left(EmptyStringError("BotId"))
-        case Right(v) => Right(BotId(v))
-      }
+  object BotId extends VOFactory[EmptyStringError] {
+    override def castError(e: ValidationError): EmptyStringError =
+      EmptyStringError("BotId")
   }
 
   @newtype case class BotName(value: String Refined NonEmpty)
-  object BotName {
-    def create(value: String): Either[EmptyStringError, BotName] =
-      refineV[NonEmpty](value) match {
-        case Left(_)  => Left(EmptyStringError("BotName"))
-        case Right(v) => Right(BotName(v))
-      }
+  object BotName extends VOFactory[EmptyStringError] {
+    override def castError(e: ValidationError): EmptyStringError =
+      EmptyStringError("BotName")
   }
 
   @newtype case class BotAccessToken(value: String Refined NonEmpty)
-  object BotAccessToken {
-    def create(value: String): Either[EmptyStringError, BotAccessToken] =
-      refineV[NonEmpty](value) match {
-        case Right(v) => Right(BotAccessToken(v))
-        case Left(_)  => Left(EmptyStringError("BotAccessToken"))
-      }
+  object BotAccessToken extends VOFactory[EmptyStringError] {
+    override def castError(e: ValidationError): EmptyStringError =
+      EmptyStringError("BotAccessToken")
   }
 }
