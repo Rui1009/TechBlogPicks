@@ -1,6 +1,11 @@
 package adapters
 
-import usecases.{BadParamsError, NotFoundError => UNotFoundError, SystemError, UseCaseError}
+import usecases.{
+  BadParamsError,
+  NotFoundError => UNotFoundError,
+  SystemError,
+  UseCaseError
+}
 
 sealed abstract class AdapterError(message: String) extends Exception {
   override def getMessage: String = s"""${this.getClass.getSimpleName}
