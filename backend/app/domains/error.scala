@@ -9,6 +9,8 @@ object DomainError {
   def combine(errors: Seq[DomainError]): DomainError = Combined(errors)
 }
 
+final case class SomeDomainError(content: String) extends DomainError
+
 private case class Combined(errors: Seq[DomainError]) extends DomainError {
   override val content: String      = errors.map(_.errorMessage).mkString
   override val errorMessage: String = content
