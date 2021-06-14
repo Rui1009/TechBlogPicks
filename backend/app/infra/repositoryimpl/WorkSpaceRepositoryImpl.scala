@@ -2,10 +2,7 @@ package infra.repositoryimpl
 
 import com.google.inject.Inject
 import domains.application.Application._
-import cats.implicits._
 import domains.bot.Bot
-import domains.workspace.WorkSpace._
-import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import domains.bot.Bot._
 import domains.channel.Channel.ChannelId
 import domains.channel.ChannelMessage.{
@@ -13,21 +10,23 @@ import domains.channel.ChannelMessage.{
   ChannelMessageSentAt
 }
 import domains.channel._
+import domains.workspace.WorkSpace._
+import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import eu.timepit.refined.api.Refined
+import infra.DBError
 import infra.dao.slack._
+import infra.dto.Tables._
+import infra.format.AccessTokenPublisherTokenDecoder
+import infra.syntax.all._
+import io.circe.Json
+import io.circe.parser._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.libs.ws._
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
-import infra.format.AccessTokenPublisherTokenDecoder
-import io.circe.parser._
-import io.circe.generic.auto._
-import infra.syntax.all._
-import infra.dto.Tables._
-import io.circe.Json
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class WorkSpaceRepositoryImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
@@ -206,6 +205,7 @@ class WorkSpaceRepositoryImpl @Inject() (
                   row.botId
                 )
               )
+            case Failure(e)       => Future.failed(DBError(e.getMessage))
           }
     } yield info)
     .map(_.flatten)
@@ -226,7 +226,7 @@ class WorkSpaceRepositoryImpl @Inject() (
             model.id.value.value
           )
         )
-        .map(_ => Some())
+        .map(_ => Some(()))
         .ifFailedThenToInfraError("error while WorkSpaceRepository.update")
     case None    => Future.successful(None)
   }
@@ -265,7 +265,7 @@ class WorkSpaceRepositoryImpl @Inject() (
       case Some(v) => v.draftMessage match {
           case Some(d) => chatDao
               .postMessage(v.accessToken.value.value, channelId.value.value, d)
-              .map(_ => Some())
+              .map(_ => Some(()))
               .ifFailedThenToInfraError(
                 "error while WorkSpaceRepository.sendMessage"
               )

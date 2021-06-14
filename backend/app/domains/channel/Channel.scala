@@ -1,19 +1,19 @@
 package domains.channel
 
-import domains.{EmptyStringError, RegexError}
-import domains.channel.Channel.ChannelId
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.collection.NonEmpty
-import eu.timepit.refined.refineV
-import eu.timepit.refined.string.{Url, ValidFloat}
-import io.estatico.newtype.macros.newtype
 import cats.implicits._
+import domains.channel.Channel.ChannelId
 import domains.channel.ChannelMessage.{
   ChannelMessageSenderUserId,
   ChannelMessageSentAt
 }
 import domains.channel.DraftMessage.MessageBlock
+import domains.{EmptyStringError, RegexError}
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.numeric.Positive
+import eu.timepit.refined.refineV
+import eu.timepit.refined.string.Url
+import io.estatico.newtype.macros.newtype
 
 final case class Channel(id: ChannelId, history: Seq[Message]) {
   def isMessageExists: Boolean = this.history.nonEmpty
@@ -65,11 +65,11 @@ object ChannelMessage {
 final case class DraftMessage(blocks: Seq[MessageBlock]) extends Message
 
 object DraftMessage {
-  sealed trait MessageBlock
+  sealed trait MessageBlock extends Product with Serializable
   case class SectionBlock(
     blockText: BlockText,
     blockAccessory: Option[BlockAccessory]
-  ) extends MessageBlock
+  )                         extends MessageBlock
   case class BlockText(text: String Refined NonEmpty)
   object BlockText {
     def create(text: String): Either[EmptyStringError, BlockText] =

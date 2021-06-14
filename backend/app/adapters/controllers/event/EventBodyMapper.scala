@@ -21,6 +21,7 @@ import scala.concurrent.ExecutionContext
 
 sealed trait EventBody
 object EventBody {
+  @SuppressWarnings(Array("org.wartremover.warts.TraversableOps"))
   implicit val decodeEvent: Decoder[EventBody] = List[Decoder[EventBody]](
     Decoder[AppUninstalledEventBody](decodeAppUninstalledEventBody).widen,
     Decoder[UrlVerificationEventBody].widen,

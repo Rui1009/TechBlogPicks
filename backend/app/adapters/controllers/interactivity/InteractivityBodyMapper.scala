@@ -1,20 +1,17 @@
 package adapters.controllers.interactivity
 
-import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonRequestMapper
+import adapters.{AdapterError, BadRequestError}
 //import adapters.controllers.interactivity.ChannelSelectActionInteractivityBody._
 //import adapters.controllers.interactivity.InteractivityBody._
-import domains.channel.Channel.ChannelId
-import io.circe.{Decoder, Json}
 import cats.implicits._
+import domains.DomainError
 import domains.application.Application.ApplicationId
+import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace.WorkSpaceId
-import domains.{DomainError, EmptyStringError}
-import io.circe.generic.semiauto.deriveDecoder
 import io.circe.generic.auto._
 import play.api.mvc.{BaseController, BodyParser}
 
-import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext
 
 sealed trait InteractivityBody
@@ -61,18 +58,26 @@ final case class ChannelSelectActionInteractivityCommand(
 object ChannelSelectActionInteractivityCommand {
   def validate(
     body: ChannelSelectActionInteractivityBody
-  ): Either[BadRequestError, InteractivityCommand] = (
-    ChannelId
-      .create(body.payload.head.actions.head.selected_channel)
-      .toValidatedNec,
-    ApplicationId.create(body.payload.head.api_app_id).toValidatedNec,
-    WorkSpaceId.create(body.payload.head.team.id).toValidatedNec
-  ).mapN(ChannelSelectActionInteractivityCommand.apply).toEither.leftMap {
-    error =>
-      BadRequestError(
-        error.foldLeft("")((acc, cur: DomainError) => acc + cur.errorMessage)
-      )
-  }
+  ): Either[BadRequestError, InteractivityCommand] = for {
+    channelSelectActionItem <-
+      body.payload.headOption
+        .toRight(BadRequestError("empty select action interactivity body item"))
+    bodyitem                <- channelSelectActionItem.actions.headOption
+                                 .toRight(BadRequestError("empty select action body item"))
+    command                 <-
+      (
+        ChannelId.create(bodyitem.selected_channel).toValidatedNec,
+        ApplicationId.create(channelSelectActionItem.api_app_id).toValidatedNec,
+        WorkSpaceId.create(channelSelectActionItem.team.id).toValidatedNec
+      ).mapN(ChannelSelectActionInteractivityCommand.apply)
+        .toEither
+        .leftMap { error =>
+          BadRequestError(
+            error
+              .foldLeft("")((acc, cur: DomainError) => acc + cur.errorMessage)
+          )
+        }
+  } yield command
 }
 
 trait InteractivityBodyMapper extends JsonRequestMapper {
@@ -83,6 +88,8 @@ trait InteractivityBodyMapper extends JsonRequestMapper {
     mapToValueObject[Seq[
       ChannelSelectActionInteractivityBody
     ], InteractivityCommand] { body =>
-      ChannelSelectActionInteractivityCommand.validate(body.head)
+      body.headOption
+        .toRight(BadRequestError("empty channel body"))
+        .flatMap(ChannelSelectActionInteractivityCommand.validate)
     }
 }
