@@ -27,7 +27,7 @@ class PostDomainSpec extends ModelSpec {
 
     "given zero" should {
       "return Left value which value equals DomainError" in {
-        val result = PostId.create(0)
+        val result = PostId.create(0: Long)
         assert(result.leftSide == NegativeNumberError("PostId").asLeft)
       }
     }
@@ -128,7 +128,7 @@ class PostDomainSpec extends ModelSpec {
 
     "given zero" should {
       "return Left value which value equals DomainError" in {
-        val result = PostPostedAt.create(0)
+        val result = PostPostedAt.create(0: Long)
         assert(result.leftSide == NegativeNumberError("PostPostedAt").asLeft)
       }
     }

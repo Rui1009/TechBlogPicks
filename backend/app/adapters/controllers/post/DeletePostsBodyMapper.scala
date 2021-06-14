@@ -20,8 +20,7 @@ trait DeletePostsBodyMapper extends JsonRequestMapper {
   ): BodyParser[Either[AdapterError, DeletePostsCommand]] =
     mapToValueObject[DeletePostsBody, DeletePostsCommand] { body =>
       body.ids
-        .map(PostId.create)
-        .sequence
+        .traverse(v => PostId.create(v))
         .map(DeletePostsCommand)
         .leftMap(error => BadRequestError(error.errorMessage))
     }
