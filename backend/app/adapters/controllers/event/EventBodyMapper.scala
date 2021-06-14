@@ -1,21 +1,20 @@
 package adapters.controllers.event
 
+import adapters.controllers.event.AppHomeOpenedEventBody._
+import adapters.controllers.event.AppUninstalledEventBody._
+import adapters.controllers.event.EventBody._
+import adapters.controllers.event.MemberJoinedChannelEventBody._
 import adapters.controllers.helpers.JsonRequestMapper
 import adapters.{AdapterError, BadRequestError}
 import cats.implicits._
 import domains.DomainError
+import domains.application.Application.ApplicationId
+import domains.bot.Bot.BotId
+import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace.WorkSpaceId
 import io.circe._
 import io.circe.generic.auto._
 import play.api.mvc.{BaseController, BodyParser}
-import adapters.controllers.event.AppUninstalledEventBody._
-import adapters.controllers.event.AppHomeOpenedEventBody._
-import adapters.controllers.event.MemberJoinedChannelEventBody._
-import adapters.controllers.event.EventBody._
-import domains.application.Application.ApplicationId
-import domains.bot.Bot.BotId
-import domains.channel.Channel.ChannelId
-import play.api.Logger
 
 import scala.concurrent.ExecutionContext
 

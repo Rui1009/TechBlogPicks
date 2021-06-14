@@ -2,10 +2,10 @@ package controllers.application
 
 import adapters.controllers.application.UpdateClientInfoBody
 import helpers.traits.ControllerSpec
-import play.api.inject.bind
-import usecases.{SystemError, UpdateApplicationClientInfoUseCase}
 import io.circe.generic.auto._
+import play.api.inject.bind
 import play.api.test.Helpers._
+import usecases.{SystemError, UpdateApplicationClientInfoUseCase}
 
 import scala.concurrent.Future
 

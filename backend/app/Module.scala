@@ -1,7 +1,7 @@
 import com.google.inject.AbstractModule
 import domains.application.ApplicationRepository
-import domains.workspace.WorkSpaceRepository
 import domains.post.PostRepository
+import domains.workspace.WorkSpaceRepository
 import infra.dao.slack._
 import infra.queryprocessorimpl._
 import infra.repositoryimpl._

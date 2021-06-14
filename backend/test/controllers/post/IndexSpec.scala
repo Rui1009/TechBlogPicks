@@ -2,11 +2,11 @@ package controllers.post
 
 import helpers.traits.ControllerSpec
 import infra.DBError
+import io.circe.generic.auto._
 import org.scalacheck.Gen
-import query.posts.{PostsQueryProcessor, PostsView}
 import play.api.inject._
 import play.api.test.Helpers._
-import io.circe.generic.auto._
+import query.posts.{PostsQueryProcessor, PostsView}
 
 import scala.concurrent.Future
 

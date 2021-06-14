@@ -11,8 +11,6 @@ import domains.application.{Application, ApplicationRepository}
 import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
 import infra.dao.slack.{ConversationDao, UsersDao, UsersDaoImpl}
-import infra.dto
-import infra.dto.Tables
 import infra.dto.Tables._
 import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}

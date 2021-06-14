@@ -8,13 +8,12 @@ import domains.channel.DraftMessage
 import domains.channel.DraftMessage.{BlockText, SectionBlock}
 import eu.timepit.refined.api.Refined
 import infra.dao.slack.ChatDao
-import infra.dao.slack.ChatDaoImpl._
+import io.circe.generic.auto._
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import query.posts.PostsQueryProcessor
-import query.publishposts.{Post, PublishPostsQueryProcessor, PublishPostsView}
-import usecases.{DeletePostsUseCase, RegisterPostUseCase}
+import query.publishposts.PublishPostsQueryProcessor
 import usecases.RegisterPostUseCase.Params
-import io.circe.generic.auto._
+import usecases.{DeletePostsUseCase, RegisterPostUseCase}
 
 import scala.concurrent.{ExecutionContext, Future}
 

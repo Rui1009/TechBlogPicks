@@ -21,11 +21,28 @@ logo :=
 
 logoColor := SConsole.CYAN
 
+import play.sbt.routes.RoutesKeys
+RoutesKeys.routesImport := Seq.empty
+
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 usefulTasks := Seq(
-  UsefulTask("fmt", "scalafmtAll", "Format code"),
-  UsefulTask("fmtCheck", "scalafmtCheckAll", "Check code format"),
+  UsefulTask("fmt", "scalafmtAll; scalafixAll;", "Format code"),
+  UsefulTask(
+    "fmtCheck",
+    "scalafmtCheckAll; scalafixAll --check;",
+    "Check code format"
+  ),
   UsefulTask("c", "compile", "Check code format"),
   UsefulTask("r", "reload", "Check code format")
+)
+
+inThisBuild(
+  Seq(
+    addCompilerPlugin(scalafixSemanticdb),
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision,
+    scalafixScalaBinaryVersion := "2.13"
+  )
 )
 
 lazy val codegen = taskKey[Unit]("generate slick table code")
@@ -33,6 +50,7 @@ lazy val codegen = taskKey[Unit]("generate slick table code")
 lazy val settings = Seq(
   scalacOptions ++= Seq(
     "-Ymacro-annotations",
+    "-Wunused:imports",
     "-feature",
     "-language:implicitConversions",
     "-language:higherKinds"

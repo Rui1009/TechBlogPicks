@@ -1,7 +1,6 @@
 package domains.application
 
 import domains.application.Application.ApplicationId
-import domains.bot.Bot.BotId
 import domains.post.Post.PostId
 
 import scala.concurrent.Future

@@ -10,8 +10,8 @@ import infra.syntax.all._
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.parser._
-import play.api.libs.ws.WSClient
 import io.circe.syntax._
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
 

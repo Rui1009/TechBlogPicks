@@ -1,7 +1,6 @@
 package controllers.application
 
 import helpers.traits.ControllerSpec
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.inject._
 import play.api.test.Helpers._
 import usecases.{InstallApplicationUseCase, SystemError}

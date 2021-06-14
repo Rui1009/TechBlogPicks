@@ -1,10 +1,9 @@
 package domains
 
-import domains.workspace.WorkSpace._
-import helpers.traits.ModelSpec
 import domains.bot.Bot
 import domains.bot.Bot.BotName
-import org.scalacheck.Gen
+import domains.workspace.WorkSpace._
+import helpers.traits.ModelSpec
 
 class WorkSpaceDomainSpec extends ModelSpec {
   "WorkSpaceId.create" when {

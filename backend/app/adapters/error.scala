@@ -2,9 +2,9 @@ package adapters
 
 import usecases.{
   BadParamsError,
+  NotFoundError => UNotFoundError,
   SystemError,
-  UseCaseError,
-  NotFoundError => UNotFoundError
+  UseCaseError
 }
 
 sealed abstract class AdapterError(message: String) extends Exception {

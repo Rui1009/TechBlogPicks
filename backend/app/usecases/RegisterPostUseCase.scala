@@ -3,13 +3,7 @@ package usecases
 import com.google.inject.Inject
 import domains.application.Application.ApplicationId
 import domains.application.ApplicationRepository
-import domains.post.Post.{
-  PostAuthor,
-  PostPostedAt,
-  PostTestimonial,
-  PostTitle,
-  PostUrl
-}
+import domains.post.Post._
 import domains.post.{PostRepository, UnsavedPost}
 import usecases.RegisterPostUseCase.Params
 

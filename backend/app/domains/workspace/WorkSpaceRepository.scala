@@ -1,11 +1,8 @@
 package domains.workspace
 
 import domains.application.Application._
-import domains.workspace.WorkSpace._
 import domains.channel.Channel.ChannelId
-import domains.bot.Bot
-import domains.bot.Bot.BotId
-import domains.channel.{Channel, DraftMessage}
+import domains.workspace.WorkSpace._
 
 import scala.concurrent.Future
 

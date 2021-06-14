@@ -4,11 +4,11 @@ import com.google.inject.Inject
 import infra.APIError
 import infra.dao.ApiDao
 import infra.dao.slack.UsersDaoImpl._
-import play.api.libs.ws.WSClient
-import io.circe.parser._
 import infra.syntax.all._
-import io.circe.generic.auto._
 import io.circe._
+import io.circe.generic.auto._
+import io.circe.parser._
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
 

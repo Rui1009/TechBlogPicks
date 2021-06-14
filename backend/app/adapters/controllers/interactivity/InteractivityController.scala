@@ -2,8 +2,8 @@ package adapters.controllers.interactivity
 
 import adapters.AdapterError
 import adapters.controllers.helpers.JsonHelper
-import com.google.inject.Inject
 import adapters.controllers.syntax.AllSyntax
+import com.google.inject.Inject
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}

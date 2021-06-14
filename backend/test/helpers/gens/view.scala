@@ -1,14 +1,11 @@
 package helpers.gens
 
-import helpers.gens.string._
 import helpers.gens.number._
-import query.publishposts.{Post, PublishPostsView}
-import cats.syntax.option._
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.numeric.Positive
+import helpers.gens.string._
 import org.scalacheck.Gen
 import query.applications.ApplicationsView
 import query.posts.PostsView
+import query.publishposts.{Post, PublishPostsView}
 
 object view extends ViewGen
 

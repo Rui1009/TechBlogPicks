@@ -6,8 +6,8 @@ import cats.implicits._
 import domains.DomainError
 import domains.application.Application.ApplicationId
 import domains.post.Post._
-import play.api.mvc.{BaseController, BodyParser}
 import io.circe.generic.auto._
+import play.api.mvc.{BaseController, BodyParser}
 
 import scala.concurrent.ExecutionContext
 

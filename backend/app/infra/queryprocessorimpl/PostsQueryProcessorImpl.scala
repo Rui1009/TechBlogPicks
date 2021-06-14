@@ -1,12 +1,12 @@
 package infra.queryprocessorimpl
 
 import com.google.inject.Inject
+import infra.dto.Tables._
+import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import query.posts.{PostsQueryProcessor, PostsView}
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
-import infra.dto.Tables._
-import infra.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future}
 

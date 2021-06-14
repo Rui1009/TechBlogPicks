@@ -2,7 +2,6 @@ package usecases
 
 import com.google.inject.Inject
 import domains.application.Application.ApplicationId
-import domains.bot.Bot.BotId
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace.WorkSpaceId
 import domains.workspace.WorkSpaceRepository

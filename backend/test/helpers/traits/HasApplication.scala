@@ -1,8 +1,8 @@
 package helpers.traits
 
 import com.typesafe.config.ConfigFactory
-import play.api.{Application, Configuration}
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.{Application, Configuration}
 
 trait HasApplication {
   val builder: GuiceApplicationBuilder = GuiceApplicationBuilder(configuration =

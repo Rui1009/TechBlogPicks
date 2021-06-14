@@ -5,7 +5,7 @@ import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
 import play.api.http.{ContentTypeOf, ContentTypes, Writeable}
-import play.api.mvc.{AnyContentAsEmpty, Result, Codec}
+import play.api.mvc.{AnyContentAsEmpty, Codec, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 

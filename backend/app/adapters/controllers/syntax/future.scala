@@ -1,9 +1,9 @@
 package adapters.controllers.syntax
 
+import adapters.controllers.helpers.JsonHelper._
 import adapters.{AdapterError, InternalServerError}
 import io.circe.Encoder
 import io.circe.syntax._
-import adapters.controllers.helpers.JsonHelper._
 import play.api.mvc.{Result, Results}
 import usecases.UseCaseError
 

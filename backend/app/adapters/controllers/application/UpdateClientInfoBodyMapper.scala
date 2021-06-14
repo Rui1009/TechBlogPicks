@@ -1,15 +1,15 @@
 package adapters.controllers.application
 
-import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonRequestMapper
-import play.api.mvc.{BaseController, BodyParser}
-import io.circe.generic.auto._
+import adapters.{AdapterError, BadRequestError}
 import cats.implicits._
 import domains.DomainError
 import domains.application.Application.{
   ApplicationClientId,
   ApplicationClientSecret
 }
+import io.circe.generic.auto._
+import play.api.mvc.{BaseController, BodyParser}
 
 import scala.concurrent.ExecutionContext
 

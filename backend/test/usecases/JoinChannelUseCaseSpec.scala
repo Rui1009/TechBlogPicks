@@ -2,8 +2,7 @@ package usecases
 
 import domains.workspace.WorkSpaceRepository
 import helpers.traits.UseCaseSpec
-import infra.{APIError, DBError}
-import org.postgresql.ssl.DbKeyStoreSocketFactory.DbKeyStoreSocketException
+import infra.DBError
 import usecases.JoinChannelUseCase.Params
 
 import scala.concurrent.Future

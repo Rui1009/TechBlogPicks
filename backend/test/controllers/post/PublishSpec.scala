@@ -4,13 +4,13 @@ import helpers.traits.ControllerSpec
 import infra.DBError
 import io.circe.Json
 import mockws.MockWS
-import query.publishposts.PublishPostsQueryProcessor
-import play.api.test.Helpers._
-import play.api.inject._
-import play.api.mvc.Results.Ok
 import mockws.MockWSHelpers.Action
 import org.scalacheck.Gen
+import play.api.inject._
 import play.api.libs.ws.WSClient
+import play.api.mvc.Results.Ok
+import play.api.test.Helpers._
+import query.publishposts.PublishPostsQueryProcessor
 
 import scala.concurrent.Future
 

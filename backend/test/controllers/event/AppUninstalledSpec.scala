@@ -3,8 +3,8 @@ package controllers.event
 import helpers.traits.ControllerSpec
 import io.circe.{Json, JsonObject}
 import play.api.inject.bind
-import usecases.{SystemError, UninstallApplicationUseCase}
 import play.api.test.Helpers._
+import usecases.{SystemError, UninstallApplicationUseCase}
 
 import scala.concurrent.Future
 

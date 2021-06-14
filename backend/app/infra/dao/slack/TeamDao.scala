@@ -3,11 +3,10 @@ package infra.dao.slack
 import com.google.inject.Inject
 import infra.dao.ApiDao
 import infra.dao.slack.TeamDaoImpl.InfoResponse
-import play.api.libs.ws.WSClient
 import infra.syntax.all._
 import io.circe.generic.auto._
-import io.circe._
 import io.circe.parser._
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
 

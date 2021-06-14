@@ -1,11 +1,11 @@
 package adapters.controllers.helpers
 
 import adapters._
-import play.mvc.Http.MimeTypes.JSON
 import io.circe.Json
-import io.circe.syntax.EncoderOps
 import io.circe.generic.auto._
+import io.circe.syntax.EncoderOps
 import play.api.mvc.{Result, Results}
+import play.mvc.Http.MimeTypes.JSON
 import play.mvc.Http.Status
 
 object JsonHelper extends JsonHelper
