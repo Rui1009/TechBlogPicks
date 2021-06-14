@@ -1,21 +1,14 @@
 package infra.repositoryimpl
 
 import com.google.inject.Inject
-import domains.post.Post.{
-  PostAuthor,
-  PostId,
-  PostPostedAt,
-  PostTestimonial,
-  PostTitle,
-  PostUrl
-}
+import domains.post.Post._
 import domains.post.{Post, PostRepository, UnsavedPost}
 import eu.timepit.refined.api.Refined
 import infra.dto.Tables._
+import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.API
-import infra.syntax.all._
 
 import scala.concurrent.{ExecutionContext, Future}
 

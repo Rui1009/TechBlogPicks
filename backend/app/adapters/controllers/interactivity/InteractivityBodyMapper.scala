@@ -2,8 +2,6 @@ package adapters.controllers.interactivity
 
 import adapters.controllers.helpers.JsonRequestMapper
 import adapters.{AdapterError, BadRequestError}
-//import adapters.controllers.interactivity.ChannelSelectActionInteractivityBody._
-//import adapters.controllers.interactivity.InteractivityBody._
 import cats.implicits._
 import domains.DomainError
 import domains.application.Application.ApplicationId

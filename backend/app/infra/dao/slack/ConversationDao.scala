@@ -3,12 +3,11 @@ package infra.dao.slack
 import com.google.inject.Inject
 import infra.dao.ApiDao
 import infra.dao.slack.ConversationDaoImpl.{InfoResponse, JoinResponse}
-import io.circe.{ACursor, Decoder, Json}
-import io.circe.Decoder.Result
-import play.api.libs.ws.WSClient
 import infra.syntax.all._
-import io.circe.parser._
 import io.circe.Decoder._
+import io.circe.parser._
+import io.circe.{Decoder, Json}
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
 

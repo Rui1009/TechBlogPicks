@@ -5,14 +5,12 @@ import domains.application.Application
 import domains.application.Application.ApplicationId
 import domains.bot.Bot
 import domains.bot.Bot._
-import domains.channel.{Channel, DraftMessage}
+import domains.channel.Channel
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace._
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
-import eu.timepit.refined.refineV
 import io.estatico.newtype.macros.newtype
-import cats.implicits._
 
 final case class WorkSpace(
   id: WorkSpaceId,

@@ -1,7 +1,7 @@
 package domains
 
-import helpers.traits.ModelSpec
 import domains.application.Application._
+import helpers.traits.ModelSpec
 import org.scalacheck.Gen
 
 class ApplicationDomainSpec extends ModelSpec {

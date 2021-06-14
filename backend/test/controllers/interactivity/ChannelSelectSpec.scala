@@ -1,13 +1,12 @@
 package controllers.interactivity
 
 import helpers.traits.ControllerSpec
-import io.circe.{Json, JsonObject}
-import usecases.{JoinChannelUseCase, SystemError}
 import play.api.inject.bind
-import play.api.test.Helpers._
-import io.circe.parser._
-import play.api.test.FakeRequest
 import play.api.libs.json.{Json => PJson}
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
+import usecases.{JoinChannelUseCase, SystemError}
+
 import scala.concurrent.Future
 
 class ChannelSelectSpec extends ControllerSpec {

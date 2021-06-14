@@ -1,7 +1,7 @@
 package domains.channel
 
-import cats.syntax.either._
 import cats.syntax.apply._
+import cats.syntax.either._
 import domains.channel.Channel.ChannelId
 import domains.channel.ChannelMessage.{
   ChannelMessageSenderUserId,

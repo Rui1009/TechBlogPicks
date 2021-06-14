@@ -1,12 +1,11 @@
 package usecases
 
-import domains.post.{Post, PostRepository, UnsavedPost}
-import helpers.traits.UseCaseSpec
-import usecases.RegisterPostUseCase._
-import cats.syntax.option._
 import domains.application.ApplicationRepository
+import domains.post.{PostRepository, UnsavedPost}
+import helpers.traits.UseCaseSpec
 import infra.DBError
 import org.scalacheck.Gen
+import usecases.RegisterPostUseCase._
 
 import scala.concurrent.Future
 

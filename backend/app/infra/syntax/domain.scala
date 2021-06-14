@@ -1,8 +1,7 @@
 package infra.syntax
 
 import domains.application.Application
-import domains.bot.Bot
-import domains.post.{Post, UnsavedPost}
+import domains.post.UnsavedPost
 import infra.dto.Tables._
 
 object domain extends DomainSyntax

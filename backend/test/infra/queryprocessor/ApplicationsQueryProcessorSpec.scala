@@ -2,8 +2,9 @@ package infra.queryprocessor
 
 import helpers.traits.QueryProcessorSpec
 import infra.dao.slack.UsersDaoImpl._
-import io.circe.{Json, JsonObject}
+import infra.dto.Tables._
 import io.circe.syntax._
+import io.circe.{Json, JsonObject}
 import mockws.MockWS
 import mockws.MockWSHelpers.Action
 import org.scalatest.time.{Millis, Span}
@@ -12,7 +13,6 @@ import play.api.inject.bind
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
 import query.applications.{ApplicationsQueryProcessor, ApplicationsView}
-import infra.dto.Tables._
 
 trait ApplicationsQueryProcessorSuccessSpecContext {
   val members = Seq(

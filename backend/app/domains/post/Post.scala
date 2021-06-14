@@ -1,8 +1,8 @@
 package domains.post
 
+import domains._
 import domains.application.Application
 import domains.post.Post._
-import domains._
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection.NonEmpty
 import eu.timepit.refined.numeric.Positive

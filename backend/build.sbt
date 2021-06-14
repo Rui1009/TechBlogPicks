@@ -21,6 +21,7 @@ logo :=
 
 logoColor := SConsole.CYAN
 
+ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 usefulTasks := Seq(
   UsefulTask("fmt", "scalafmtAll", "Format code"),
   UsefulTask("fmtCheck", "scalafmtCheckAll", "Check code format"),
@@ -28,11 +29,21 @@ usefulTasks := Seq(
   UsefulTask("r", "reload", "Check code format")
 )
 
+inThisBuild(
+  Seq(
+    addCompilerPlugin(scalafixSemanticdb),
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision,
+    scalafixScalaBinaryVersion := "2.13"
+  )
+)
+
 lazy val codegen = taskKey[Unit]("generate slick table code")
 
 lazy val settings = Seq(
   scalacOptions ++= Seq(
     "-Ymacro-annotations",
+    "-Wunused:imports",
     "-feature",
     "-language:implicitConversions",
     "-language:higherKinds"

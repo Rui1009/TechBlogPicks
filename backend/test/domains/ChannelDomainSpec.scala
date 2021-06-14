@@ -1,7 +1,6 @@
 package domains
 
 import domains.channel.Channel._
-import domains.channel.ChannelMessage.ChannelMessageSentAt
 import helpers.traits.ModelSpec
 
 class ChannelDomainSpec extends ModelSpec {

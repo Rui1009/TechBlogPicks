@@ -1,24 +1,24 @@
 package helpers.gens
 
-import domains.workspace.WorkSpace
-import domains.post.Post._
-import domains.workspace.WorkSpace._
-import domains.bot.Bot
-import domains.bot.Bot._
-import domains.post.Post.PostId
-import org.scalacheck.Gen
-import helpers.gens.string._
-import helpers.gens.number._
-import domain._
-import domains.post.Post
 import domains.application.Application
 import domains.application.Application._
-import domains.channel.{Channel, ChannelMessage, Message}
+import domains.bot.Bot
+import domains.bot.Bot._
 import domains.channel.Channel._
 import domains.channel.ChannelMessage.{
   ChannelMessageSenderUserId,
   ChannelMessageSentAt
 }
+import domains.channel.{Channel, ChannelMessage}
+import domains.post.Post
+import domains.post.Post._
+import domains.workspace.WorkSpace
+import domains.workspace.WorkSpace._
+import helpers.gens.number._
+import helpers.gens.string._
+import org.scalacheck.Gen
+
+import domain._
 
 object domain extends DomainGen
 

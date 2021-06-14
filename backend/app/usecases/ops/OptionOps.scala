@@ -2,7 +2,7 @@ package usecases.ops
 
 import usecases.SystemError
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 trait OptionOps {
   implicit class OptionTOps[T](private val option: Option[T]) {

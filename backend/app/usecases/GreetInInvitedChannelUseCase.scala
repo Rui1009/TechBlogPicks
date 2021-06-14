@@ -5,9 +5,8 @@ import domains.application.Application.ApplicationId
 import domains.bot.Bot.BotId
 import domains.channel.Channel.ChannelId
 import domains.workspace.WorkSpace.WorkSpaceId
-import domains.workspace.{WorkSpace, WorkSpaceRepository}
+import domains.workspace.WorkSpaceRepository
 import usecases.GreetInInvitedChannelUseCase.Params
-import cats.syntax.either._
 
 import scala.concurrent.{ExecutionContext, Future}
 

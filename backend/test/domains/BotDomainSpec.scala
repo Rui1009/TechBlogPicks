@@ -2,13 +2,7 @@ package domains
 
 import domains.bot.Bot._
 import domains.channel.DraftMessage
-import domains.channel.DraftMessage.{
-  ActionBlock,
-  ActionSelect,
-  BlockText,
-  SectionBlock,
-  SelectPlaceHolder
-}
+import domains.channel.DraftMessage._
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
 import helpers.traits.ModelSpec

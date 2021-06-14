@@ -8,20 +8,20 @@ import domains.application.Application.{
   ApplicationName
 }
 import domains.post.Post.PostId
+import eu.timepit.refined.auto._
 import helpers.traits.RepositorySpec
 import infra.dao.slack.UsersDaoImpl.Member
-import infra.repositoryimpl.ApplicationRepositoryImpl
 import infra.dto.Tables._
-import io.circe.{Json, JsonObject}
+import infra.repositoryimpl.ApplicationRepositoryImpl
 import io.circe.syntax._
+import io.circe.{Json, JsonObject}
 import mockws.MockWS
 import mockws.MockWSHelpers.Action
-import play.api.mvc.Results.Ok
-import eu.timepit.refined.auto._
 import org.scalacheck.Gen
 import org.scalatest.time.{Millis, Span}
-import play.api.libs.ws.WSClient
 import play.api.inject.bind
+import play.api.libs.ws.WSClient
+import play.api.mvc.Results.Ok
 
 class ApplicationRepositoryImplSpec
     extends RepositorySpec[ApplicationRepositoryImpl]

@@ -5,9 +5,8 @@ import adapters.controllers.application.{
   UpdateClientInfoBody
 }
 import adapters.controllers.post.{CreatePostBody, DeletePostsBody}
-import org.scalacheck.Gen
 import helpers.gens.string._
-import helpers.gens.number._
+import org.scalacheck.Gen
 
 object request extends RequestGen
 

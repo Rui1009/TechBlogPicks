@@ -1,12 +1,12 @@
 package adapters.controllers.application
 
-import adapters.{AdapterError, BadRequestError}
 import adapters.controllers.helpers.JsonRequestMapper
-import domains.workspace.WorkSpace.WorkSpaceId
-import play.api.mvc.{BaseController, BodyParser}
-import io.circe.generic.auto._
+import adapters.{AdapterError, BadRequestError}
 import cats.implicits._
 import domains.application.Application.ApplicationId
+import domains.workspace.WorkSpace.WorkSpaceId
+import io.circe.generic.auto._
+import play.api.mvc.{BaseController, BodyParser}
 
 import scala.concurrent.ExecutionContext
 

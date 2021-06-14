@@ -1,8 +1,8 @@
 package infra.queryprocessor
 
 import helpers.traits.QueryProcessorSpec
-import query.posts.{PostsQueryProcessor, PostsView}
 import infra.dto.Tables._
+import query.posts.{PostsQueryProcessor, PostsView}
 
 class PostQueryProcessorSpec extends QueryProcessorSpec[PostsQueryProcessor] {
 

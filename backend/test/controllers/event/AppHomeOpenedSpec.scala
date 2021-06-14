@@ -3,9 +3,9 @@ package controllers.event
 import helpers.traits.ControllerSpec
 import io.circe.Json
 import play.api.Application
-import usecases.{PostOnboardingMessageUseCase, SystemError}
 import play.api.inject.bind
 import play.api.test.Helpers._
+import usecases.{PostOnboardingMessageUseCase, SystemError}
 
 import scala.concurrent.Future
 

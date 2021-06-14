@@ -1,8 +1,8 @@
 package domains
 
+import cats.syntax.either._
 import eu.timepit.refined.api.{Refined, Validate}
 import eu.timepit.refined.refineV
-import cats.syntax.either._
 
 abstract class VOFactory[Error <: DomainError] {
   type Type

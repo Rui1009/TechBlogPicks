@@ -1,8 +1,8 @@
 package domains
 
-import helpers.traits.ModelSpec
 import cats.syntax.either._
 import domains.post.Post._
+import helpers.traits.ModelSpec
 import org.scalacheck.Gen
 
 class PostDomainSpec extends ModelSpec {

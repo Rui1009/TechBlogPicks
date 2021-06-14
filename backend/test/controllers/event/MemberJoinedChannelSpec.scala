@@ -2,9 +2,9 @@ package controllers.event
 
 import helpers.traits.ControllerSpec
 import io.circe.Json
-import usecases.{GreetInInvitedChannelUseCase, SystemError}
 import play.api.inject.bind
 import play.api.test.Helpers._
+import usecases.{GreetInInvitedChannelUseCase, SystemError}
 
 import scala.concurrent.Future
 

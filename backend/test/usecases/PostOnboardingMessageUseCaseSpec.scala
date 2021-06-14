@@ -1,10 +1,10 @@
 package usecases
 
 import domains.workspace.WorkSpaceRepository
-import helpers.traits.UseCaseSpec
-import usecases.PostOnboardingMessageUseCase.Params
 import eu.timepit.refined.auto._
-import infra.{APIError, DBError}
+import helpers.traits.UseCaseSpec
+import infra.APIError
+import usecases.PostOnboardingMessageUseCase.Params
 
 import scala.concurrent.Future
 

@@ -2,16 +2,15 @@ package infra.queryprocessor
 
 import helpers.traits.{HasDB, QueryProcessorSpec}
 import infra.dto.Tables._
-import query.publishposts.{Post, PublishPostsQueryProcessor, PublishPostsView}
-import cats.syntax.option._
+import io.circe._
 import mockws.MockWS
 import mockws.MockWSHelpers.Action
-import io.circe._
 import org.scalatest.time.{Millis, Span}
 import play.api.Application
 import play.api.inject.bind
 import play.api.libs.ws.WSClient
 import play.api.mvc.Results.Ok
+import query.publishposts.{Post, PublishPostsQueryProcessor, PublishPostsView}
 
 trait PublishPostsQueryProcessorSpecContext { this: HasDB =>
   val currUnix = System.currentTimeMillis / 1000
