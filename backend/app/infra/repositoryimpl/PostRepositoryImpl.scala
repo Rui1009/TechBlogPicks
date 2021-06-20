@@ -5,6 +5,7 @@ import domains.post.Post._
 import domains.post.{Post, PostRepository, UnsavedPost}
 import eu.timepit.refined.api.Refined
 import infra.dto.Tables._
+import infra.lib.HasDB
 import infra.syntax.all._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.PostgresProfile
@@ -15,8 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PostRepositoryImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider
 )(implicit val ec: ExecutionContext)
-    extends HasDatabaseConfigProvider[PostgresProfile] with PostRepository
-    with API {
+    extends HasDB with PostRepository {
   override def save(model: UnsavedPost): Future[Post] = {
     val nowUnix = System.currentTimeMillis / 1000
     val newPost = model.toRow(nowUnix)

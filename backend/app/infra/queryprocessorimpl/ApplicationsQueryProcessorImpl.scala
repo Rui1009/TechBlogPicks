@@ -3,11 +3,10 @@ package infra.queryprocessorimpl
 import com.google.inject.Inject
 import infra.dao.slack.UsersDao
 import infra.dto.Tables._
+import infra.lib.HasDB
 import infra.syntax.all._
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.DatabaseConfigProvider
 import query.applications.{ApplicationsQueryProcessor, ApplicationsView}
-import slick.jdbc.PostgresProfile
-import slick.jdbc.PostgresProfile.API
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,8 +14,7 @@ class ApplicationsQueryProcessorImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
   protected val usersDao: UsersDao
 )(implicit val ec: ExecutionContext)
-    extends HasDatabaseConfigProvider[PostgresProfile]
-    with ApplicationsQueryProcessor with API {
+    extends HasDB with ApplicationsQueryProcessor {
   override def findAll: Future[Seq[ApplicationsView]] = (for {
     res <- usersDao.list(sys.env.getOrElse("ACCESS_TOKEN", ""))
   } yield for {

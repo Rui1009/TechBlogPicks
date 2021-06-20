@@ -12,11 +12,10 @@ import domains.post.Post.PostId
 import eu.timepit.refined.api.Refined
 import infra.dao.slack.{ConversationDao, UsersDao, UsersDaoImpl}
 import infra.dto.Tables._
+import infra.lib.HasDB
 import infra.syntax.all._
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.ws.WSClient
-import slick.jdbc.PostgresProfile
-import slick.jdbc.PostgresProfile.API
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -26,8 +25,7 @@ class ApplicationRepositoryImpl @Inject() (
   protected val usersDao: UsersDao,
   protected val conversationDao: ConversationDao
 )(implicit val ec: ExecutionContext)
-    extends HasDatabaseConfigProvider[PostgresProfile]
-    with ApplicationRepository with API {
+    extends HasDB with ApplicationRepository {
   override def find(
     applicationId: ApplicationId
   ): Future[Option[Application]] = {

@@ -2,19 +2,17 @@ package infra.queryprocessorimpl
 
 import com.google.inject.Inject
 import infra.dto.Tables._
+import infra.lib.HasDB
 import infra.syntax.all._
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.DatabaseConfigProvider
 import query.posts.{PostsQueryProcessor, PostsView}
-import slick.jdbc.PostgresProfile
-import slick.jdbc.PostgresProfile.API
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class PostsQueryProcessorImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider
 )(implicit val ec: ExecutionContext)
-    extends HasDatabaseConfigProvider[PostgresProfile] with API
-    with PostsQueryProcessor {
+    extends HasDB with PostsQueryProcessor {
   override def findAll: Future[Seq[PostsView]] = for {
     queryResult <- db.run {
                      Posts.sortBy(_.createdAt.desc).result
