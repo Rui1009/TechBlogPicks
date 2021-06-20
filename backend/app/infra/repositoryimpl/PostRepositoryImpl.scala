@@ -7,9 +7,7 @@ import eu.timepit.refined.api.Refined
 import infra.dto.Tables._
 import infra.lib.HasDB
 import infra.syntax.all._
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.jdbc.PostgresProfile
-import slick.jdbc.PostgresProfile.API
+import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.{ExecutionContext, Future}
 
