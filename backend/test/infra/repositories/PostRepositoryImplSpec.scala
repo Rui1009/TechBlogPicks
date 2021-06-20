@@ -2,6 +2,7 @@ package infra.repositories
 
 import domains.post.Post.PostId
 import domains.post.UnsavedPost
+import helpers.tags.DBTest
 import helpers.traits.RepositorySpec
 import infra.dto.Tables._
 import infra.repositoryimpl.PostRepositoryImpl
@@ -12,7 +13,7 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
   "save" when {
     "succeed" should {
       "add new data".which {
-        "length is right" in {
+        "length is right" taggedAs DBTest in {
           forAll(postGen, Gen.listOf(botIdGen)) { (post, botIds) =>
             val unsavedPost = UnsavedPost(
               post.url,
@@ -28,7 +29,7 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
           }
         }
 
-        "values are right" in {
+        "values are right" taggedAs DBTest in {
           forAll(postGen) { post =>
             val unsavedPost = UnsavedPost(
               post.url,
@@ -62,7 +63,7 @@ class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
 
   "delete" when {
     "succeed" should {
-      "delete data" in {
+      "delete data" taggedAs DBTest in {
         val pre     = DBIO.seq(
           Posts.forceInsertAll(
             Seq(

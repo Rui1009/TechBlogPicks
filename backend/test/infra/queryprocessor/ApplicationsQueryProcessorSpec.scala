@@ -1,5 +1,6 @@
 package infra.queryprocessor
 
+import helpers.tags.DBTest
 import helpers.traits.QueryProcessorSpec
 import infra.dao.slack.UsersDaoImpl._
 import infra.dto.Tables._
@@ -67,7 +68,7 @@ class ApplicationsQueryProcessorSuccessSpec
 
   "findAll" when {
     "succeed" should {
-      "return BotsView" in {
+      "return BotsView" taggedAs DBTest in {
         val result   = queryProcessor.findAll.futureValue
         val expected = Seq(
           ApplicationsView(
@@ -112,7 +113,7 @@ class ApplicationsQueryProcessorFailSpec
 
   "findAll" when {
     "failed" should {
-      "return ApplicationsView" in {
+      "return ApplicationsView" taggedAs DBTest in {
         val result = queryProcessor.findAll
 
         val msg = """

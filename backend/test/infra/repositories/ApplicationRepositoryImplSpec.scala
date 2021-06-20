@@ -9,6 +9,7 @@ import domains.application.Application.{
 }
 import domains.post.Post.PostId
 import eu.timepit.refined.auto._
+import helpers.tags.DBTest
 import helpers.traits.RepositorySpec
 import infra.dao.slack.UsersDaoImpl.Member
 import infra.dto.Tables._
@@ -66,7 +67,7 @@ class ApplicationRepositoryImplSuccessSpec
 
   "find" when {
     "succeed" should {
-      "get application" in {
+      "get application" taggedAs DBTest in {
         val beforeAction = DBIO.seq(
           Posts.forceInsertAll(
             Seq(
@@ -123,7 +124,7 @@ class ApplicationRepositoryImplSuccessSpec
 
   "filter" when {
     "succeed" should {
-      "filter applications correctly" in {
+      "filter applications correctly" taggedAs DBTest in {
         val insertAction = DBIO.seq(
           Posts.forceInsertAll(
             Seq(
@@ -189,7 +190,7 @@ class ApplicationRepositoryImplSuccessSpec
   "update" when {
     "succeed" should {
       "target application updated correctly".which {
-        "length and value is right" in {
+        "length and value is right" taggedAs DBTest in {
           forAll(applicationGen) { application =>
             val insertAction = DBIO.seq(
               BotClientInfo.forceInsertAll(
@@ -240,7 +241,7 @@ class ApplicationRepositoryImplSuccessSpec
       }
 
       "added new data correctly".which {
-        "length and value is right" in {
+        "length and value is right" taggedAs DBTest in {
           forAll(applicationGen) { application =>
             db.run(BotClientInfo.delete).futureValue
 
@@ -263,7 +264,7 @@ class ApplicationRepositoryImplSuccessSpec
 
   "save" when {
     "succeed" should {
-      "new botsPostsRows are added" in {
+      "new botsPostsRows are added" taggedAs DBTest in {
         forAll(Gen.nonEmptyListOf(applicationGen), postIdGen) {
           (applications, postId) =>
             val insertAction = DBIO.seq(
@@ -313,7 +314,7 @@ class ApplicationRepositoryImplFailSpec extends ApplicationRepositoryImplSpec {
 
   "find" when {
     "failed in userDao.list" should {
-      "return API error" in {
+      "return API error" taggedAs DBTest in {
         val result = repository.find(ApplicationId("bot1"))
 
         val msg = """
@@ -329,7 +330,7 @@ class ApplicationRepositoryImplFailSpec extends ApplicationRepositoryImplSpec {
 
   "filter" when {
     "failed in userDao.list" should {
-      "return API error" in {
+      "return API error" taggedAs DBTest in {
         val result = repository.filter(Seq(ApplicationId("appId")))
         val msg    = """
                        |DBError
