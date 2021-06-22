@@ -7,14 +7,13 @@ import helpers.traits.RepositorySpec
 import infra.dto.Tables._
 import infra.repositoryimpl.PostRepositoryImpl
 import infra.syntax.all._
-import org.scalacheck.Gen
 
 class PostRepositoryImplSpec extends RepositorySpec[PostRepositoryImpl] {
   "save" when {
     "succeed" should {
       "add new data".which {
         "length is right" taggedAs DBTest in {
-          forAll(postGen, Gen.listOf(botIdGen)) { (post, botIds) =>
+          forAll(postGen) { post =>
             val unsavedPost = UnsavedPost(
               post.url,
               post.title,

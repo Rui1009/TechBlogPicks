@@ -3,11 +3,10 @@ package infra.queryprocessorimpl
 import com.google.inject.Inject
 import infra.dao.slack.UsersDao
 import infra.dto.Tables._
+import infra.lib.HasDB
 import infra.syntax.all._
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.DatabaseConfigProvider
 import query.publishposts._
-import slick.jdbc.PostgresProfile
-import slick.jdbc.PostgresProfile.API
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,8 +14,7 @@ class PublishPostsQueryProcessorImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
   protected val usersDao: UsersDao
 )(implicit val ec: ExecutionContext)
-    extends HasDatabaseConfigProvider[PostgresProfile]
-    with PublishPostsQueryProcessor with API {
+    extends HasDB with PublishPostsQueryProcessor {
   override def findAll(): Future[Seq[PublishPostsView]] = {
     val currUnix      = System.currentTimeMillis / 1000
     val yesterdayUnix = currUnix - 3600 * 24

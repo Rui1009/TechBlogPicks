@@ -17,13 +17,12 @@ import infra.DBError
 import infra.dao.slack._
 import infra.dto.Tables._
 import infra.format.AccessTokenPublisherTokenDecoder
+import infra.lib.HasDB
 import infra.syntax.all._
 import io.circe.Json
 import io.circe.parser._
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.ws._
-import slick.jdbc.PostgresProfile
-import slick.jdbc.PostgresProfile.API
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -36,8 +35,8 @@ class WorkSpaceRepositoryImpl @Inject() (
   protected val conversationDao: ConversationDao,
   protected val chatDao: ChatDao
 )(implicit val ec: ExecutionContext)
-    extends HasDatabaseConfigProvider[PostgresProfile] with WorkSpaceRepository
-    with API with AccessTokenPublisherTokenDecoder {
+    extends HasDB with WorkSpaceRepository
+    with AccessTokenPublisherTokenDecoder {
   override def find(
     code: WorkSpaceTemporaryOauthCode,
     clientId: ApplicationClientId,
