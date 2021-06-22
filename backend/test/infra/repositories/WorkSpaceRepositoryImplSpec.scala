@@ -12,6 +12,7 @@ import domains.channel.{Channel, ChannelMessage}
 import domains.workspace.WorkSpace._
 import domains.workspace.{WorkSpace, WorkSpaceRepository}
 import eu.timepit.refined.auto._
+import helpers.tags.DBTest
 import helpers.traits.RepositorySpec
 import infra.dao.slack.UsersDaoImpl.Member
 import infra.dto.Tables._
@@ -167,7 +168,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
 
   "find(WorkSpaceId)" when {
     "succeed" should {
-      "get work space" in {
+      "get work space" taggedAs DBTest in {
 
         db.run(WorkSpaces.delete).futureValue
         db.run(insertAction).futureValue
@@ -229,7 +230,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
 
   "find(code, clientId, clientSecret)" when {
     "succeed" should {
-      "get work space" in {
+      "get work space" taggedAs DBTest in {
         forAll(
           temporaryOauthCodeGen,
           applicationClientIdGen,
@@ -296,7 +297,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
   "update" when {
     "succeed".which {
       "target bot exists" should {
-        "new data added correctly" in {
+        "new data added correctly" taggedAs DBTest in {
           forAll(workSpaceGen, applicationGen, botGen, accessTokensGen) {
             (_workSpace, application, bot, accessToken) =>
               val workSpace = _workSpace.copy(bots =
@@ -325,9 +326,9 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
       }
 
       "no target bot exists" should {
-        "return None" in {
+        "return None" taggedAs DBTest in {
           forAll(workSpaceGen, applicationGen) { (workSpace, application) =>
-            db.run(WorkSpaces.delete)
+            db.run(WorkSpaces.delete).futureValue
             val result =
               repository.update(workSpace, application.id).futureValue
 
@@ -340,7 +341,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
 
   "joinChannels" when {
     "succeed" should {
-      "return future unit" in {
+      "return future unit" taggedAs DBTest in {
         forAll(
           workSpaceGen,
           applicationGen,
@@ -362,7 +363,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
 
   "removeBot" when {
     "succeed" should {
-      "target data removed correctly" in {
+      "target data removed correctly" taggedAs DBTest in {
         forAll(workSpaceGen, botGen) { (_workSpace, bot) =>
           val workSpace = _workSpace.copy(
             id = WorkSpaceId("workSpace1"),
@@ -390,7 +391,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
   "sendMessage" when {
     "succeed".which {
       "target bot & its draft message exists" should {
-        "return some unit" in {
+        "return some unit" taggedAs DBTest in {
           forAll(workSpaceGen, botGen, channelIdGen, applicationIdGen) {
             (_workSpace, _bot, channelId, appId) =>
               val bot       = _bot.copy(applicationId = appId).createOnboardingMessage
@@ -406,7 +407,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
       }
 
       "no target bot exists" should {
-        "return None" in {
+        "return None" taggedAs DBTest in {
           forAll(workSpaceGen, channelIdGen, applicationIdGen) {
             (_workSpace, channelId, appId) =>
               val result =
@@ -417,7 +418,7 @@ class WorkSpaceRepositoryImplSuccessSpec extends WorkSpaceRepositoryImplSpec {
         }
       }
 
-      "no draft message exists" in {
+      "no draft message exists" taggedAs DBTest in {
         forAll(workSpaceGen, botGen, channelIdGen, applicationIdGen) {
           (_workSpace, _bot, channelId, appId) =>
             val bot       = _bot.copy(applicationId = appId, draftMessage = None)
@@ -476,7 +477,7 @@ class WorkSpaceRepositoryImplFailSpec extends WorkSpaceRepositoryImplSpec {
 
   "find(code, clientId, clientSecret)" when {
     "failed in oauth api" should {
-      "return infra error" in {
+      "return infra error" taggedAs DBTest in {
         forAll(
           temporaryOauthCodeGen,
           applicationClientIdGen,
@@ -498,7 +499,7 @@ class WorkSpaceRepositoryImplFailSpec extends WorkSpaceRepositoryImplSpec {
 
   "joinChannels" when {
     "failed in conversationDao.join" should {
-      "return infra error" in {
+      "return infra error" taggedAs DBTest in {
         forAll(
           workSpaceGen,
           applicationGen,
@@ -528,7 +529,7 @@ class WorkSpaceRepositoryImplFailSpec extends WorkSpaceRepositoryImplSpec {
 
   "sendMessage" when {
     "failed in chatDao.postMessage" should {
-      "return infra error" in {
+      "return infra error" taggedAs DBTest in {
         forAll(workSpaceGen, botGen, channelIdGen, applicationIdGen) {
           (_workSpace, _bot, channelId, appId) =>
             val bot       = _bot.copy(applicationId = appId).createOnboardingMessage

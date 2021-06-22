@@ -1,5 +1,6 @@
 package infra.queryprocessor
 
+import helpers.tags.DBTest
 import helpers.traits.{HasDB, QueryProcessorSpec}
 import infra.dto.Tables._
 import io.circe._
@@ -103,7 +104,7 @@ class PublishPostsQueryProcessorSpec
 
   "findAll" when {
     "success" should {
-      "return PublishPostsView seq" in {
+      "return PublishPostsView seq" taggedAs DBTest in {
 
         db.run(deleteAction).futureValue
         db.run(beforeAction).futureValue

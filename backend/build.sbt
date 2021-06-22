@@ -33,7 +33,9 @@ usefulTasks := Seq(
     "Check code format"
   ),
   UsefulTask("c", "compile", "Check code format"),
-  UsefulTask("r", "reload", "Check code format")
+  UsefulTask("r", "reload", "Check code format"),
+  UsefulTask("dbtest", "testOnly -- -n DBTest", "Run tests requiring DB"),
+  UsefulTask("nondbtest", "testOnly -- -l DBTest", "Run tests not requiring DB")
 )
 
 inThisBuild(

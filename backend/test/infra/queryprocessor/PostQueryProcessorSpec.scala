@@ -1,5 +1,6 @@
 package infra.queryprocessor
 
+import helpers.tags.DBTest
 import helpers.traits.QueryProcessorSpec
 import infra.dto.Tables._
 import query.posts.{PostsQueryProcessor, PostsView}
@@ -21,7 +22,7 @@ class PostQueryProcessorSpec extends QueryProcessorSpec[PostsQueryProcessor] {
 
   "findAll" when {
     "success" should {
-      "return PostsView seq" in {
+      "return PostsView seq" taggedAs DBTest in {
 
         db.run(deleteAction).futureValue
         db.run(beforeAction).futureValue
